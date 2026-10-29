@@ -915,12 +915,89 @@ export default function PortalFacultadCienciasMatematicas() {
     setFormCursoMalla({ id: "", carrera_id: adminFiltroCarreraMalla, ciclo: 3, codigo: "", nombre_curso: "", creditos: 4.0, tipo_curso: "O", prerequisitosTexto: "" });
   };
 
+  const TEMA_CARRERA: Record<
+    CarreraId,
+    {
+      headerBg: string;
+      borderAccent: string;
+      cardHoverBorder: string;
+      badgeSolid: string;
+      badgeSoft: string;
+      iconWrap: string;
+      textAccent: string;
+      groupHoverText: string;
+      tabActive: string;
+      tabPillActive: string;
+      cycleBtn: string;
+      cyclePill: string;
+    }
+  > = {
+    "computacion-cientifica": {
+      headerBg: "bg-gradient-to-r from-[#002855] via-blue-900 to-blue-700",
+      borderAccent: "border-blue-400",
+      cardHoverBorder: "hover:border-blue-700",
+      badgeSolid: "bg-blue-700 hover:bg-blue-600 text-white border-blue-500",
+      badgeSoft: "bg-blue-50 text-blue-800 border-blue-200",
+      iconWrap: "bg-blue-50 border-blue-200 text-blue-700",
+      textAccent: "text-blue-700",
+      groupHoverText: "group-hover:text-blue-700",
+      tabActive: "bg-[#002855] text-white shadow-md border-b-2 border-blue-400",
+      tabPillActive: "bg-blue-600 text-white",
+      cycleBtn: "bg-[#002855] hover:bg-blue-900",
+      cyclePill: "bg-blue-600 text-white",
+    },
+    "investigacion-operativa": {
+      headerBg: "bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-700",
+      borderAccent: "border-emerald-400",
+      cardHoverBorder: "hover:border-emerald-700",
+      badgeSolid: "bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-500",
+      badgeSoft: "bg-emerald-50 text-emerald-800 border-emerald-200",
+      iconWrap: "bg-emerald-50 border-emerald-200 text-emerald-700",
+      textAccent: "text-emerald-700",
+      groupHoverText: "group-hover:text-emerald-700",
+      tabActive: "bg-emerald-800 text-white shadow-md border-b-2 border-emerald-400",
+      tabPillActive: "bg-emerald-600 text-white",
+      cycleBtn: "bg-emerald-800 hover:bg-emerald-700",
+      cyclePill: "bg-emerald-600 text-white",
+    },
+    matematica: {
+      headerBg: "bg-gradient-to-r from-red-900 via-red-800 to-red-700",
+      borderAccent: "border-red-300",
+      cardHoverBorder: "hover:border-red-700",
+      badgeSolid: "bg-red-700 hover:bg-red-600 text-white border-red-500",
+      badgeSoft: "bg-red-50 text-red-800 border-red-200",
+      iconWrap: "bg-red-50 border-red-200 text-red-700",
+      textAccent: "text-red-700",
+      groupHoverText: "group-hover:text-red-700",
+      tabActive: "bg-red-800 text-white shadow-md border-b-2 border-red-300",
+      tabPillActive: "bg-red-600 text-white",
+      cycleBtn: "bg-red-800 hover:bg-red-700",
+      cyclePill: "bg-red-600 text-white",
+    },
+    estadistica: {
+      headerBg: "bg-gradient-to-r from-orange-800 via-orange-700 to-amber-600",
+      borderAccent: "border-amber-300",
+      cardHoverBorder: "hover:border-orange-600",
+      badgeSolid: "bg-orange-600 hover:bg-orange-500 text-white border-orange-400",
+      badgeSoft: "bg-orange-50 text-orange-800 border-orange-200",
+      iconWrap: "bg-orange-50 border-orange-200 text-orange-600",
+      textAccent: "text-orange-600",
+      groupHoverText: "group-hover:text-orange-600",
+      tabActive: "bg-orange-600 text-white shadow-md border-b-2 border-amber-200",
+      tabPillActive: "bg-orange-800 text-white",
+      cycleBtn: "bg-orange-700 hover:bg-orange-600",
+      cyclePill: "bg-orange-900 text-white",
+    },
+  };
+
+  const temaActivo = TEMA_CARRERA[carreraActiva.id];
+
   const renderIconoCarrera = (id: CarreraId) => {
     switch (id) {
-      case "computacion-cientifica": return <Cpu className="w-6 h-6 text-blue-900" />;
+      case "computacion-cientifica": return <Cpu className="w-6 h-6 text-blue-700" />;
       case "matematica": return <Sigma className="w-6 h-6 text-red-700" />;
-      case "estadistica": return <BarChart3 className="w-6 h-6 text-blue-800" />;
-      case "investigacion-operativa": return <Network className="w-6 h-6 text-red-700" />;
+      case "estadistica": return <BarChart3 className="w-6 h-6 text-orange-600" />;
+      case "investigacion-operativa": return <Network className="w-6 h-6 text-emerald-700" />;
     }
   };
 
@@ -1180,20 +1257,22 @@ export default function PortalFacultadCienciasMatematicas() {
               <span>Contacto</span>
             </button>
 
-            <button
-              onClick={() => setVistaActual("/admin")}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                vistaActual === "/admin" ? "bg-white text-[#002855] shadow-sm" : "bg-blue-900 hover:bg-blue-800 text-white border border-blue-700"
-              }`}
-            >
-              {adminAutenticado ? <Unlock className="w-3.5 h-3.5 text-emerald-400" /> : <Lock className="w-3.5 h-3.5" />}
-              <span>CMS (/admin)</span>
-              {materialesPendientes.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-red-600 text-white">
-                  {materialesPendientes.length}
-                </span>
-              )}
-            </button>
+            {adminAutenticado && (
+              <button
+                onClick={() => setVistaActual("/admin")}
+                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  vistaActual === "/admin" ? "bg-white text-[#002855] shadow-sm" : "bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500"
+                }`}
+              >
+                <Unlock className="w-3.5 h-3.5 text-white" />
+                <span>Panel Admin</span>
+                {materialesPendientes.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-red-600 text-white">
+                    {materialesPendientes.length}
+                  </span>
+                )}
+              </button>
+            )}
           </nav>
         </div>
       </header>
@@ -1291,31 +1370,32 @@ export default function PortalFacultadCienciasMatematicas() {
               {carreras.map((car) => {
                 const cursosCar = malla.filter((c) => c.carrera_id === car.id);
                 const totalCreditos = cursosCar.reduce((acc, c) => acc + c.creditos, 0);
+                const temaCar = TEMA_CARRERA[car.id];
                 return (
                   <div
                     key={car.id}
                     onClick={() => navegarACarrera(car.id)}
-                    className="group rounded-2xl border border-slate-200 bg-white hover:border-blue-900 shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
+                    className={`group rounded-2xl border border-slate-200 bg-white ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between`}
                   >
                     <div>
-                      <div className="bg-[#002855] text-white px-5 py-3.5 flex items-center justify-between border-b-2 border-red-600">
-                        <span className="text-xs font-mono font-bold text-red-300">{car.codigo_escuela}</span>
-                        <span className="text-[11px] font-semibold bg-blue-900 px-2 py-0.5 rounded">10 Ciclos</span>
+                      <div className={`${temaCar.headerBg} text-white px-5 py-3.5 flex items-center justify-between border-b-2 ${temaCar.borderAccent}`}>
+                        <span className="text-xs font-mono font-bold text-white/90">{car.codigo_escuela}</span>
+                        <span className="text-[11px] font-semibold bg-black/25 px-2.5 py-0.5 rounded-md">10 Ciclos</span>
                       </div>
                       <div className="p-5 space-y-3">
                         <div className="flex items-center gap-3">
-                          <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200">{renderIconoCarrera(car.id)}</div>
-                          <h3 className="text-lg font-extrabold text-[#002855] group-hover:text-red-700 transition-colors">{car.nombre}</h3>
+                          <div className={`p-2.5 rounded-xl border ${temaCar.iconWrap}`}>{renderIconoCarrera(car.id)}</div>
+                          <h3 className={`text-lg font-extrabold text-[#002855] ${temaCar.groupHoverText} transition-colors`}>{car.nombre}</h3>
                         </div>
                         <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">{car.descripcion}</p>
                       </div>
                     </div>
                     <div className="px-5 py-4 bg-slate-50 border-t border-slate-200 space-y-2">
                       <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
-                        <span className="text-red-700 font-bold">{cursosCar.length} asignaturas</span>
+                        <span className={`${temaCar.textAccent} font-bold`}>{cursosCar.length} asignaturas</span>
                         <span>{totalCreditos.toFixed(0)} créditos</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs font-bold text-[#002855] group-hover:text-red-700">
+                      <div className={`flex items-center justify-between text-xs font-bold text-[#002855] ${temaCar.groupHoverText}`}>
                         <span>Ver Tríptico y Malla (1-10)</span>
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </div>
@@ -1380,18 +1460,20 @@ export default function PortalFacultadCienciasMatematicas() {
             <div className="flex flex-wrap gap-2">
               {carreras.map((c) => {
                 const count = malla.filter((m) => m.carrera_id === c.id).length;
+                const temaTab = TEMA_CARRERA[c.id];
+                const esActiva = carreraSeleccionadaId === c.id;
                 return (
                   <button
                     key={c.id}
                     onClick={() => setCarreraSeleccionadaId(c.id)}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
-                      carreraSeleccionadaId === c.id
-                        ? "bg-[#002855] text-white shadow-md border-b-2 border-red-600"
+                    className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
+                      esActiva
+                        ? temaTab.tabActive
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
                     <span>{c.nombre}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${carreraSeleccionadaId === c.id ? "bg-red-700 text-white" : "bg-slate-300 text-slate-800"}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${esActiva ? temaTab.tabPillActive : "bg-slate-300 text-slate-800"}`}>
                       {count} cursos
                     </span>
                   </button>
@@ -1399,30 +1481,30 @@ export default function PortalFacultadCienciasMatematicas() {
               })}
             </div>
             <span className="text-xs font-mono text-slate-500 px-2">
-              Ruta: <strong className="text-[#002855]">/carreras/{carreraActiva.id}</strong>
+              Ruta: <strong className={temaActivo.textAccent}>/carreras/{carreraActiva.id}</strong>
             </span>
           </div>
 
-          {/* ENCABEZADO DE LA CARRERA */}
+          {/* ENCABEZADO DE LA CARRERA CON COLOR PROPIO POR ESCUELA */}
           <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-            <div className="bg-[#002855] text-white px-6 sm:px-8 py-6 border-b-4 border-red-700 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className={`${temaActivo.headerBg} text-white px-6 sm:px-8 py-6 border-b-4 ${temaActivo.borderAccent} flex flex-col lg:flex-row lg:items-center justify-between gap-6`}>
               <div className="space-y-2 max-w-3xl">
                 <div className="flex items-center gap-2.5">
-                  <span className="px-3 py-1 rounded bg-red-700 text-white text-xs font-mono font-bold">{carreraActiva.codigo_escuela}</span>
-                  <span className="text-xs text-blue-200 font-medium">
+                  <span className="px-3 py-1 rounded bg-black/25 text-white text-xs font-mono font-bold border border-white/20">{carreraActiva.codigo_escuela}</span>
+                  <span className="text-xs text-white/90 font-medium">
                     10 Ciclos Académicos • {cursosDeCarreraActiva.length} Asignaturas Registradas
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-4xl font-extrabold text-white">Escuela Profesional de {carreraActiva.nombre}</h1>
-                <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">{carreraActiva.descripcion}</p>
+                <p className="text-xs sm:text-sm text-white/90 leading-relaxed">{carreraActiva.descripcion}</p>
               </div>
 
               <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 print:hidden">
                 <button
                   onClick={handleDescargarMallaPDF}
-                  className="px-5 py-3.5 rounded-xl bg-red-700 hover:bg-red-600 text-white font-extrabold text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 border border-red-500 cursor-pointer"
+                  className="px-5 py-3.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-extrabold text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className={`w-4 h-4 ${temaActivo.textAccent}`} />
                   <span>📥 Descargar Malla Curricular (PDF)</span>
                 </button>
                 <button
@@ -1432,9 +1514,9 @@ export default function PortalFacultadCienciasMatematicas() {
                     setRepoFiltroCurso("TODOS");
                     setVistaActual("/repositorio");
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center justify-center gap-2 border border-white/20"
+                  className="px-4 py-2.5 rounded-xl bg-black/20 hover:bg-black/30 text-white text-xs font-semibold flex items-center justify-center gap-2 border border-white/25"
                 >
-                  <FolderGit2 className="w-4 h-4 text-red-300" />
+                  <FolderGit2 className="w-4 h-4 text-white" />
                   <span>Ir al Repositorio de {carreraActiva.nombre}</span>
                 </button>
               </div>
@@ -1442,11 +1524,11 @@ export default function PortalFacultadCienciasMatematicas() {
 
             <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
               <div className="md:col-span-2 space-y-1.5">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-red-700">Perfil del Egresado</h3>
+                <h3 className={`text-xs font-extrabold uppercase tracking-wider ${temaActivo.textAccent}`}>Perfil del Egresado</h3>
                 <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">{carreraActiva.perfil_egreso}</p>
               </div>
               <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-1.5 text-xs">
-                <p className="font-extrabold uppercase text-[#002855]">Grados y Títulos Oficiales</p>
+                <p className={`font-extrabold uppercase ${temaActivo.textAccent}`}>Grados y Títulos Oficiales</p>
                 <p className="text-slate-600">Grado: <strong className="text-slate-900">{carreraActiva.grado_academico}</strong></p>
                 <p className="text-slate-600">Título: <strong className="text-slate-900">{carreraActiva.titulo_profesional}</strong></p>
               </div>
@@ -1458,7 +1540,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-7 space-y-5">
                 <div>
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-red-700">
+                  <span className={`text-xs font-extrabold uppercase tracking-wider ${temaActivo.textAccent}`}>
                     Proyección Profesional e Investigación • FCM UNMSM
                   </span>
                   <h2 className="text-xl sm:text-2xl font-extrabold text-[#002855] mt-1">
@@ -1468,21 +1550,21 @@ export default function PortalFacultadCienciasMatematicas() {
 
                 <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-blue-50 text-[#002855] shrink-0 mt-0.5"><Target className="w-4 h-4" /></div>
+                    <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Target className="w-4 h-4" /></div>
                     <div>
                       <h4 className="font-extrabold text-[#002855]">Visión y Perfil Académico</h4>
                       <p>{carreraActiva.vision_carrera}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-red-50 text-red-700 shrink-0 mt-0.5"><Briefcase className="w-4 h-4" /></div>
+                    <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Briefcase className="w-4 h-4" /></div>
                     <div>
                       <h4 className="font-extrabold text-[#002855]">Campo Laboral y Desempeño Profesional</h4>
                       <p>{carreraActiva.campo_laboral}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-blue-50 text-[#002855] shrink-0 mt-0.5"><Lightbulb className="w-4 h-4" /></div>
+                    <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Lightbulb className="w-4 h-4" /></div>
                     <div>
                       <h4 className="font-extrabold text-[#002855]">¿Por qué estudiar {carreraActiva.nombre} en San Marcos?</h4>
                       <p>{carreraActiva.por_que_estudiar}</p>
@@ -1493,9 +1575,9 @@ export default function PortalFacultadCienciasMatematicas() {
                 <div className="pt-2 flex flex-wrap items-center gap-3 print:hidden">
                   <button
                     onClick={handleDescargarTripticoCarrera}
-                    className="px-5 py-3.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-extrabold text-xs sm:text-sm shadow-md flex items-center gap-2.5 border-b-4 border-red-700 transition-transform active:scale-95 cursor-pointer"
+                    className={`px-5 py-3.5 rounded-xl ${temaActivo.badgeSolid} font-extrabold text-xs sm:text-sm shadow-md flex items-center gap-2.5 border transition-transform active:scale-95 cursor-pointer`}
                   >
-                    <Download className="w-4 h-4 text-red-400" />
+                    <Download className="w-4 h-4 text-white" />
                     <span>📥 Descargar Tríptico de la Carrera (PDF)</span>
                   </button>
                   {carreraActiva.triptico_pdf_url && (
@@ -1513,17 +1595,19 @@ export default function PortalFacultadCienciasMatematicas() {
                   className="w-full h-72 sm:h-80 lg:h-96 object-cover rounded-xl shadow-md border border-slate-200"
                 />
                 <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500 px-1">
-                  <span>Escuela Profesional de <strong className="text-[#002855]">{carreraActiva.nombre}</strong></span>
-                  <button
-                    onClick={() => {
-                      handleSeleccionarCarreraEnAdmin(carreraActiva.id);
-                      setTabAdmin("carreras_cms");
-                      setVistaActual("/admin");
-                    }}
-                    className="text-red-700 font-bold hover:underline print:hidden"
-                  >
-                    Cambiar imagen / PDF en /admin →
-                  </button>
+                  <span>Escuela Profesional de <strong className={temaActivo.textAccent}>{carreraActiva.nombre}</strong></span>
+                  {adminAutenticado && (
+                    <button
+                      onClick={() => {
+                        handleSeleccionarCarreraEnAdmin(carreraActiva.id);
+                        setTabAdmin("carreras_cms");
+                        setVistaActual("/admin");
+                      }}
+                      className={`${temaActivo.textAccent} font-bold hover:underline print:hidden`}
+                    >
+                      Cambiar imagen / PDF en /admin →
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -1544,7 +1628,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <button
                   onClick={() => setModoMalla("acordeon")}
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold border ${
-                    modoMalla === "acordeon" ? "bg-[#002855] text-white border-[#002855]" : "bg-slate-100 text-slate-700 border-slate-300"
+                    modoMalla === "acordeon" ? `${temaActivo.badgeSolid}` : "bg-slate-100 text-slate-700 border-slate-300"
                   }`}
                 >
                   Vista Acordeón
@@ -1552,14 +1636,14 @@ export default function PortalFacultadCienciasMatematicas() {
                 <button
                   onClick={() => setModoMalla("roadmap")}
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold border ${
-                    modoMalla === "roadmap" ? "bg-[#002855] text-white border-[#002855]" : "bg-slate-100 text-slate-700 border-slate-300"
+                    modoMalla === "roadmap" ? `${temaActivo.badgeSolid}` : "bg-slate-100 text-slate-700 border-slate-300"
                   }`}
                 >
                   Vista Roadmap
                 </button>
                 <button
                   onClick={handleDescargarMallaPDF}
-                  className="px-3.5 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                  className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
                 >
                   <Printer className="w-3.5 h-3.5" /> Exportar Malla PDF
                 </button>
@@ -1576,12 +1660,12 @@ export default function PortalFacultadCienciasMatematicas() {
                     <div key={numCiclo} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                       <button
                         onClick={() => toggleCicloAcordeon(numCiclo)}
-                        className="w-full px-5 py-4 flex items-center justify-between bg-[#002855] hover:bg-blue-900 text-white transition-colors"
+                        className={`w-full px-5 py-4 flex items-center justify-between ${temaActivo.cycleBtn} text-white transition-colors cursor-pointer`}
                       >
                         <div className="flex flex-wrap items-center gap-3">
-                          <span className="px-3 py-1 rounded-lg text-xs font-extrabold bg-red-700 text-white shadow-sm">CICLO {numCiclo}</span>
+                          <span className={`px-3 py-1 rounded-lg text-xs font-extrabold ${temaActivo.cyclePill} shadow-sm border border-white/20`}>CICLO {numCiclo}</span>
                           <span className="text-xs sm:text-sm font-bold text-white">{cursosCiclo.length} Asignaturas</span>
-                          <span className="text-xs text-blue-200 font-mono">• {totalCreditos.toFixed(1)} Créditos</span>
+                          <span className="text-xs text-white/85 font-mono">• {totalCreditos.toFixed(1)} Créditos</span>
                         </div>
                         <ChevronDown className={`w-5 h-5 text-white transition-transform ${abierto ? "rotate-180" : ""}`} />
                       </button>
@@ -1589,12 +1673,12 @@ export default function PortalFacultadCienciasMatematicas() {
                       {abierto && (
                         <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/70">
                           {cursosCiclo.map((cur) => (
-                            <div key={cur.id} className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col justify-between gap-3 shadow-sm hover:border-blue-800 transition-all">
+                            <div key={cur.id} className={`rounded-xl border border-slate-200 bg-white p-4 flex flex-col justify-between gap-3 shadow-sm ${temaActivo.cardHoverBorder} transition-all`}>
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between gap-2">
-                                  <span className="font-mono text-xs font-extrabold px-2.5 py-0.5 rounded bg-blue-50 text-[#002855] border border-blue-200">{cur.codigo}</span>
+                                  <span className={`font-mono text-xs font-extrabold px-2.5 py-0.5 rounded border ${temaActivo.badgeSoft}`}>{cur.codigo}</span>
                                   <div className="flex items-center gap-1.5">
-                                    <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${cur.tipo_curso === "O" ? "bg-red-50 text-red-700 border border-red-200" : "bg-blue-50 text-blue-800 border border-blue-200"}`}>
+                                    <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${cur.tipo_curso === "O" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700 border border-slate-300"}`}>
                                       {cur.tipo_curso === "O" ? "Obligatorio" : "Electivo"}
                                     </span>
                                     <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800">{cur.creditos.toFixed(1)} cr.</span>
@@ -1613,7 +1697,7 @@ export default function PortalFacultadCienciasMatematicas() {
                                     setRepoFiltroCurso(cur.id);
                                     setVistaActual("/repositorio");
                                   }}
-                                  className="text-[#002855] hover:text-red-700 font-bold"
+                                  className={`${temaActivo.textAccent} hover:underline font-bold`}
                                 >
                                   Materiales →
                                 </button>
@@ -1633,15 +1717,15 @@ export default function PortalFacultadCienciasMatematicas() {
                   const totalCred = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
                   return (
                     <div key={numCiclo} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-                      <div className="bg-[#002855] text-white px-4 py-2.5 flex items-center justify-between border-b-2 border-red-600">
+                      <div className={`${temaActivo.cycleBtn} text-white px-4 py-2.5 flex items-center justify-between border-b-2 ${temaActivo.borderAccent}`}>
                         <span className="text-xs font-extrabold">CICLO {numCiclo}</span>
-                        <span className="text-[11px] font-mono text-blue-200">{totalCred.toFixed(0)} cr.</span>
+                        <span className="text-[11px] font-mono text-white/90">{totalCred.toFixed(0)} cr.</span>
                       </div>
                       <div className="p-3 space-y-2.5 flex-1 bg-slate-50/50">
                         {cursosCiclo.map((cur) => (
                           <div key={cur.id} className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
                             <div className="flex items-center justify-between text-[10px]">
-                              <span className="font-mono font-extrabold text-red-700">{cur.codigo}</span>
+                              <span className={`font-mono font-extrabold ${temaActivo.textAccent}`}>{cur.codigo}</span>
                               <span className="font-semibold text-slate-600">{cur.creditos.toFixed(1)} cr.</span>
                             </div>
                             <p className="text-xs font-bold text-slate-900 leading-tight">{cur.nombre_curso}</p>
@@ -1793,7 +1877,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <span className="px-2.5 py-1 rounded-md text-xs font-mono font-extrabold bg-red-50 text-red-700 border border-red-200">
                               [{curso?.codigo || "CURSO"}] • Ciclo {mat.ciclo || curso?.ciclo || 1}
                             </span>
-                            <span className="px-2.5 py-1 rounded-md text-[11px] font-extrabold bg-blue-50 text-[#002855] border border-blue-200">
+                            <span className={`px-2.5 py-1 rounded-md text-[11px] font-extrabold border ${TEMA_CARRERA[mat.carrera_id].badgeSoft}`}>
                               {carrera?.nombre}
                             </span>
                           </div>
@@ -1884,26 +1968,38 @@ export default function PortalFacultadCienciasMatematicas() {
             <div className="max-w-md mx-auto rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-lg space-y-5">
               <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto"><Lock className="w-6 h-6 text-red-700" /></div>
               <div>
-                <h2 className="text-xl font-extrabold text-[#002855]">Acceso al CMS Institucional (/admin)</h2>
-                <p className="text-xs text-slate-600 mt-1">Ingresa el PIN (<code className="text-red-700 font-bold">2026</code>) para administrar el portal con persistencia en Supabase.</p>
+                <h2 className="text-xl font-extrabold text-[#002855]">Acceso Restringido • Administración FCM</h2>
+                <p className="text-xs text-slate-600 mt-1">
+                  Ingresa la contraseña maestra de administrador para gestionar el portal institucional.
+                </p>
               </div>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (pinAdmin === "2026" || pinAdmin.toLowerCase() === "admin") {
+                  const adminSecret = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+                  if (adminSecret && pinAdmin === adminSecret) {
                     setAdminAutenticado(true);
                     setErrorPin("");
-                    lanzarToast("Sesión iniciada en el CMS.");
+                    setPinAdmin("");
+                    lanzarToast("🔓 Sesión de Administrador iniciada.");
                   } else {
-                    setErrorPin("PIN incorrecto. Usa 2026.");
+                    setErrorPin("Contraseña maestra incorrecta o acceso no autorizado.");
                   }
                 }}
                 className="space-y-3 text-left"
               >
-                <input type="password" value={pinAdmin} onChange={(e) => setPinAdmin(e.target.value)} placeholder="PIN: 2026" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
+                <input
+                  type="password"
+                  value={pinAdmin}
+                  onChange={(e) => setPinAdmin(e.target.value)}
+                  placeholder="Contraseña maestra de administrador..."
+                  autoComplete="current-password"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs"
+                />
                 {errorPin && <p className="text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> {errorPin}</p>}
-                <button type="submit" className="w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-extrabold text-white">Entrar al Panel CMS</button>
-                <button type="button" onClick={() => { setAdminAutenticado(true); lanzarToast("Modo Administrador activado."); }} className="w-full py-2 rounded-xl bg-red-700 hover:bg-red-800 text-xs font-bold text-white">⚡ Acceso Directo Demo (1-Clic)</button>
+                <button type="submit" className="w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-extrabold text-white cursor-pointer">
+                  Autenticar y Entrar al Panel CMS
+                </button>
               </form>
             </div>
           ) : (
@@ -1931,6 +2027,17 @@ export default function PortalFacultadCienciasMatematicas() {
                       {t.label}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAdminAutenticado(false);
+                      setVistaActual("/");
+                      lanzarToast("🔒 Sesión de administrador cerrada.");
+                    }}
+                    className="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-black text-red-300 border border-red-500/40 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Lock className="w-3.5 h-3.5" /> Salir
+                  </button>
                 </div>
               </div>
 
@@ -2356,12 +2463,20 @@ export default function PortalFacultadCienciasMatematicas() {
       )}
 
       {/* COMPONENTE GLOBAL <Footer /> */}
-      <Footer logoUrl={logoUrl} />
+      <Footer
+        logoUrl={logoUrl}
+        onOpenAdmin={() => {
+          setVistaActual("/admin");
+          if (typeof window !== "undefined") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }}
+      />
     </div>
   );
 }
 
-function Footer({ logoUrl }: { logoUrl: string }) {
+function Footer({ logoUrl, onOpenAdmin }: { logoUrl: string; onOpenAdmin: () => void }) {
   return (
     <footer className="bg-[#001833] text-white border-t-4 border-red-700 pt-12 pb-8 mt-16 print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
@@ -2410,6 +2525,15 @@ function Footer({ logoUrl }: { logoUrl: string }) {
           <div className="flex items-center gap-2">
             <GraduationCap className="w-4 h-4 text-red-400" />
             <span>© 2026 Facultad de Ciencias Matemáticas - UNMSM. Todos los derechos reservados.</span>
+            <button
+              type="button"
+              onClick={onOpenAdmin}
+              title="Acceso Administrativo"
+              aria-label="Acceso Administrativo"
+              className="ml-1 p-1 rounded text-blue-400/25 hover:text-blue-200/80 transition-colors cursor-pointer"
+            >
+              <Lock className="w-3 h-3" />
+            </button>
           </div>
           <div className="flex flex-wrap gap-4 text-[11px]">
             <a href="https://sum.unmsm.edu.pe/alumnoWebSum/login" target="_blank" rel="noopener noreferrer" className="hover:text-white underline decoration-red-500">SUM UNMSM</a>
