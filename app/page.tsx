@@ -1,5 +1,5 @@
 "use client";
-
+export const dynamic = "force-dynamic";
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Search,
@@ -679,6 +679,7 @@ const TICKETS_INICIALES: TicketSoporte[] = [
 // ============================================================================
 // 5. COMPONENTE PRINCIPAL DEL PORTAL
 // ============================================================================
+
 export default function PortalFacultadCienciasMatematicas() {
   const [vistaActual, setVistaActual] = useState<
     "/" | "/carreras/[id]" | "/repositorio" | "/contacto" | "/admin"
@@ -849,7 +850,7 @@ export default function PortalFacultadCienciasMatematicas() {
     id: "",
     titulo: "",
     categoria: "Comunicado Oficial",
-    fecha_publicacion: new Date().toISOString().split("T")[0],
+    fecha_publicacion: "",
     contenido: "",
     imagen_url:
       "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
