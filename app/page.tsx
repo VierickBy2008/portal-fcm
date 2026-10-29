@@ -1976,14 +1976,19 @@ export default function PortalFacultadCienciasMatematicas() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  const adminSecret = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
-                  if (adminSecret && pinAdmin === adminSecret) {
+                  const adminSecret = (process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "").trim();
+                  const entered = pinAdmin.trim();
+                  if (!adminSecret) {
+                    setErrorPin("⚠️ Falta configurar NEXT_PUBLIC_ADMIN_PASSWORD en las variables de Vercel y hacer Redeploy.");
+                    return;
+                  }
+                  if (entered === adminSecret) {
                     setAdminAutenticado(true);
                     setErrorPin("");
                     setPinAdmin("");
                     lanzarToast("🔓 Sesión de Administrador iniciada.");
                   } else {
-                    setErrorPin("Contraseña maestra incorrecta o acceso no autorizado.");
+                    setErrorPin("Contraseña maestra incorrecta.");
                   }
                 }}
                 className="space-y-3 text-left"
