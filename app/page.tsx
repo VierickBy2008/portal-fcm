@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import {
   Search, GraduationCap, BookOpen, Newspaper, FolderGit2, LifeBuoy, Sparkles,
   ChevronRight, ChevronDown, Upload, FileText, Code2, Video, FileCheck2, Award,
@@ -8,7 +8,8 @@ import {
   Download, AlertCircle, Star, Cpu, Sigma, BarChart3, Network, Printer,
   Image as ImageIcon, Copy, ExternalLink, Phone, UserCheck, ShoppingBag,
   FileSpreadsheet, Check, MapPin, Briefcase, Target, Lightbulb, Edit3,
-  createLucideIcon,
+  ArrowLeft, Share2, Users, Clock, Globe, Bold, Italic, List, ListOrdered,
+  Quote, Minus, Link2, Heading2, createLucideIcon,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -32,6 +33,7 @@ const Youtube = createLucideIcon("Youtube", [
 ]);
 
 type CarreraId = "computacion-cientifica" | "matematica" | "estadistica" | "investigacion-operativa";
+type VistaPortal = "/" | "/carreras/[id]" | "/noticias/[id]" | "/repositorio" | "/contacto" | "/admin";
 type TipoArchivo = "PDF" | "Examen" | "Apunte" | "Codigo" | "Video" | "Silabo";
 type EstadoMaterial = "pendiente" | "aprobado" | "rechazado";
 type EstadoAtencion = "pendiente" | "en_proceso" | "resuelto";
@@ -40,10 +42,227 @@ interface Noticia {
   id: string;
   titulo: string;
   categoria: string;
+  resumen?: string;
   contenido: string;
   imagen_url: string;
   fecha_publicacion: string;
   destacado: boolean;
+  fecha_evento?: string;
+  lugar?: string;
+  modalidad?: string;
+  dirigido_a?: string;
+  enlace_inscripcion?: string;
+}
+
+interface Docente {
+  id: string;
+  nombre_completo: string;
+  grado_academico: "Dr." | "Dra." | "Mg." | "Lic.";
+  categoria_docente: "Principal" | "Asociado" | "Auxiliar";
+  condicion: "Nombrado" | "Contratado";
+  carrera_id: CarreraId;
+  especialidad: string;
+  lineas_investigacion: string;
+  cursos_dictados: string[];
+  correo: string;
+  horario_asesoria: string;
+  foto_url: string;
+  cti_vitae_url?: string;
+  orcid_url?: string;
+  google_scholar_url?: string;
+  linkedin_url?: string;
+}
+
+function formatearFechaEspanol(fechaIso: string): string {
+  if (!fechaIso) return "Fecha institucional";
+  const partes = fechaIso.split("-");
+  if (partes.length !== 3) return fechaIso;
+  const anio = Number(partes[0]);
+  const mes = Number(partes[1]) - 1;
+  const dia = Number(partes[2]);
+  const fecha = new Date(Date.UTC(anio, mes, dia, 12, 0, 0));
+  if (Number.isNaN(fecha.getTime())) return fechaIso;
+  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  const meses = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+  ];
+  return `${diasSemana[fecha.getUTCDay()]}, ${String(dia).padStart(2, "0")} de ${meses[mes] || ""} de ${anio}`;
+}
+
+function obtenerInicialesDocente(nombre: string): string {
+  const limpio = nombre.replace(/^(Dr\.|Dra\.|Mg\.|Lic\.)\s*/i, "").trim();
+  const partes = limpio.split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "FCM";
+  if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+  return `${partes[0][0]}${partes[1][0]}`.toUpperCase();
+}
+
+// Motor seguro de renderizado inline (**negrita**, *cursiva*, [texto](url) y URLs automáticas)
+function renderTextoEnriquecidoLinea(texto: string, keyPrefix: string): React.ReactNode[] {
+  const tokenRegex = /(\[[^\]]+\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s<]+|\*\*[^*]+\*\*|\*[^*]+\*)/g;
+  const partes = texto.split(tokenRegex);
+  return partes.map((parte, idx) => {
+    const key = `${keyPrefix}-${idx}`;
+    if (!parte) return null;
+    const matchLinkMd = parte.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+    if (matchLinkMd) {
+      return (
+        <a
+          key={key}
+          href={matchLinkMd[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="text-red-700 hover:text-red-800 font-bold underline decoration-red-400 underline-offset-2 break-all inline-flex items-center gap-1"
+        >
+          <span>{matchLinkMd[1]}</span>
+          <ExternalLink className="w-3 h-3 inline shrink-0" />
+        </a>
+      );
+    }
+    if (/^https?:\/\/[^\s<]+$/.test(parte)) {
+      const urlLimpia = parte.replace(/[.,;)]+$/, "");
+      return (
+        <a
+          key={key}
+          href={urlLimpia}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="text-red-700 hover:text-red-800 font-bold underline decoration-red-400 underline-offset-2 break-all inline-flex items-center gap-1"
+        >
+          <span>{urlLimpia}</span>
+          <ExternalLink className="w-3 h-3 inline shrink-0" />
+        </a>
+      );
+    }
+    if (parte.startsWith("**") && parte.endsWith("**") && parte.length > 4) {
+      return (
+        <strong key={key} className="font-extrabold text-slate-900">
+          {parte.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (parte.startsWith("*") && parte.endsWith("*") && parte.length > 2) {
+      return (
+        <em key={key} className="italic text-slate-800">
+          {parte.slice(1, -1)}
+        </em>
+      );
+    }
+    return <React.Fragment key={key}>{parte}</React.Fragment>;
+  });
+}
+
+// Motor seguro de bloques Markdown ligero para noticias (sin dangerouslySetInnerHTML)
+function renderizarContenidoNoticia(contenido: string): React.ReactNode {
+  if (!contenido || !contenido.trim()) {
+    return <p className="text-slate-500 italic">Sin contenido adicional.</p>;
+  }
+  // Si es una noticia antigua en un solo bloque con viñetas "• ", las separamos para que se lea ordenado
+  const textoNormalizado =
+    !contenido.includes("\n") && contenido.includes("• ")
+      ? contenido.replace(/\s*•\s*/g, "\n- ")
+      : contenido;
+
+  const lineas = textoNormalizado.split(/\r?\n/);
+  const elementos: React.ReactNode[] = [];
+  let listaViñetasActual: string[] = [];
+  let listaNumeradaActual: string[] = [];
+
+  const vaciarListas = (keyBase: string) => {
+    if (listaViñetasActual.length > 0) {
+      elementos.push(
+        <ul key={`${keyBase}-ul`} className="list-disc pl-6 space-y-2 text-slate-700 my-3">
+          {listaViñetasActual.map((item, i) => (
+            <li key={`${keyBase}-ul-${i}`} className="leading-relaxed">
+              {renderTextoEnriquecidoLinea(item, `${keyBase}-uli-${i}`)}
+            </li>
+          ))}
+        </ul>
+      );
+      listaViñetasActual = [];
+    }
+    if (listaNumeradaActual.length > 0) {
+      elementos.push(
+        <ol key={`${keyBase}-ol`} className="list-decimal pl-6 space-y-2 text-slate-700 my-3">
+          {listaNumeradaActual.map((item, i) => (
+            <li key={`${keyBase}-ol-${i}`} className="leading-relaxed">
+              {renderTextoEnriquecidoLinea(item, `${keyBase}-oli-${i}`)}
+            </li>
+          ))}
+        </ol>
+      );
+      listaNumeradaActual = [];
+    }
+  };
+
+  lineas.forEach((lineaRaw, idx) => {
+    const linea = lineaRaw.trim();
+    const key = `blk-${idx}`;
+
+    if (!linea) {
+      vaciarListas(key);
+      return;
+    }
+    if (linea === "---" || linea === "***") {
+      vaciarListas(key);
+      elementos.push(<hr key={key} className="my-6 border-slate-200" />);
+      return;
+    }
+    if (linea.startsWith("### ")) {
+      vaciarListas(key);
+      elementos.push(
+        <h4 key={key} className="text-base sm:text-lg font-extrabold text-[#002855] mt-5 mb-2">
+          {renderTextoEnriquecidoLinea(linea.slice(4), key)}
+        </h4>
+      );
+      return;
+    }
+    if (linea.startsWith("## ")) {
+      vaciarListas(key);
+      elementos.push(
+        <h3 key={key} className="text-lg sm:text-xl font-extrabold text-[#002855] mt-6 mb-2.5 border-l-4 border-red-600 pl-3">
+          {renderTextoEnriquecidoLinea(linea.slice(3), key)}
+        </h3>
+      );
+      return;
+    }
+    if (linea.startsWith("> ")) {
+      vaciarListas(key);
+      elementos.push(
+        <blockquote
+          key={key}
+          className="my-4 border-l-4 border-red-700 bg-blue-50/70 px-4 py-3.5 rounded-r-2xl text-slate-800 text-xs sm:text-sm font-medium leading-relaxed"
+        >
+          {renderTextoEnriquecidoLinea(linea.slice(2), key)}
+        </blockquote>
+      );
+      return;
+    }
+    if (linea.startsWith("- ") || linea.startsWith("• ") || linea.startsWith("* ")) {
+      if (listaNumeradaActual.length > 0) vaciarListas(key);
+      listaViñetasActual.push(linea.slice(2).trim());
+      return;
+    }
+    const matchNum = linea.match(/^\d+\.\s+(.*)$/);
+    if (matchNum) {
+      if (listaViñetasActual.length > 0) vaciarListas(key);
+      listaNumeradaActual.push(matchNum[1].trim());
+      return;
+    }
+
+    vaciarListas(key);
+    elementos.push(
+      <p key={key} className="text-slate-700 text-sm sm:text-base leading-relaxed my-3">
+        {renderTextoEnriquecidoLinea(linea, key)}
+      </p>
+    );
+  });
+
+  vaciarListas("final");
+  return <div className="space-y-1">{elementos}</div>;
 }
 
 interface Carrera {
@@ -196,16 +415,211 @@ const CARRERAS_INICIALES: Carrera[] = [
   },
 ];
 
-const DOCENTES_SUGERIDOS: string[] = [
-  "Mg. Herminio Paucar Curasma",
-  "Dr. Eugenio Cabanillas Lapa",
-  "Dr. Alfonso Pérez Salvatierra",
-  "Dr. Carlos Vásquez Alzamora",
-  "Mg. Rosa Medina Sandoval",
-  "Dr. Julio Flores Ostos",
-  "Dra. María Calvo Gutiérrez",
-  "Dr. Víctor Soto Cáceres",
+const DOCENTES_INICIALES: Docente[] = [
+  // COMPUTACIÓN CIENTÍFICA (3)
+  {
+    id: "doc-cc-1",
+    nombre_completo: "Herminio Paucar Curasma",
+    grado_academico: "Mg.",
+    categoria_docente: "Asociado",
+    condicion: "Nombrado",
+    carrera_id: "computacion-cientifica",
+    especialidad: "Computación de Alto Rendimiento (HPC), C++ Moderno y Visión Computacional",
+    lineas_investigacion: "Paralelismo en GPU (CUDA/OpenMP), Procesamiento Digital de Imágenes y Algoritmos Paralelos.",
+    cursos_dictados: ["CS113 - POO II", "CS3P1 - Computación Paralela", "AI268 - Visión Computacional"],
+    correo: "hpaucarc@unmsm.edu.pe",
+    horario_asesoria: "Martes y Jueves de 11:00 a.m. a 1:00 p.m. (Lab. SECOMAT)",
+    foto_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    orcid_url: "https://orcid.org/",
+    google_scholar_url: "https://scholar.google.com/",
+  },
+  {
+    id: "doc-cc-2",
+    nombre_completo: "Carlos Vásquez Alzamora",
+    grado_academico: "Dr.",
+    categoria_docente: "Principal",
+    condicion: "Nombrado",
+    carrera_id: "computacion-cientifica",
+    especialidad: "Inteligencia Artificial, Deep Learning y Modelado Numérico",
+    lineas_investigacion: "Redes Neuronales Informadas por la Física (PINNs), Aprendizaje Profundo y Procesamiento de Lenguaje Natural.",
+    cursos_dictados: ["AI263 - Machine Learning", "AI264 - Aprendizaje Profundo", "MA361 - Modelado Matemático"],
+    correo: "cvasqueza@unmsm.edu.pe",
+    horario_asesoria: "Lunes y Miércoles de 3:00 p.m. a 5:00 p.m. (Oficina 204 FCM)",
+    foto_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    orcid_url: "https://orcid.org/",
+    google_scholar_url: "https://scholar.google.com/",
+  },
+  {
+    id: "doc-cc-3",
+    nombre_completo: "Rosa Medina Sandoval",
+    grado_academico: "Mg.",
+    categoria_docente: "Asociado",
+    condicion: "Nombrado",
+    carrera_id: "computacion-cientifica",
+    especialidad: "Estructuras Discretas, Teoría de Grafos y Algoritmos Avanzados",
+    lineas_investigacion: "Complejidad Computacional, Optimización en Grafos, Criptografía Aplicada y Bases de Datos.",
+    cursos_dictados: ["CS1D1 - Estructuras Discretas I", "CS210 - Algoritmos y Estructuras de Datos", "CS271 - Bases de Datos I"],
+    correo: "rmedinas@unmsm.edu.pe",
+    horario_asesoria: "Miércoles y Viernes de 10:00 a.m. a 12:00 m. (Pabellón FCM)",
+    foto_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    orcid_url: "https://orcid.org/",
+  },
+  // INVESTIGACIÓN OPERATIVA (3)
+  {
+    id: "doc-io-1",
+    nombre_completo: "Víctor Soto Cáceres",
+    grado_academico: "Dr.",
+    categoria_docente: "Principal",
+    condicion: "Nombrado",
+    carrera_id: "investigacion-operativa",
+    especialidad: "Programación Entera Mixta, Logística Cuantitativa y Ruteo de Vehículos",
+    lineas_investigacion: "Optimización Combinatoria, Descomposición de Benders, Supply Chain Analytics y Metaheurísticas.",
+    cursos_dictados: ["IO305 - Programación Entera", "IO431 - Logística y VRP", "IO503 - Metaheurísticas"],
+    correo: "vsotoc@unmsm.edu.pe",
+    horario_asesoria: "Martes y Jueves de 2:00 p.m. a 4:00 p.m. (Escuela de I.O.)",
+    foto_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    orcid_url: "https://orcid.org/",
+    google_scholar_url: "https://scholar.google.com/",
+  },
+  {
+    id: "doc-io-2",
+    nombre_completo: "Julio Flores Ostos",
+    grado_academico: "Dr.",
+    categoria_docente: "Principal",
+    condicion: "Nombrado",
+    carrera_id: "investigacion-operativa",
+    especialidad: "Optimización Convexa, Teoría de Juegos y Finanzas Cuantitativas",
+    lineas_investigacion: "Métodos de Punto Interior, Equilibrio de Nash, Programación Estocástica y Gestión de Riesgos.",
+    cursos_dictados: ["IO322 - Optimización Convexa", "IO425 - Teoría de Juegos", "IO511 - Programación Estocástica"],
+    correo: "jfloreso@unmsm.edu.pe",
+    horario_asesoria: "Lunes y Viernes de 4:00 p.m. a 6:00 p.m. (Oficina Docentes IO)",
+    foto_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    orcid_url: "https://orcid.org/",
+  },
+  {
+    id: "doc-io-3",
+    nombre_completo: "Elena Rojas Huamán",
+    grado_academico: "Mg.",
+    categoria_docente: "Asociado",
+    condicion: "Nombrado",
+    carrera_id: "investigacion-operativa",
+    especialidad: "Simulación de Eventos Discretos, Teoría de Colas y Sistemas Dinámicos",
+    lineas_investigacion: "Simulación Monte Carlo, Optimización de Sistemas Hospitalarios y Transporte Urbano.",
+    cursos_dictados: ["IO355 - Teoría de Colas", "IO418 - Simulación de Sistemas", "IO481 - System Dynamics"],
+    correo: "erojash@unmsm.edu.pe",
+    horario_asesoria: "Miércoles de 9:00 a.m. a 12:00 m. (Lab. Optimización)",
+    foto_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+  },
+  // MATEMÁTICA (3)
+  {
+    id: "doc-mat-1",
+    nombre_completo: "Eugenio Cabanillas Lapa",
+    grado_academico: "Dr.",
+    categoria_docente: "Principal",
+    condicion: "Nombrado",
+    carrera_id: "matematica",
+    especialidad: "Ecuaciones Diferenciales Parciales, Análisis Funcional y Control Óptimo",
+    lineas_investigacion: "Estabilidad Exponencial de Sistemas Evolutivos, Espacios de Sobolev y Análisis No Lineal.",
+    cursos_dictados: ["MAT312 - Análisis Real II", "MAT411 - Análisis Funcional I", "MAT415 - EDP I"],
+    correo: "ecabanillasl@unmsm.edu.pe",
+    horario_asesoria: "Lunes y Miércoles de 10:00 a.m. a 12:00 m. (Instituto de Investigación Matemática)",
+    foto_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    orcid_url: "https://orcid.org/",
+    google_scholar_url: "https://scholar.google.com/",
+  },
+  {
+    id: "doc-mat-2",
+    nombre_completo: "Alfonso Pérez Salvatierra",
+    grado_academico: "Dr.",
+    categoria_docente: "Principal",
+    condicion: "Nombrado",
+    carrera_id: "matematica",
+    especialidad: "Álgebra Conmutativa, Geometría Algebraica y Teoría de Galois",
+    lineas_investigacion: "Estructuras Algebraicas, Criptografía en Curvas Elípticas, Teoría de Módulos y Grupos de Lie.",
+    cursos_dictados: ["MAT222 - Álgebra Lineal II", "MAT342 - Estructuras Algebraicas II", "MAT441 - Teoría de Galois"],
+    correo: "aperezs@unmsm.edu.pe",
+    horario_asesoria: "Martes y Jueves de 3:00 p.m. a 5:00 p.m. (Pabellón Matemática)",
+    foto_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    orcid_url: "https://orcid.org/",
+  },
+  {
+    id: "doc-mat-3",
+    nombre_completo: "Lucía Mendoza Villavicencio",
+    grado_academico: "Dra.",
+    categoria_docente: "Asociado",
+    condicion: "Nombrado",
+    carrera_id: "matematica",
+    especialidad: "Geometría Diferencial, Variedades Riemannianas y Topología Algebraica",
+    lineas_investigacion: "Flujo de Ricci, Curvatura en Variedades Diferenciables y Sistemas Dinámicos Geométricos.",
+    cursos_dictados: ["MAT361 - Topología General", "MAT431 - Geometría Diferencial I", "MAT432 - Geometría Riemanniana"],
+    correo: "lmendozav@unmsm.edu.pe",
+    horario_asesoria: "Jueves y Viernes de 11:00 a.m. a 1:00 p.m. (Oficina 302 FCM)",
+    foto_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    google_scholar_url: "https://scholar.google.com/",
+  },
+  // ESTADÍSTICA (3)
+  {
+    id: "doc-est-1",
+    nombre_completo: "María Calvo Gutiérrez",
+    grado_academico: "Dra.",
+    categoria_docente: "Principal",
+    condicion: "Nombrado",
+    carrera_id: "estadistica",
+    especialidad: "Inferencia Bayesiana, Modelos Lineales Generalizados y Bioestadística",
+    lineas_investigacion: "Métodos MCMC, Análisis de Supervivencia, Ensayos Clínicos y Estadística Genómica.",
+    cursos_dictados: ["EST318 - Modelos Lineales", "EST371 - GLM", "EST451 - Estadística Bayesiana I"],
+    correo: "mcalvog@unmsm.edu.pe",
+    horario_asesoria: "Lunes y Miércoles de 11:00 a.m. a 1:00 p.m. (Escuela de Estadística)",
+    foto_url: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    orcid_url: "https://orcid.org/",
+    google_scholar_url: "https://scholar.google.com/",
+  },
+  {
+    id: "doc-est-2",
+    nombre_completo: "Ricardo Paredes Huarcaya",
+    grado_academico: "Dr.",
+    categoria_docente: "Principal",
+    condicion: "Nombrado",
+    carrera_id: "estadistica",
+    especialidad: "Statistical Learning, Series de Tiempo Financieras y Big Data Analytics",
+    lineas_investigacion: "Econometría de Alta Frecuencia, Modelos GARCH Estocásticos y Reducción Dimensional.",
+    cursos_dictados: ["EST420 - Análisis Multivariado I", "EST431 - Series de Tiempo I", "EST481 - Statistical Learning"],
+    correo: "rparedesh@unmsm.edu.pe",
+    horario_asesoria: "Martes y Viernes de 4:00 p.m. a 6:00 p.m. (Lab. Cómputo Estadístico)",
+    foto_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+    orcid_url: "https://orcid.org/",
+  },
+  {
+    id: "doc-est-3",
+    nombre_completo: "Patricia Quispe Condori",
+    grado_academico: "Mg.",
+    categoria_docente: "Asociado",
+    condicion: "Nombrado",
+    carrera_id: "estadistica",
+    especialidad: "Teoría del Muestreo Complejo, Diseño de Experimentos y Control de Calidad",
+    lineas_investigacion: "Encuestas Nacionales de Hogares, Superficies de Respuesta Industrial y Metodología Seis Sigma.",
+    cursos_dictados: ["EST231 - Teoría del Muestreo I", "EST341 - Diseño de Experimentos I", "EST391 - Control de Calidad"],
+    correo: "pquispec@unmsm.edu.pe",
+    horario_asesoria: "Miércoles y Jueves de 2:00 p.m. a 4:00 p.m. (Pabellón Estadística)",
+    foto_url: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=600&q=80",
+    cti_vitae_url: "https://ctivitae.concytec.gob.pe/",
+  },
 ];
+
+const DOCENTES_SUGERIDOS: string[] = DOCENTES_INICIALES.map(
+  (d) => `${d.grado_academico} ${d.nombre_completo}`
+);
 
 const PREFIJO_CARRERA: Record<CarreraId, string> = {
   "computacion-cientifica": "cc",
@@ -289,28 +703,51 @@ const NOTICIAS_INICIALES: Noticia[] = [
     id: "not-1",
     titulo: "Implementación Oficial del Plan de Estudios 2026 en Computación Científica, Matemática, Estadística e I.O.",
     categoria: "Académico • Plan 2026",
-    contenido: "La Facultad de Ciencias Matemáticas publica las mallas curriculares completas de los 10 ciclos académicos con asignaturas actualizadas en Inteligencia Artificial, Computación Científica, Análisis Funcional y Optimización Estocástica.",
+    resumen:
+      "La Facultad de Ciencias Matemáticas publica las mallas curriculares completas de los 10 ciclos académicos con asignaturas actualizadas en IA, Computación Científica, Análisis Funcional y Optimización Estocástica.",
+    contenido:
+      "## Modernización Curricular Plan 2026\nLa Facultad de Ciencias Matemáticas de la **Universidad Nacional Mayor de San Marcos** pone a disposición de la comunidad estudiantil y docente las mallas curriculares oficiales correspondientes al **Plan de Estudios 2026** para sus cuatro Escuelas Profesionales.\n\n> Todos los sílabos, tablas de equivalencia y cronogramas de matrícula están sincronizados con el Sistema Único de Matrícula (SUM).\n\n### Ejes Estratégicos por Escuela\n- **Computación Científica:** Énfasis en Inteligencia Artificial, Aprendizaje Profundo, Visión Computacional y Computación Paralela en GPU.\n- **Investigación Operativa:** Optimización Entera Mixta, Logística Cuantitativa (VRP), Simulación Monte Carlo y Analítica Prescriptiva.\n- **Matemática:** Análisis Funcional, Ecuaciones Diferenciales Parciales, Geometría Riemanniana y Álgebra Conmutativa.\n- **Estadística:** Inferencia Bayesiana, Modelos Lineales Generalizados (GLM), Series de Tiempo y Statistical Learning.\n\n---\nPara revisar el detalle de asignaturas y descargar el tríptico oficial de cada carrera, visita la sección de Escuelas y Mallas del portal o consulta en https://sum.unmsm.edu.pe/alumnoWebSum/login",
     imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80",
     fecha_publicacion: "2026-10-15",
     destacado: true,
+    fecha_evento: "Semestre Académico 2026-I / 2026-II",
+    lugar: "Ciudad Universitaria UNMSM - Pabellón FCM",
+    modalidad: "Presencial",
+    dirigido_a: "Estudiantes de Pregrado de las 4 Escuelas Profesionales",
+    enlace_inscripcion: "https://sum.unmsm.edu.pe/alumnoWebSum/login",
   },
   {
     id: "not-2",
     titulo: "Convocatoria Internacional: Pasantías de Investigación en Computación Científica y Matemática Aplicada 2026-2027",
     categoria: "Becas e Investigación",
-    contenido: "Estudiantes del quinto y décimo superior de las 4 escuelas profesionales pueden postular a estancias de investigación y becas de excelencia académica.",
+    resumen:
+      "Estudiantes del quinto y décimo superior de las 4 escuelas profesionales pueden postular a estancias de investigación y becas integrales de excelencia académica.",
+    contenido:
+      "## Programa de Movilidad Estudiantil e Investigación\nSe invita a los estudiantes destacados de **Computación Científica, Matemática, Estadística e Investigación Operativa** a participar en la convocatoria de pasantías internacionales de investigación 2026-2027.\n\n### Requisitos de Postulación\n1. Pertenecer al quinto o décimo superior de su Escuela Profesional.\n2. Haber culminado satisfactoriamente al menos el 6.º ciclo académico.\n3. Contar con carta de aval de un docente investigador de la FCM.\n\n> Las becas cubren pasajes aéreos, estipendio mensual de alojamiento y acceso a laboratorios de supercomputación en universidades asociadas de Europa, Brasil y Estados Unidos.",
     imagen_url: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=900&q=80",
     fecha_publicacion: "2026-10-20",
     destacado: true,
+    fecha_evento: "Cierre de postulaciones: 30 de noviembre de 2026",
+    lugar: "Vicedecanato de Investigación y Posgrado FCM",
+    modalidad: "Híbrida (Evaluación virtual / Pasantía presencial)",
+    dirigido_a: "Estudiantes de 6.º a 10.º ciclo (Quinto y Décimo Superior)",
+    enlace_inscripcion: "https://tramiteonline.unmsm.edu.pe/sgdfd/mat/",
   },
   {
     id: "not-3",
     titulo: "Apertura del Clúster de Computación Científica y GPU para Proyectos de Fin de Carrera",
     categoria: "Infraestructura FCM",
-    contenido: "Acceso habilitado para alumnos de los ciclos 7 al 10 en simulaciones numéricas, entrenamiento de modelos de Deep Learning y optimización a gran escala.",
+    resumen:
+      "Acceso habilitado mediante SECOMAT para alumnos de los ciclos 7 al 10 en simulaciones numéricas, entrenamiento de modelos de Deep Learning y optimización a gran escala.",
+    contenido:
+      "## Nuevo Clúster de Alto Rendimiento SECOMAT - FCM\nEl **Servicio de Cómputo e Informática de Matemáticas (SECOMAT)** anuncia la habilitación de nodos equipados con aceleradores GPU para apoyar el desarrollo de tesis y Proyectos de Final de Carrera.\n\n### Software y Entornos Preinstalados\n- Compiladores C++20, OpenMP, MPI y CUDA Toolkit para Computación Paralela.\n- Entornos Python con PyTorch, TensorFlow, JAX y Scikit-Learn.\n- Solvers académicos Gurobi, AMPL, Pyomo y RStudio Server.\n\nPara solicitar tu cuenta de acceso remoto vía SSH, comunícate con **secomat.fcm@unmsm.edu.pe** indicando tu código de matrícula y el nombre de tu asesor.",
     imagen_url: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80",
     fecha_publicacion: "2026-10-25",
     destacado: true,
+    fecha_evento: "Habilitado de Lunes a Sábado (Acceso SSH 24/7)",
+    lugar: "Laboratorios SECOMAT - 2.º Piso FCM",
+    modalidad: "Presencial y Acceso Remoto SSH",
+    dirigido_a: "Tesistas y estudiantes de los ciclos 7 al 10",
   },
 ];
 
@@ -334,17 +771,24 @@ const TICKETS_INICIALES: TicketSoporte[] = [
 ];
 
 export default function PortalFacultadCienciasMatematicas() {
-  const [vistaActual, setVistaActual] = useState<"/" | "/carreras/[id]" | "/repositorio" | "/contacto" | "/admin">("/");
+  const [vistaActual, setVistaActual] = useState<VistaPortal>("/");
   const [carreraSeleccionadaId, setCarreraSeleccionadaId] = useState<CarreraId>("computacion-cientifica");
+  const [noticiaSeleccionadaId, setNoticiaSeleccionadaId] = useState<string>(NOTICIAS_INICIALES[0].id);
 
   const [noticias, setNoticias] = useState<Noticia[]>(NOTICIAS_INICIALES);
   const [carreras, setCarreras] = useState<Carrera[]>(CARRERAS_INICIALES);
+  const [docentes, setDocentes] = useState<Docente[]>(DOCENTES_INICIALES);
   const [malla, setMalla] = useState<CursoMalla[]>(MALLA_INICIAL);
   const [materiales, setMateriales] = useState<MaterialRepositorio[]>(MATERIALES_INICIALES);
   const [tickets, setTickets] = useState<TicketSoporte[]>(TICKETS_INICIALES);
   const [imagenesStorage, setImagenesStorage] = useState<ImagenStorage[]>(IMAGENES_STORAGE_INICIALES);
   const [logoUrl, setLogoUrl] = useState<string>(LOGO_UNMSM_TRANSPARENTE_DEFAULT);
   const [cargandoConfig, setCargandoConfig] = useState<boolean>(true);
+
+  // Filtros y modal de la sección Plana Docente
+  const [filtroDocenteCarrera, setFiltroDocenteCarrera] = useState<"TODAS" | CarreraId>("TODAS");
+  const [busquedaDocentes, setBusquedaDocentes] = useState<string>("");
+  const [docenteModalActivo, setDocenteModalActivo] = useState<Docente | null>(null);
 
   const [dropdownServicioAbierto, setDropdownServicioAbierto] = useState(false);
   const menuServicioRef = useRef<HTMLDivElement | null>(null);
@@ -385,7 +829,9 @@ export default function PortalFacultadCienciasMatematicas() {
   const [adminAutenticado, setAdminAutenticado] = useState(false);
   const [pinAdmin, setPinAdmin] = useState("");
   const [errorPin, setErrorPin] = useState("");
-  const [tabAdmin, setTabAdmin] = useState<"dashboard" | "carreras_cms" | "noticias" | "malla" | "moderacion" | "storage" | "soporte">("dashboard");
+  const [tabAdmin, setTabAdmin] = useState<
+    "dashboard" | "carreras_cms" | "noticias" | "docentes_cms" | "malla" | "moderacion" | "storage" | "soporte"
+  >("dashboard");
 
   const [adminCarreraEditId, setAdminCarreraEditId] = useState<CarreraId>("computacion-cientifica");
   const carreraAdminSeleccionada = useMemo(
@@ -403,12 +849,42 @@ export default function PortalFacultadCienciasMatematicas() {
     id: "",
     titulo: "",
     categoria: "Comunicado Oficial",
+    resumen: "",
     fecha_publicacion: "",
     contenido: "",
     imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
     destacado: true,
+    fecha_evento: "",
+    lugar: "",
+    modalidad: "",
+    dirigido_a: "",
+    enlace_inscripcion: "",
   });
   const inputImagenNoticiaRef = useRef<HTMLInputElement | null>(null);
+  const textareaNoticiaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Estado de formulario CMS para Plana Docente
+  const [adminFiltroCarreraDocentes, setAdminFiltroCarreraDocentes] = useState<"TODAS" | CarreraId>("TODAS");
+  const [formDocente, setFormDocente] = useState({
+    id: "",
+    nombre_completo: "",
+    grado_academico: "Dr." as "Dr." | "Dra." | "Mg." | "Lic.",
+    categoria_docente: "Principal" as "Principal" | "Asociado" | "Auxiliar",
+    condicion: "Nombrado" as "Nombrado" | "Contratado",
+    carrera_id: "computacion-cientifica" as CarreraId,
+    especialidad: "",
+    lineas_investigacion: "",
+    cursos_dictados_texto: "",
+    correo: "",
+    horario_asesoria: "",
+    foto_url: "",
+    cti_vitae_url: "",
+    orcid_url: "",
+    google_scholar_url: "",
+    linkedin_url: "",
+  });
+  const inputFotoDocenteRef = useRef<HTMLInputElement | null>(null);
+  const [subiendoFotoDocente, setSubiendoFotoDocente] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [categoriaNuevaImagen, setCategoriaNuevaImagen] = useState<"Logo Institucional" | "Banner Noticia" | "Foto Facultad">("Banner Noticia");
@@ -434,6 +910,137 @@ export default function PortalFacultadCienciasMatematicas() {
   };
 
   // ==========================================================================
+  // 4. NAVEGACIÓN HISTÓRICA CON RETROCESOS (BOTÓN "ATRÁS" DEL NAVEGADOR)
+  // ==========================================================================
+  const modalesAbiertosRef = useRef(false);
+  useEffect(() => {
+    modalesAbiertosRef.current = Boolean(docenteModalActivo || servicioModalInfo || modalSubirAbierto);
+  }, [docenteModalActivo, servicioModalInfo, modalSubirAbierto]);
+
+  const aplicarHashAEstado = useCallback((hashRaw: string) => {
+    const hash = (hashRaw || "").replace(/^#/, "").trim();
+    if (!hash || hash === "/") {
+      setVistaActual("/");
+      return;
+    }
+    if (hash.startsWith("/carreras/")) {
+      const id = hash.replace("/carreras/", "").trim() as CarreraId;
+      const carrerasValidas: CarreraId[] = ["computacion-cientifica", "matematica", "estadistica", "investigacion-operativa"];
+      if (carrerasValidas.includes(id)) {
+        setCarreraSeleccionadaId(id);
+      }
+      setVistaActual("/carreras/[id]");
+      return;
+    }
+    if (hash.startsWith("/noticias/")) {
+      const idNot = hash.replace("/noticias/", "").trim();
+      if (idNot) setNoticiaSeleccionadaId(idNot);
+      setVistaActual("/noticias/[id]");
+      return;
+    }
+    if (hash.startsWith("/docentes/")) {
+      const idCar = hash.replace("/docentes/", "").trim();
+      const carrerasValidas: CarreraId[] = ["computacion-cientifica", "matematica", "estadistica", "investigacion-operativa"];
+      if (idCar === "TODAS" || carrerasValidas.includes(idCar as CarreraId)) {
+        setFiltroDocenteCarrera(idCar as "TODAS" | CarreraId);
+      }
+      setVistaActual("/");
+      return;
+    }
+    if (hash === "/repositorio") {
+      setVistaActual("/repositorio");
+      return;
+    }
+    if (hash === "/contacto") {
+      setVistaActual("/contacto");
+      return;
+    }
+    if (hash === "/admin") {
+      setVistaActual("/admin");
+      return;
+    }
+    setVistaActual("/");
+  }, []);
+
+  const navegar = useCallback(
+    (
+      nuevaVista: VistaPortal,
+      params?: {
+        carreraId?: CarreraId;
+        noticiaId?: string;
+        docenteCarrera?: "TODAS" | CarreraId;
+        skipScroll?: boolean;
+      }
+    ) => {
+      const idCarreraFinal = params?.carreraId || carreraSeleccionadaId;
+      const idNoticiaFinal = params?.noticiaId || noticiaSeleccionadaId;
+
+      if (params?.carreraId) setCarreraSeleccionadaId(params.carreraId);
+      if (params?.noticiaId) setNoticiaSeleccionadaId(params.noticiaId);
+      if (params?.docenteCarrera) setFiltroDocenteCarrera(params.docenteCarrera);
+
+      setVistaActual(nuevaVista);
+
+      if (typeof window !== "undefined") {
+        let nuevoHash = "#/";
+        if (nuevaVista === "/carreras/[id]") {
+          nuevoHash = `#/carreras/${idCarreraFinal}`;
+        } else if (nuevaVista === "/noticias/[id]") {
+          nuevoHash = `#/noticias/${idNoticiaFinal}`;
+        } else if (nuevaVista === "/repositorio") {
+          nuevoHash = "#/repositorio";
+        } else if (nuevaVista === "/contacto") {
+          nuevoHash = "#/contacto";
+        } else if (nuevaVista === "/admin") {
+          nuevoHash = "#/admin";
+        } else if (nuevaVista === "/" && params?.docenteCarrera) {
+          nuevoHash = `#/docentes/${params.docenteCarrera}`;
+        }
+
+        if (window.location.hash !== nuevoHash) {
+          window.history.pushState(
+            {
+              vista: nuevaVista,
+              carreraId: idCarreraFinal,
+              noticiaId: idNoticiaFinal,
+              docenteCarrera: params?.docenteCarrera || filtroDocenteCarrera,
+            },
+            "",
+            nuevoHash
+          );
+        }
+        if (!params?.skipScroll) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+    },
+    [carreraSeleccionadaId, noticiaSeleccionadaId, filtroDocenteCarrera]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash) {
+      aplicarHashAEstado(window.location.hash);
+    } else {
+      window.history.replaceState({ vista: "/" }, "", "#/");
+    }
+
+    const handlePopState = () => {
+      if (modalesAbiertosRef.current) {
+        setDocenteModalActivo(null);
+        setServicioModalInfo(null);
+        setModalSubirAbierto(false);
+        return;
+      }
+      aplicarHashAEstado(window.location.hash);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [aplicarHashAEstado]);
+
+  // ==========================================================================
   // 1. PERSISTENCIA REAL EN SUPABASE (`portal_config`) Y CARGA INICIAL
   // ==========================================================================
   useEffect(() => {
@@ -445,6 +1052,7 @@ export default function PortalFacultadCienciasMatematicas() {
           const localCarreras = window.localStorage.getItem("fcm_carreras_data");
           const localNoticias = window.localStorage.getItem("fcm_noticias_data");
           const localStorageImgs = window.localStorage.getItem("fcm_storage_data");
+          const localDocentes = window.localStorage.getItem("fcm_docentes_data");
           if (localLogo && activo) setLogoUrl(localLogo);
           if (localCarreras && activo) {
             const parsed = JSON.parse(localCarreras);
@@ -457,6 +1065,10 @@ export default function PortalFacultadCienciasMatematicas() {
           if (localStorageImgs && activo) {
             const parsed = JSON.parse(localStorageImgs);
             if (Array.isArray(parsed) && parsed.length > 0) setImagenesStorage(parsed);
+          }
+          if (localDocentes && activo) {
+            const parsed = JSON.parse(localDocentes);
+            if (Array.isArray(parsed) && parsed.length > 0) setDocentes(parsed);
           }
         }
 
@@ -488,6 +1100,10 @@ export default function PortalFacultadCienciasMatematicas() {
             setImagenesStorage(data.storage_data);
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_storage_data", JSON.stringify(data.storage_data));
           }
+          if (Array.isArray(data.docentes_data) && data.docentes_data.length > 0) {
+            setDocentes(data.docentes_data);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_docentes_data", JSON.stringify(data.docentes_data));
+          }
         }
       } catch {
         // Mantiene estado por defecto si la tabla aún no fue creada
@@ -504,12 +1120,14 @@ export default function PortalFacultadCienciasMatematicas() {
     carreras_data?: Carrera[];
     noticias_data?: Noticia[];
     storage_data?: ImagenStorage[];
+    docentes_data?: Docente[];
   }): Promise<boolean> => {
     if (typeof window !== "undefined") {
       if (cambios.logo_url) window.localStorage.setItem("fcm_logo_url", cambios.logo_url);
       if (cambios.carreras_data) window.localStorage.setItem("fcm_carreras_data", JSON.stringify(cambios.carreras_data));
       if (cambios.noticias_data) window.localStorage.setItem("fcm_noticias_data", JSON.stringify(cambios.noticias_data));
       if (cambios.storage_data) window.localStorage.setItem("fcm_storage_data", JSON.stringify(cambios.storage_data));
+      if (cambios.docentes_data) window.localStorage.setItem("fcm_docentes_data", JSON.stringify(cambios.docentes_data));
     }
     try {
       const { error } = await supabase.from("portal_config").upsert(
@@ -833,10 +1451,109 @@ export default function PortalFacultadCienciasMatematicas() {
     }
   };
 
+  const noticiaActiva = useMemo(
+    () => noticias.find((n) => n.id === noticiaSeleccionadaId) || noticias[0] || NOTICIAS_INICIALES[0],
+    [noticias, noticiaSeleccionadaId]
+  );
+
+  const docentesFiltradosHome = useMemo(() => {
+    const q = busquedaDocentes.trim().toLowerCase();
+    return docentes.filter((doc) => {
+      const okCarrera = filtroDocenteCarrera === "TODAS" || doc.carrera_id === filtroDocenteCarrera;
+      if (!okCarrera) return false;
+      if (!q) return true;
+      return (
+        doc.nombre_completo.toLowerCase().includes(q) ||
+        doc.especialidad.toLowerCase().includes(q) ||
+        doc.lineas_investigacion.toLowerCase().includes(q) ||
+        doc.cursos_dictados.some((c) => c.toLowerCase().includes(q))
+      );
+    });
+  }, [docentes, filtroDocenteCarrera, busquedaDocentes]);
+
   const navegarACarrera = (id: CarreraId) => {
-    setCarreraSeleccionadaId(id);
-    setVistaActual("/carreras/[id]");
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    navegar("/carreras/[id]", { carreraId: id });
+  };
+
+  const abrirNoticiaDetalle = (idNoticia: string) => {
+    navegar("/noticias/[id]", { noticiaId: idNoticia });
+  };
+
+  const handleCompartirNoticia = async (noticia: Noticia) => {
+    if (typeof window === "undefined") return;
+    const urlCompartir = `${window.location.origin}${window.location.pathname}#/noticias/${noticia.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${noticia.titulo} | FCM UNMSM`,
+          text: noticia.resumen || noticia.titulo,
+          url: urlCompartir,
+        });
+        return;
+      } catch {
+        // Continúa al respaldo de portapapeles
+      }
+    }
+    navigator.clipboard?.writeText(urlCompartir);
+    lanzarToast("🔗 Enlace directo de la noticia copiado al portapapeles.");
+  };
+
+  const insertarFormatoNoticia = (
+    tipo: "bold" | "italic" | "h2" | "ul" | "ol" | "link" | "quote" | "hr"
+  ) => {
+    const textarea = textareaNoticiaRef.current;
+    const valorActual = formNoticia.contenido;
+    const start = textarea ? textarea.selectionStart : valorActual.length;
+    const end = textarea ? textarea.selectionEnd : valorActual.length;
+    const seleccionado = valorActual.slice(start, end);
+
+    let reemplazo = "";
+    switch (tipo) {
+      case "bold":
+        reemplazo = `**${seleccionado || "texto en negrita"}**`;
+        break;
+      case "italic":
+        reemplazo = `*${seleccionado || "texto en cursiva"}*`;
+        break;
+      case "h2":
+        reemplazo = `\n## ${seleccionado || "Subtítulo de Sección"}\n`;
+        break;
+      case "ul":
+        reemplazo = seleccionado
+          ? seleccionado
+              .split("\n")
+              .map((l) => `- ${l}`)
+              .join("\n")
+          : `\n- Primer punto clave\n- Segundo punto clave\n`;
+        break;
+      case "ol":
+        reemplazo = seleccionado
+          ? seleccionado
+              .split("\n")
+              .map((l, i) => `${i + 1}. ${l}`)
+              .join("\n")
+          : `\n1. Primer paso o requisito\n2. Segundo paso o requisito\n`;
+        break;
+      case "link":
+        reemplazo = `[${seleccionado || "Texto del enlace"}](https://unmsm.edu.pe)`;
+        break;
+      case "quote":
+        reemplazo = `\n> ${seleccionado || "Aviso o nota destacada para los estudiantes."}\n`;
+        break;
+      case "hr":
+        reemplazo = `\n---\n`;
+        break;
+    }
+
+    const nuevoContenido = valorActual.slice(0, start) + reemplazo + valorActual.slice(end);
+    setFormNoticia((prev) => ({ ...prev, contenido: nuevoContenido }));
+    setTimeout(() => {
+      if (textarea) {
+        textarea.focus();
+        const nuevaPos = start + reemplazo.length;
+        textarea.setSelectionRange(nuevaPos, nuevaPos);
+      }
+    }, 20);
   };
 
   const toggleCicloAcordeon = (ciclo: number) => {
@@ -864,23 +1581,30 @@ export default function PortalFacultadCienciasMatematicas() {
     e.preventDefault();
     if (!formNoticia.titulo.trim() || !formNoticia.contenido.trim()) return;
     let nuevasNoticias: Noticia[];
+    const payloadNoticia: Noticia = {
+      id: formNoticia.id || `not-${Date.now()}`,
+      titulo: formNoticia.titulo.trim(),
+      categoria: formNoticia.categoria.trim() || "Comunicado Oficial",
+      resumen: formNoticia.resumen.trim(),
+      contenido: formNoticia.contenido.trim(),
+      imagen_url:
+        formNoticia.imagen_url.trim() ||
+        "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
+      fecha_publicacion: formNoticia.fecha_publicacion || new Date().toISOString().split("T")[0],
+      destacado: formNoticia.destacado,
+      fecha_evento: formNoticia.fecha_evento.trim(),
+      lugar: formNoticia.lugar.trim(),
+      modalidad: formNoticia.modalidad.trim(),
+      dirigido_a: formNoticia.dirigido_a.trim(),
+      enlace_inscripcion: formNoticia.enlace_inscripcion.trim(),
+    };
+
     if (formNoticia.id) {
-      nuevasNoticias = noticias.map((n) => (n.id === formNoticia.id ? { ...n, ...formNoticia } : n));
+      nuevasNoticias = noticias.map((n) => (n.id === formNoticia.id ? payloadNoticia : n));
       setNoticias(nuevasNoticias);
       lanzarToast("✅ Noticia actualizada y persistida en Supabase.");
     } else {
-      nuevasNoticias = [
-        {
-          id: `not-${Date.now()}`,
-          titulo: formNoticia.titulo.trim(),
-          categoria: formNoticia.categoria,
-          contenido: formNoticia.contenido.trim(),
-          imagen_url: formNoticia.imagen_url.trim() || "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
-          fecha_publicacion: formNoticia.fecha_publicacion || new Date().toISOString().split("T")[0],
-          destacado: formNoticia.destacado,
-        },
-        ...noticias,
-      ];
+      nuevasNoticias = [payloadNoticia, ...noticias];
       setNoticias(nuevasNoticias);
       lanzarToast("📰 Nueva noticia publicada y guardada en Supabase.");
     }
@@ -889,11 +1613,117 @@ export default function PortalFacultadCienciasMatematicas() {
       id: "",
       titulo: "",
       categoria: "Comunicado Oficial",
+      resumen: "",
       fecha_publicacion: "",
       contenido: "",
       imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
       destacado: true,
+      fecha_evento: "",
+      lugar: "",
+      modalidad: "",
+      dirigido_a: "",
+      enlace_inscripcion: "",
     });
+  };
+
+  const handleSubirFotoDocenteStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendoFotoDocente(true);
+    try {
+      const publicUrl = await subirArchivoASupabaseStorage(file, "docentes");
+      setFormDocente((prev) => ({ ...prev, foto_url: publicUrl }));
+      lanzarToast("✅ Fotografía del docente subida a Supabase Storage.");
+    } finally {
+      setSubiendoFotoDocente(false);
+      if (inputFotoDocenteRef.current) inputFotoDocenteRef.current.value = "";
+    }
+  };
+
+  const handleGuardarDocente = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formDocente.nombre_completo.trim() || !formDocente.especialidad.trim()) return;
+    const cursosArray = formDocente.cursos_dictados_texto
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const nuevoDocenteObj: Docente = {
+      id: formDocente.id || `doc-${Date.now()}`,
+      nombre_completo: formDocente.nombre_completo.trim(),
+      grado_academico: formDocente.grado_academico,
+      categoria_docente: formDocente.categoria_docente,
+      condicion: formDocente.condicion,
+      carrera_id: formDocente.carrera_id,
+      especialidad: formDocente.especialidad.trim(),
+      lineas_investigacion: formDocente.lineas_investigacion.trim() || formDocente.especialidad.trim(),
+      cursos_dictados: cursosArray.length > 0 ? cursosArray : ["Asignatura de Especialidad FCM"],
+      correo: formDocente.correo.trim() || "docente.fcm@unmsm.edu.pe",
+      horario_asesoria: formDocente.horario_asesoria.trim() || "Previa coordinación por correo institucional",
+      foto_url: formDocente.foto_url.trim(),
+      cti_vitae_url: formDocente.cti_vitae_url.trim(),
+      orcid_url: formDocente.orcid_url.trim(),
+      google_scholar_url: formDocente.google_scholar_url.trim(),
+      linkedin_url: formDocente.linkedin_url.trim(),
+    };
+
+    const nuevaListaDocentes = formDocente.id
+      ? docentes.map((d) => (d.id === formDocente.id ? nuevoDocenteObj : d))
+      : [nuevoDocenteObj, ...docentes];
+
+    setDocentes(nuevaListaDocentes);
+    await sincronizarPortalConfigSupabase({ docentes_data: nuevaListaDocentes });
+    lanzarToast(
+      formDocente.id
+        ? "✅ Ficha del docente actualizada y guardada en Supabase."
+        : "👨‍🏫 Nuevo docente registrado en la Plana Docente y persistido en Supabase."
+    );
+    setFormDocente({
+      id: "",
+      nombre_completo: "",
+      grado_academico: "Dr.",
+      categoria_docente: "Principal",
+      condicion: "Nombrado",
+      carrera_id: "computacion-cientifica",
+      especialidad: "",
+      lineas_investigacion: "",
+      cursos_dictados_texto: "",
+      correo: "",
+      horario_asesoria: "",
+      foto_url: "",
+      cti_vitae_url: "",
+      orcid_url: "",
+      google_scholar_url: "",
+      linkedin_url: "",
+    });
+  };
+
+  const handleEditarDocenteEnAdmin = (doc: Docente) => {
+    setFormDocente({
+      id: doc.id,
+      nombre_completo: doc.nombre_completo,
+      grado_academico: doc.grado_academico,
+      categoria_docente: doc.categoria_docente,
+      condicion: doc.condicion,
+      carrera_id: doc.carrera_id,
+      especialidad: doc.especialidad,
+      lineas_investigacion: doc.lineas_investigacion,
+      cursos_dictados_texto: doc.cursos_dictados.join(", "),
+      correo: doc.correo,
+      horario_asesoria: doc.horario_asesoria,
+      foto_url: doc.foto_url,
+      cti_vitae_url: doc.cti_vitae_url || "",
+      orcid_url: doc.orcid_url || "",
+      google_scholar_url: doc.google_scholar_url || "",
+      linkedin_url: doc.linkedin_url || "",
+    });
+  };
+
+  const handleEliminarDocenteEnAdmin = async (idDocente: string) => {
+    const filtrados = docentes.filter((d) => d.id !== idDocente);
+    setDocentes(filtrados);
+    await sincronizarPortalConfigSupabase({ docentes_data: filtrados });
+    lanzarToast("🗑️ Docente eliminado de Supabase.");
   };
 
   const handleGuardarCursoMalla = (e: React.FormEvent) => {
@@ -1036,7 +1866,7 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* NAVBAR CON LOGO PLANO Y TRANSPARENTE (SIN BORDES, SIN FONDOS BLANCOS NI REDONDEO) */}
       <header className="sticky top-0 z-50 bg-[#002855] text-white shadow-lg border-b border-blue-950 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          <div onClick={() => setVistaActual("/")} className="flex items-center gap-3 cursor-pointer shrink-0">
+          <div onClick={() => navegar("/")} className="flex items-center gap-3 cursor-pointer shrink-0">
             <img
               src={logoUrl}
               alt="Escudo UNMSM - Facultad de Ciencias Matemáticas"
@@ -1057,16 +1887,16 @@ export default function PortalFacultadCienciasMatematicas() {
 
           <nav className="flex flex-wrap items-center gap-1 sm:gap-1.5 bg-blue-950/80 p-1.5 rounded-xl border border-blue-800">
             <button
-              onClick={() => setVistaActual("/")}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+              onClick={() => navegar("/")}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                 vistaActual === "/" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
               }`}
             >
               Inicio
             </button>
             <button
-              onClick={() => setVistaActual("/carreras/[id]")}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              onClick={() => navegar("/carreras/[id]", { carreraId: carreraSeleccionadaId })}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                 vistaActual === "/carreras/[id]" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
               }`}
             >
@@ -1074,8 +1904,8 @@ export default function PortalFacultadCienciasMatematicas() {
               <span>Escuelas y Mallas</span>
             </button>
             <button
-              onClick={() => setVistaActual("/repositorio")}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              onClick={() => navegar("/repositorio")}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                 vistaActual === "/repositorio" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
               }`}
             >
@@ -1228,7 +2058,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         type="button"
                         onClick={() => {
                           setDropdownServicioAbierto(false);
-                          setVistaActual("/contacto");
+                          navegar("/contacto");
                         }}
                         className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center justify-between group cursor-pointer"
                       >
@@ -1248,8 +2078,8 @@ export default function PortalFacultadCienciasMatematicas() {
             </div>
 
             <button
-              onClick={() => setVistaActual("/contacto")}
-              className={`hidden lg:flex px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap items-center gap-1 ${
+              onClick={() => navegar("/contacto")}
+              className={`hidden lg:flex px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap items-center gap-1 cursor-pointer ${
                 vistaActual === "/contacto" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
               }`}
             >
@@ -1259,8 +2089,8 @@ export default function PortalFacultadCienciasMatematicas() {
 
             {adminAutenticado && (
               <button
-                onClick={() => setVistaActual("/admin")}
-                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                onClick={() => navegar("/admin")}
+                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                   vistaActual === "/admin" ? "bg-white text-[#002855] shadow-sm" : "bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500"
                 }`}
               >
@@ -1279,7 +2109,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
       {/* VISTA A: INICIO / HOME (/) */}
       {vistaActual === "/" && (
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-12">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-14">
           <section className="relative rounded-3xl bg-gradient-to-br from-[#002855] via-blue-900 to-blue-950 text-white p-6 sm:p-12 text-center shadow-xl border-b-4 border-red-700">
             <div className="max-w-3xl mx-auto space-y-5">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-700 text-white text-xs font-bold uppercase tracking-wide shadow">
@@ -1406,8 +2236,9 @@ export default function PortalFacultadCienciasMatematicas() {
             </div>
           </section>
 
+          {/* SECCIÓN DE NOTICIAS CON TARJETAS INTERACTIVAS Y VISTA DE LECTURA */}
           <section className="space-y-5">
-            <div className="flex items-center justify-between border-b-2 border-blue-900 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-blue-900 pb-3">
               <div>
                 <span className="text-xs font-bold uppercase text-red-700">Actualidad Universitaria</span>
                 <h2 className="text-2xl font-extrabold text-[#002855] flex items-center gap-2">
@@ -1415,41 +2246,449 @@ export default function PortalFacultadCienciasMatematicas() {
                   Noticias y Comunicados Oficiales
                 </h2>
               </div>
+              <span className="text-xs font-semibold text-slate-600">
+                Haz clic en cualquier noticia para leer el artículo completo y enlaces oficiales
+              </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {noticias.map((not, idx) => (
-                <article
-                  key={not.id}
-                  className={`rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md overflow-hidden flex flex-col justify-between ${
-                    idx === 0 ? "md:col-span-2" : "md:col-span-1"
-                  }`}
-                >
-                  <div>
-                    <div className="relative h-52 bg-slate-900">
-                      <img src={not.imagen_url} alt={not.titulo} className="w-full h-full object-cover opacity-90" />
-                      <div className="absolute top-3 left-3 flex items-center gap-2">
-                        <span className="px-3 py-1 rounded-md text-[11px] font-bold bg-[#002855] text-white shadow">{not.categoria}</span>
-                        {not.destacado && (
-                          <span className="px-3 py-1 rounded-md text-[11px] font-bold bg-red-700 text-white shadow flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-white" /> Importante
+              {noticias.map((not, idx) => {
+                const resumenLimpio =
+                  (not.resumen && not.resumen.trim()) ||
+                  not.contenido
+                    .replace(/^[#>*-\d.]+\s*/gm, "")
+                    .replace(/\*\*/g, "")
+                    .replace(/\n+/g, " ")
+                    .trim();
+                return (
+                  <article
+                    key={not.id}
+                    onClick={() => abrirNoticiaDetalle(not.id)}
+                    className={`group rounded-2xl border border-slate-200 bg-white hover:border-[#002855] shadow-sm hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all ${
+                      idx === 0 ? "md:col-span-2" : "md:col-span-1"
+                    }`}
+                  >
+                    <div>
+                      <div className="relative h-56 bg-slate-900 overflow-hidden">
+                        <img
+                          src={not.imagen_url}
+                          alt={not.titulo}
+                          className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2">
+                          <span className="px-3 py-1 rounded-md text-[11px] font-bold bg-[#002855] text-white shadow">
+                            {not.categoria}
                           </span>
-                        )}
+                          {not.destacado && (
+                            <span className="px-3 py-1 rounded-md text-[11px] font-bold bg-red-700 text-white shadow flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-white" /> Importante
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="p-6 space-y-2.5">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium">
+                          <Calendar className="w-3.5 h-3.5 text-red-700" />
+                          <span>{formatearFechaEspanol(not.fecha_publicacion)}</span>
+                        </div>
+                        <h3 className="text-lg font-extrabold text-[#002855] group-hover:text-red-700 transition-colors leading-snug">
+                          {not.titulo}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                          {resumenLimpio}
+                        </p>
                       </div>
                     </div>
-                    <div className="p-6 space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                        <Calendar className="w-3.5 h-3.5 text-red-700" />
-                        <span>{not.fecha_publicacion}</span>
-                      </div>
-                      <h3 className="text-lg font-extrabold text-[#002855] leading-snug">{not.titulo}</h3>
-                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{not.contenido}</p>
+
+                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-[#002855] group-hover:text-red-700 flex items-center gap-1.5">
+                        <span>Leer noticia completa</span>
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </span>
+                      {not.modalidad && (
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#002855] border border-blue-200">
+                          {not.modalidad}
+                        </span>
+                      )}
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           </section>
+
+          {/* 3. SECCIÓN "PLANA DOCENTE E INVESTIGADORES" CENTRADA AL FINAL DEL HOME */}
+          <section id="plana-docente" className="pt-4 space-y-8">
+            <div className="text-center max-w-3xl mx-auto space-y-2.5">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#002855] text-xs font-extrabold uppercase tracking-wider">
+                <Users className="w-3.5 h-3.5 text-red-700" />
+                <span>Excelencia Académica e Investigación • FCM UNMSM</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#002855] tracking-tight">
+                Plana Docente e Investigadores de la Facultad
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                Selecciona una Escuela Profesional o busca por asignatura para conocer el perfil académico, líneas de investigación, correo institucional y horarios de asesoría de nuestros catedráticos.
+              </p>
+            </div>
+
+            {/* Pestañas por Carrera + Buscador Centrado */}
+            <div className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-4">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navegar("/", { docenteCarrera: "TODAS", skipScroll: true })}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
+                    filtroDocenteCarrera === "TODAS"
+                      ? "bg-[#002855] text-white shadow-md border-b-2 border-red-600"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  <span>Todas (FCM)</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] ${filtroDocenteCarrera === "TODAS" ? "bg-red-700 text-white" : "bg-slate-300 text-slate-800"}`}>
+                    {docentes.length}
+                  </span>
+                </button>
+
+                {carreras.map((car) => {
+                  const temaCar = TEMA_CARRERA[car.id];
+                  const activo = filtroDocenteCarrera === car.id;
+                  const totalPorEscuela = docentes.filter((d) => d.carrera_id === car.id).length;
+                  return (
+                    <button
+                      key={car.id}
+                      type="button"
+                      onClick={() => navegar("/", { docenteCarrera: car.id, skipScroll: true })}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
+                        activo ? temaCar.tabActive : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      }`}
+                    >
+                      <span>{car.nombre}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] ${activo ? temaCar.tabPillActive : "bg-slate-300 text-slate-800"}`}>
+                        {totalPorEscuela}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="relative max-w-xl mx-auto">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  value={busquedaDocentes}
+                  onChange={(e) => setBusquedaDocentes(e.target.value)}
+                  placeholder="Buscar profesor por apellido, especialidad o curso que dicta..."
+                  className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-[#002855]"
+                />
+                {busquedaDocentes && (
+                  <button
+                    type="button"
+                    onClick={() => setBusquedaDocentes("")}
+                    className="absolute right-2.5 top-2 px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-[11px] font-bold text-slate-700"
+                  >
+                    Limpiar
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Grid Centrado de Tarjetas Institucionales de Docentes */}
+            {docentesFiltradosHome.length === 0 ? (
+              <div className="max-w-xl mx-auto rounded-2xl border border-slate-200 bg-white p-10 text-center space-y-2">
+                <Users className="w-10 h-10 text-slate-400 mx-auto" />
+                <p className="text-sm font-extrabold text-[#002855]">No se encontraron docentes con ese criterio</p>
+                <p className="text-xs text-slate-500">Prueba cambiando la pestaña de Escuela Profesional o limpiando el buscador.</p>
+              </div>
+            ) : (
+              <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {docentesFiltradosHome.map((doc) => {
+                  const temaDoc = TEMA_CARRERA[doc.carrera_id];
+                  const nombreEscuela = carreras.find((c) => c.id === doc.carrera_id)?.nombre || "FCM";
+                  return (
+                    <div
+                      key={doc.id}
+                      onClick={() => setDocenteModalActivo(doc)}
+                      className={`group rounded-2xl bg-white border border-slate-200 ${temaDoc.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
+                    >
+                      <div>
+                        {/* Fotografía Superior Uniforme o Avatar Institucional */}
+                        <div className="relative h-52 w-full bg-slate-100 overflow-hidden border-b border-slate-100">
+                          {doc.foto_url ? (
+                            <img
+                              src={doc.foto_url}
+                              alt={`${doc.grado_academico} ${doc.nombre_completo}`}
+                              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className={`w-full h-full ${temaDoc.headerBg} flex items-center justify-center text-white text-3xl font-extrabold tracking-wider`}>
+                              {obtenerInicialesDocente(doc.nombre_completo)}
+                            </div>
+                          )}
+                          <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-black/70 text-white backdrop-blur-xs">
+                            {doc.categoria_docente}
+                          </span>
+                        </div>
+
+                        {/* Franja de color de su Escuela Profesional */}
+                        <div className={`h-1.5 w-full ${temaDoc.headerBg}`} />
+
+                        {/* Información Centrada estilo matematicas.unmsm.edu.pe */}
+                        <div className="p-5 space-y-2">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${temaDoc.badgeSoft}`}>
+                            {nombreEscuela}
+                          </span>
+                          <h3 className={`text-sm sm:text-base font-extrabold text-[#002855] ${temaDoc.groupHoverText} transition-colors leading-snug`}>
+                            {doc.grado_academico} {doc.nombre_completo}
+                          </h3>
+                          <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                            {doc.especialidad}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] font-extrabold text-[#002855] group-hover:text-red-700">
+                        <span>Ver Ficha y Cursos</span>
+                        <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </main>
+      )}
+
+      {/* VISTA DETALLE DE NOTICIA (/noticias/[id]) */}
+      {vistaActual === "/noticias/[id]" && (
+        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 space-y-10">
+          {/* Barra superior de navegación y compartir */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 px-4 py-3 rounded-2xl shadow-xs print:hidden">
+            <button
+              type="button"
+              onClick={() => navegar("/")}
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-extrabold flex items-center gap-2 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>← Volver al Portal</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              {adminAutenticado && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormNoticia({
+                      id: noticiaActiva.id,
+                      titulo: noticiaActiva.titulo,
+                      categoria: noticiaActiva.categoria,
+                      resumen: noticiaActiva.resumen || "",
+                      fecha_publicacion: noticiaActiva.fecha_publicacion,
+                      contenido: noticiaActiva.contenido,
+                      imagen_url: noticiaActiva.imagen_url,
+                      destacado: noticiaActiva.destacado,
+                      fecha_evento: noticiaActiva.fecha_evento || "",
+                      lugar: noticiaActiva.lugar || "",
+                      modalidad: noticiaActiva.modalidad || "",
+                      dirigido_a: noticiaActiva.dirigido_a || "",
+                      enlace_inscripcion: noticiaActiva.enlace_inscripcion || "",
+                    });
+                    setTabAdmin("noticias");
+                    navegar("/admin");
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#002855] border border-blue-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Editar en CMS</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => handleCompartirNoticia(noticiaActiva)}
+                className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold flex items-center gap-2 shadow-xs cursor-pointer"
+              >
+                <Share2 className="w-3.5 h-3.5 text-red-400" />
+                <span>Compartir Noticia</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Contenedor Principal del Artículo */}
+          <article className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+            {/* Portada adaptable: muestra afiches verticales o banners completos sin recortarlos bruscamente */}
+            <div className="relative bg-slate-950 flex items-center justify-center overflow-hidden min-h-[260px] max-h-[540px]">
+              <img
+                src={noticiaActiva.imagen_url}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover opacity-25 blur-xl scale-110 pointer-events-none"
+              />
+              <img
+                src={noticiaActiva.imagen_url}
+                alt={noticiaActiva.titulo}
+                className="relative z-10 w-full max-h-[520px] object-contain"
+              />
+            </div>
+
+            <div className="p-6 sm:p-10">
+              <div className="max-w-4xl mx-auto space-y-6">
+                <div className="space-y-3 border-b border-slate-200 pb-6">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="px-3 py-1 rounded-lg text-xs font-extrabold bg-[#002855] text-white">
+                      {noticiaActiva.categoria}
+                    </span>
+                    {noticiaActiva.destacado && (
+                      <span className="px-3 py-1 rounded-lg text-xs font-extrabold bg-red-700 text-white flex items-center gap-1">
+                        <Star className="w-3.5 h-3.5 fill-white" /> Destacado FCM
+                      </span>
+                    )}
+                    <span className="text-xs text-slate-500 font-semibold flex items-center gap-1.5 ml-auto">
+                      <Calendar className="w-4 h-4 text-red-700" />
+                      {formatearFechaEspanol(noticiaActiva.fecha_publicacion)}
+                    </span>
+                  </div>
+
+                  <h1 className="text-2xl sm:text-4xl font-extrabold text-[#002855] leading-tight">
+                    {noticiaActiva.titulo}
+                  </h1>
+
+                  {noticiaActiva.resumen && (
+                    <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed">
+                      {noticiaActiva.resumen}
+                    </p>
+                  )}
+                </div>
+
+                {/* Layout con Ficha Rápida de Evento (si tiene metadatos opcionales) + Cuerpo del Artículo */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  <div
+                    className={
+                      noticiaActiva.fecha_evento ||
+                      noticiaActiva.lugar ||
+                      noticiaActiva.modalidad ||
+                      noticiaActiva.dirigido_a ||
+                      noticiaActiva.enlace_inscripcion
+                        ? "lg:col-span-8"
+                        : "lg:col-span-12 max-w-3xl mx-auto w-full"
+                    }
+                  >
+                    {renderizarContenidoNoticia(noticiaActiva.contenido)}
+                  </div>
+
+                  {(noticiaActiva.fecha_evento ||
+                    noticiaActiva.lugar ||
+                    noticiaActiva.modalidad ||
+                    noticiaActiva.dirigido_a ||
+                    noticiaActiva.enlace_inscripcion) && (
+                    <aside className="lg:col-span-4 rounded-2xl bg-slate-50 border-2 border-[#002855]/15 p-5 space-y-4">
+                      <div className="border-b border-slate-200 pb-2.5">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-red-700">
+                          Ficha Oficial del Evento / Comunicado
+                        </span>
+                        <h3 className="text-sm font-extrabold text-[#002855]">Datos Clave</h3>
+                      </div>
+
+                      <div className="space-y-3 text-xs">
+                        {noticiaActiva.fecha_evento && (
+                          <div className="flex items-start gap-2.5">
+                            <Calendar className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-bold text-slate-500 uppercase text-[10px]">Fecha / Cronograma</p>
+                              <p className="font-extrabold text-slate-900">{noticiaActiva.fecha_evento}</p>
+                            </div>
+                          </div>
+                        )}
+                        {noticiaActiva.lugar && (
+                          <div className="flex items-start gap-2.5">
+                            <MapPin className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-bold text-slate-500 uppercase text-[10px]">Lugar / Sede</p>
+                              <p className="font-extrabold text-slate-900">{noticiaActiva.lugar}</p>
+                            </div>
+                          </div>
+                        )}
+                        {noticiaActiva.modalidad && (
+                          <div className="flex items-start gap-2.5">
+                            <Globe className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-bold text-slate-500 uppercase text-[10px]">Modalidad</p>
+                              <p className="font-extrabold text-slate-900">{noticiaActiva.modalidad}</p>
+                            </div>
+                          </div>
+                        )}
+                        {noticiaActiva.dirigido_a && (
+                          <div className="flex items-start gap-2.5">
+                            <Users className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-bold text-slate-500 uppercase text-[10px]">Dirigido a</p>
+                              <p className="font-extrabold text-slate-900">{noticiaActiva.dirigido_a}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {noticiaActiva.enlace_inscripcion && (
+                        <a
+                          href={noticiaActiva.enlace_inscripcion}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full py-3 px-4 rounded-xl bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-colors"
+                        >
+                          <span>🚀 Inscribirse / Ver Bases Oficiales</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </aside>
+                  )}
+                </div>
+              </div>
+            </div>
+          </article>
+
+          {/* Otras noticias relacionadas */}
+          {noticias.filter((n) => n.id !== noticiaActiva.id).length > 0 && (
+            <section className="space-y-4 print:hidden">
+              <div className="flex items-center justify-between border-b-2 border-blue-900 pb-2.5">
+                <h2 className="text-lg sm:text-xl font-extrabold text-[#002855]">Otras Noticias de la Facultad</h2>
+                <button
+                  type="button"
+                  onClick={() => navegar("/")}
+                  className="text-xs font-bold text-red-700 hover:underline cursor-pointer"
+                >
+                  Ver todas en el Inicio →
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {noticias
+                  .filter((n) => n.id !== noticiaActiva.id)
+                  .slice(0, 3)
+                  .map((rel) => (
+                    <div
+                      key={rel.id}
+                      onClick={() => abrirNoticiaDetalle(rel.id)}
+                      className="group rounded-2xl border border-slate-200 bg-white hover:border-[#002855] overflow-hidden shadow-xs hover:shadow-md cursor-pointer transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="h-36 bg-slate-900 overflow-hidden">
+                          <img src={rel.imagen_url} alt={rel.titulo} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform" />
+                        </div>
+                        <div className="p-4 space-y-1.5">
+                          <span className="text-[10px] font-extrabold uppercase text-red-700">{rel.categoria}</span>
+                          <h3 className="text-xs sm:text-sm font-extrabold text-[#002855] group-hover:text-red-700 line-clamp-2">
+                            {rel.titulo}
+                          </h3>
+                        </div>
+                      </div>
+                      <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-[#002855]">
+                        <span>{rel.fecha_publicacion}</span>
+                        <span>Leer →</span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </section>
+          )}
         </main>
       )}
 
@@ -1465,7 +2704,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 return (
                   <button
                     key={c.id}
-                    onClick={() => setCarreraSeleccionadaId(c.id)}
+                    onClick={() => navegar("/carreras/[id]", { carreraId: c.id, skipScroll: true })}
                     className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
                       esActiva
                         ? temaTab.tabActive
@@ -1512,9 +2751,9 @@ export default function PortalFacultadCienciasMatematicas() {
                     setRepoFiltroCarrera(carreraActiva.id);
                     setRepoFiltroCiclo("TODOS");
                     setRepoFiltroCurso("TODOS");
-                    setVistaActual("/repositorio");
+                    navegar("/repositorio");
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-black/20 hover:bg-black/30 text-white text-xs font-semibold flex items-center justify-center gap-2 border border-white/25"
+                  className="px-4 py-2.5 rounded-xl bg-black/20 hover:bg-black/30 text-white text-xs font-semibold flex items-center justify-center gap-2 border border-white/25 cursor-pointer"
                 >
                   <FolderGit2 className="w-4 h-4 text-white" />
                   <span>Ir al Repositorio de {carreraActiva.nombre}</span>
@@ -1601,9 +2840,9 @@ export default function PortalFacultadCienciasMatematicas() {
                       onClick={() => {
                         handleSeleccionarCarreraEnAdmin(carreraActiva.id);
                         setTabAdmin("carreras_cms");
-                        setVistaActual("/admin");
+                        navegar("/admin");
                       }}
-                      className={`${temaActivo.textAccent} font-bold hover:underline print:hidden`}
+                      className={`${temaActivo.textAccent} font-bold hover:underline print:hidden cursor-pointer`}
                     >
                       Cambiar imagen / PDF en /admin →
                     </button>
@@ -1695,9 +2934,9 @@ export default function PortalFacultadCienciasMatematicas() {
                                     setRepoFiltroCarrera(carreraActiva.id);
                                     setRepoFiltroCiclo(cur.ciclo);
                                     setRepoFiltroCurso(cur.id);
-                                    setVistaActual("/repositorio");
+                                    navegar("/repositorio");
                                   }}
-                                  className={`${temaActivo.textAccent} hover:underline font-bold`}
+                                  className={`${temaActivo.textAccent} hover:underline font-bold cursor-pointer`}
                                 >
                                   Materiales →
                                 </button>
@@ -2019,6 +3258,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     { id: "dashboard", label: "📊 Resumen" },
                     { id: "carreras_cms", label: "🏛️ Gestión de Carreras" },
                     { id: "noticias", label: `📰 Noticias (${noticias.length})` },
+                    { id: "docentes_cms", label: `👨‍🏫 Docentes (${docentes.length})` },
                     { id: "moderacion", label: `🛡️ Moderación (${materialesPendientes.length})` },
                     { id: "storage", label: `🖼️ Imágenes Storage (${imagenesStorage.length})` },
                     { id: "malla", label: `🎓 Mallas (${malla.length})` },
@@ -2027,7 +3267,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     <button
                       key={t.id}
                       onClick={() => setTabAdmin(t.id as typeof tabAdmin)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all ${tabAdmin === t.id ? "bg-red-700 text-white shadow" : "bg-blue-900 text-blue-100 hover:bg-blue-800"}`}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${tabAdmin === t.id ? "bg-red-700 text-white shadow" : "bg-blue-900 text-blue-100 hover:bg-blue-800"}`}
                     >
                       {t.label}
                     </button>
@@ -2036,7 +3276,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     type="button"
                     onClick={() => {
                       setAdminAutenticado(false);
-                      setVistaActual("/");
+                      navegar("/");
                       lanzarToast("🔒 Sesión de administrador cerrada.");
                     }}
                     className="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-black text-red-300 border border-red-500/40 flex items-center gap-1.5 cursor-pointer"
@@ -2047,7 +3287,7 @@ export default function PortalFacultadCienciasMatematicas() {
               </div>
 
               {tabAdmin === "dashboard" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div onClick={() => setTabAdmin("carreras_cms")} className="rounded-2xl border-2 border-blue-200 bg-white p-5 cursor-pointer hover:border-[#002855]">
                     <p className="text-xs text-[#002855] font-extrabold uppercase">Gestión de Carreras</p>
                     <p className="text-3xl font-extrabold text-[#002855] mt-2">4 Escuelas</p>
@@ -2055,6 +3295,10 @@ export default function PortalFacultadCienciasMatematicas() {
                   <div onClick={() => setTabAdmin("noticias")} className="rounded-2xl border-2 border-red-200 bg-white p-5 cursor-pointer hover:border-red-600">
                     <p className="text-xs text-red-700 font-extrabold uppercase">Noticias Activas</p>
                     <p className="text-3xl font-extrabold text-[#002855] mt-2">{noticias.length}</p>
+                  </div>
+                  <div onClick={() => setTabAdmin("docentes_cms")} className="rounded-2xl border-2 border-emerald-200 bg-white p-5 cursor-pointer hover:border-emerald-700">
+                    <p className="text-xs text-emerald-700 font-extrabold uppercase">Plana Docente</p>
+                    <p className="text-3xl font-extrabold text-[#002855] mt-2">{docentes.length}</p>
                   </div>
                   <div onClick={() => setTabAdmin("moderacion")} className="rounded-2xl border border-slate-200 bg-white p-5 cursor-pointer hover:border-[#002855]">
                     <p className="text-xs text-[#002855] font-extrabold uppercase">Archivos Pendientes</p>
@@ -2129,62 +3373,592 @@ export default function PortalFacultadCienciasMatematicas() {
               )}
 
               {tabAdmin === "noticias" && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  <form onSubmit={handleGuardarNoticia} className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 space-y-4 h-fit">
-                    <h3 className="font-extrabold text-base text-[#002855] border-b border-slate-200 pb-3">
-                      {formNoticia.id ? "✏️ Editar Noticia" : "➕ Publicar Nueva Noticia"}
-                    </h3>
-                    <input type="text" required value={formNoticia.titulo} onChange={(e) => setFormNoticia({ ...formNoticia, titulo: e.target.value })} placeholder="Título de la Noticia *" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
-                    <div className="grid grid-cols-2 gap-3">
-                      <input type="date" required value={formNoticia.fecha_publicacion} onChange={(e) => setFormNoticia({ ...formNoticia, fecha_publicacion: e.target.value })} className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs" />
-                      <input type="text" value={formNoticia.categoria} onChange={(e) => setFormNoticia({ ...formNoticia, categoria: e.target.value })} placeholder="Categoría" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs" />
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Columna Izquierda: Editor Enriquecido con Barra de Herramientas */}
+                    <form onSubmit={handleGuardarNoticia} className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <h3 className="font-extrabold text-base text-[#002855]">
+                          {formNoticia.id ? "✏️ Editar Noticia / Comunicado" : "➕ Publicar Nueva Noticia Estructurada"}
+                        </h3>
+                        {formNoticia.id && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormNoticia({
+                                id: "",
+                                titulo: "",
+                                categoria: "Comunicado Oficial",
+                                resumen: "",
+                                fecha_publicacion: "",
+                                contenido: "",
+                                imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
+                                destacado: true,
+                                fecha_evento: "",
+                                lugar: "",
+                                modalidad: "",
+                                dirigido_a: "",
+                                enlace_inscripcion: "",
+                              })
+                            }
+                            className="text-xs font-bold text-red-700 hover:underline"
+                          >
+                            Cancelar edición
+                          </button>
+                        )}
+                      </div>
+
+                      <input
+                        type="text"
+                        required
+                        value={formNoticia.titulo}
+                        onChange={(e) => setFormNoticia({ ...formNoticia, titulo: e.target.value })}
+                        placeholder="Título de la Noticia o Evento *"
+                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs font-bold"
+                      />
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input
+                          type="date"
+                          required
+                          value={formNoticia.fecha_publicacion}
+                          onChange={(e) => setFormNoticia({ ...formNoticia, fecha_publicacion: e.target.value })}
+                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        />
+                        <input
+                          type="text"
+                          value={formNoticia.categoria}
+                          onChange={(e) => setFormNoticia({ ...formNoticia, categoria: e.target.value })}
+                          placeholder="Categoría (ej. Evento, Comunicado, Becas)"
+                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        />
+                      </div>
+
+                      <input
+                        type="text"
+                        value={formNoticia.resumen}
+                        onChange={(e) => setFormNoticia({ ...formNoticia, resumen: e.target.value })}
+                        placeholder="Resumen corto para la tarjeta del Home (opcional, máx. 3 líneas)"
+                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-xs"
+                      />
+
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-700">Imagen o Afiche de Portada *</label>
+                          <button
+                            type="button"
+                            onClick={() => inputImagenNoticiaRef.current?.click()}
+                            className="text-[11px] font-bold text-red-700 hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <Upload className="w-3 h-3" /> Subir desde PC (Storage)
+                          </button>
+                          <input ref={inputImagenNoticiaRef} type="file" accept="image/*" onChange={handleSubirImagenPortadaNoticia} className="hidden" />
+                        </div>
+                        <input
+                          type="url"
+                          required
+                          value={formNoticia.imagen_url}
+                          onChange={(e) => setFormNoticia({ ...formNoticia, imagen_url: e.target.value })}
+                          placeholder="URL pública de la imagen o afiche..."
+                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        />
+                      </div>
+
+                      {/* Barra de Herramientas de Formato */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-extrabold text-[#002855]">
+                          Contenido Estructurado de la Noticia (Usa los botones para ordenar el texto) *
+                        </label>
+                        <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-slate-100 border border-slate-300">
+                          <button
+                            type="button"
+                            onClick={() => insertarFormatoNoticia("bold")}
+                            title="Negrita (**texto**)"
+                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Bold className="w-3.5 h-3.5" /> <span>Negrita</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertarFormatoNoticia("italic")}
+                            title="Cursiva (*texto*)"
+                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Italic className="w-3.5 h-3.5" /> <span>Cursiva</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertarFormatoNoticia("h2")}
+                            title="Subtítulo (## Título)"
+                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Heading2 className="w-3.5 h-3.5" /> <span>Subtítulo</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertarFormatoNoticia("ul")}
+                            title="Lista con viñetas (- item)"
+                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <List className="w-3.5 h-3.5" /> <span>Viñetas</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertarFormatoNoticia("ol")}
+                            title="Lista numerada (1. item)"
+                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <ListOrdered className="w-3.5 h-3.5" /> <span>Numerada</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertarFormatoNoticia("link")}
+                            title="Insertar enlace ([Texto](https://...))"
+                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Link2 className="w-3.5 h-3.5" /> <span>Enlace</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertarFormatoNoticia("quote")}
+                            title="Recuadro destacado (> Nota)"
+                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Quote className="w-3.5 h-3.5" /> <span>Destacado</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertarFormatoNoticia("hr")}
+                            title="Separador (---)"
+                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Minus className="w-3.5 h-3.5" /> <span>Separador</span>
+                          </button>
+                        </div>
+
+                        <textarea
+                          ref={textareaNoticiaRef}
+                          rows={8}
+                          required
+                          value={formNoticia.contenido}
+                          onChange={(e) => setFormNoticia({ ...formNoticia, contenido: e.target.value })}
+                          placeholder="Escribe aquí el cuerpo de la noticia. Usa saltos de línea, ## para subtítulos, - para listas y **negrita**..."
+                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-3 text-xs font-mono leading-relaxed"
+                        />
+                      </div>
+
+                      {/* Campos opcionales ordenados para Eventos / Convocatorias */}
+                      <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-3">
+                        <p className="text-xs font-extrabold text-[#002855]">
+                          📌 Ficha Rápida del Evento / Convocatoria (Opcional)
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <input
+                            type="text"
+                            value={formNoticia.fecha_evento}
+                            onChange={(e) => setFormNoticia({ ...formNoticia, fecha_evento: e.target.value })}
+                            placeholder="Fecha / Hora del evento (ej. Sáb. 07 Nov - 9:00 a.m.)"
+                            className="rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                          />
+                          <input
+                            type="text"
+                            value={formNoticia.lugar}
+                            onChange={(e) => setFormNoticia({ ...formNoticia, lugar: e.target.value })}
+                            placeholder="Lugar / Aula (ej. Auditorio FCM / FISI)"
+                            className="rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                          />
+                          <input
+                            type="text"
+                            value={formNoticia.modalidad}
+                            onChange={(e) => setFormNoticia({ ...formNoticia, modalidad: e.target.value })}
+                            placeholder="Modalidad (ej. Presencial / Equipos de 3)"
+                            className="rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                          />
+                          <input
+                            type="text"
+                            value={formNoticia.dirigido_a}
+                            onChange={(e) => setFormNoticia({ ...formNoticia, dirigido_a: e.target.value })}
+                            placeholder="Dirigido a (ej. Estudiantes de Pregrado)"
+                            className="rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                          />
+                        </div>
+                        <input
+                          type="url"
+                          value={formNoticia.enlace_inscripcion}
+                          onChange={(e) => setFormNoticia({ ...formNoticia, enlace_inscripcion: e.target.value })}
+                          placeholder="URL de Inscripción o Bases Oficiales (https://forms.gle/...)"
+                          className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                        />
+                      </div>
+
+                      <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formNoticia.destacado}
+                          onChange={(e) => setFormNoticia({ ...formNoticia, destacado: e.target.checked })}
+                        />
+                        Destacar como &ldquo;Importante&rdquo;
+                      </label>
+
+                      <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer">
+                        {formNoticia.id ? "Guardar Cambios en Supabase" : "Publicar Noticia en Supabase"}
+                      </button>
+                    </form>
+
+                    {/* Columna Derecha: Vista Previa en Vivo */}
+                    <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs sticky top-20">
+                      <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
+                        <span className="text-xs font-extrabold uppercase tracking-wider">👁️ Vista Previa en Vivo</span>
+                        <span className="text-[10px] font-mono text-blue-200">Así lo leerán los alumnos</span>
+                      </div>
+                      <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                        {formNoticia.imagen_url && (
+                          <div className="rounded-xl bg-slate-950 overflow-hidden max-h-56 flex items-center justify-center">
+                            <img src={formNoticia.imagen_url} alt="Preview" className="max-h-56 w-auto object-contain" />
+                          </div>
+                        )}
+                        <div className="space-y-1.5">
+                          <span className="px-2.5 py-0.5 rounded bg-[#002855] text-white text-[10px] font-bold">
+                            {formNoticia.categoria || "Comunicado Oficial"}
+                          </span>
+                          <h4 className="text-base font-extrabold text-[#002855] leading-snug">
+                            {formNoticia.titulo || "Título de la noticia..."}
+                          </h4>
+                          {formNoticia.resumen && (
+                            <p className="text-xs text-slate-500 italic">{formNoticia.resumen}</p>
+                          )}
+                        </div>
+                        <div className="border-t border-slate-100 pt-3">
+                          {renderizarContenidoNoticia(
+                            formNoticia.contenido || "Escribe en el editor para previsualizar el formato..."
+                          )}
+                        </div>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Lista de Noticias Publicadas */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-extrabold text-[#002855]">Noticias Publicadas ({noticias.length})</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {noticias.map((n) => (
+                        <div key={n.id} className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3.5">
+                            <img src={n.imagen_url} alt={n.titulo} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0" />
+                            <div>
+                              <span className="text-[11px] font-bold text-red-700">{n.categoria} • {n.fecha_publicacion}</span>
+                              <h4 className="font-extrabold text-xs sm:text-sm text-[#002855] line-clamp-2">{n.titulo}</h4>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => abrirNoticiaDetalle(n.id)}
+                              title="Ver noticia"
+                              className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-[#002855] text-[11px] font-bold cursor-pointer"
+                            >
+                              Ver
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFormNoticia({
+                                  id: n.id,
+                                  titulo: n.titulo,
+                                  categoria: n.categoria,
+                                  resumen: n.resumen || "",
+                                  fecha_publicacion: n.fecha_publicacion,
+                                  contenido: n.contenido,
+                                  imagen_url: n.imagen_url,
+                                  destacado: n.destacado,
+                                  fecha_evento: n.fecha_evento || "",
+                                  lugar: n.lugar || "",
+                                  modalidad: n.modalidad || "",
+                                  dirigido_a: n.dirigido_a || "",
+                                  enlace_inscripcion: n.enlace_inscripcion || "",
+                                })
+                              }
+                              className="p-2 rounded-lg bg-slate-100 text-[#002855] cursor-pointer"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const filtradas = noticias.filter((item) => item.id !== n.id);
+                                setNoticias(filtradas);
+                                await sincronizarPortalConfigSupabase({ noticias_data: filtradas });
+                                lanzarToast("🗑️ Noticia eliminada de Supabase.");
+                              }}
+                              className="p-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-700 hover:text-white cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* PESTAÑA CMS: GESTIÓN DE PLANA DOCENTE (CRUD COMPLETO + SUPABASE) */}
+              {tabAdmin === "docentes_cms" && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  <form onSubmit={handleGuardarDocente} className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 space-y-3.5">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                      <h3 className="font-extrabold text-base text-[#002855]">
+                        {formDocente.id ? "✏️ Editar Ficha de Docente" : "👨‍🏫 Registrar Docente en la Facultad"}
+                      </h3>
+                      {formDocente.id && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormDocente({
+                              id: "",
+                              nombre_completo: "",
+                              grado_academico: "Dr.",
+                              categoria_docente: "Principal",
+                              condicion: "Nombrado",
+                              carrera_id: "computacion-cientifica",
+                              especialidad: "",
+                              lineas_investigacion: "",
+                              cursos_dictados_texto: "",
+                              correo: "",
+                              horario_asesoria: "",
+                              foto_url: "",
+                              cti_vitae_url: "",
+                              orcid_url: "",
+                              google_scholar_url: "",
+                              linkedin_url: "",
+                            })
+                          }
+                          className="text-xs font-bold text-red-700 hover:underline"
+                        >
+                          Cancelar
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <select
+                        value={formDocente.grado_academico}
+                        onChange={(e) => setFormDocente({ ...formDocente, grado_academico: e.target.value as Docente["grado_academico"] })}
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs font-bold"
+                      >
+                        <option value="Dr.">Dr.</option>
+                        <option value="Dra.">Dra.</option>
+                        <option value="Mg.">Mg.</option>
+                        <option value="Lic.">Lic.</option>
+                      </select>
+                      <input
+                        type="text"
+                        required
+                        value={formDocente.nombre_completo}
+                        onChange={(e) => setFormDocente({ ...formDocente, nombre_completo: e.target.value })}
+                        placeholder="Apellidos y Nombres *"
+                        className="col-span-2 rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs font-bold"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <select
+                        value={formDocente.carrera_id}
+                        onChange={(e) => setFormDocente({ ...formDocente, carrera_id: e.target.value as CarreraId })}
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-2.5 py-2 text-xs font-semibold"
+                      >
+                        {carreras.map((c) => (
+                          <option key={c.id} value={c.id}>{c.nombre}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={formDocente.categoria_docente}
+                        onChange={(e) => setFormDocente({ ...formDocente, categoria_docente: e.target.value as Docente["categoria_docente"] })}
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-2.5 py-2 text-xs font-semibold"
+                      >
+                        <option value="Principal">Principal</option>
+                        <option value="Asociado">Asociado</option>
+                        <option value="Auxiliar">Auxiliar</option>
+                      </select>
+                      <select
+                        value={formDocente.condicion}
+                        onChange={(e) => setFormDocente({ ...formDocente, condicion: e.target.value as Docente["condicion"] })}
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-2.5 py-2 text-xs font-semibold"
+                      >
+                        <option value="Nombrado">Nombrado</option>
+                        <option value="Contratado">Contratado</option>
+                      </select>
+                    </div>
+
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-700">Imagen de Portada *</label>
-                        <button type="button" onClick={() => inputImagenNoticiaRef.current?.click()} className="text-[11px] font-bold text-red-700 hover:underline flex items-center gap-1">
-                          <Upload className="w-3 h-3" /> Subir desde PC
+                        <label className="text-xs font-bold text-slate-700">Fotografía del Docente (o dejar vacío para Avatar)</label>
+                        <button
+                          type="button"
+                          onClick={() => inputFotoDocenteRef.current?.click()}
+                          className="text-[11px] font-bold text-red-700 hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <Upload className="w-3 h-3" /> {subiendoFotoDocente ? "Subiendo..." : "Subir Foto"}
                         </button>
-                        <input ref={inputImagenNoticiaRef} type="file" accept="image/*" onChange={handleSubirImagenPortadaNoticia} className="hidden" />
+                        <input ref={inputFotoDocenteRef} type="file" accept="image/*" onChange={handleSubirFotoDocenteStorage} className="hidden" />
                       </div>
-                      <input type="url" required value={formNoticia.imagen_url} onChange={(e) => setFormNoticia({ ...formNoticia, imagen_url: e.target.value })} className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs" />
+                      <input
+                        type="url"
+                        value={formDocente.foto_url}
+                        onChange={(e) => setFormDocente({ ...formDocente, foto_url: e.target.value })}
+                        placeholder="URL de la foto (Supabase Storage o externa)..."
+                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      />
                     </div>
-                    <textarea rows={4} required value={formNoticia.contenido} onChange={(e) => setFormNoticia({ ...formNoticia, contenido: e.target.value })} placeholder="Contenido de la noticia *" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
-                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                      <input type="checkbox" checked={formNoticia.destacado} onChange={(e) => setFormNoticia({ ...formNoticia, destacado: e.target.checked })} />
-                      Destacar como &ldquo;Importante&rdquo;
-                    </label>
-                    <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] text-white text-xs font-extrabold">
-                      {formNoticia.id ? "Guardar Cambios" : "Publicar Noticia"}
+
+                    <input
+                      type="text"
+                      required
+                      value={formDocente.especialidad}
+                      onChange={(e) => setFormDocente({ ...formDocente, especialidad: e.target.value })}
+                      placeholder="Especialidad principal (ej. Optimización Convexa, Deep Learning) *"
+                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                    />
+
+                    <textarea
+                      rows={2}
+                      value={formDocente.lineas_investigacion}
+                      onChange={(e) => setFormDocente({ ...formDocente, lineas_investigacion: e.target.value })}
+                      placeholder="Líneas de investigación activas..."
+                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                    />
+
+                    <input
+                      type="text"
+                      value={formDocente.cursos_dictados_texto}
+                      onChange={(e) => setFormDocente({ ...formDocente, cursos_dictados_texto: e.target.value })}
+                      placeholder="Cursos que dicta separados por coma (ej. CS113 - POO II, AI264 - Deep Learning)"
+                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                    />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <input
+                        type="email"
+                        value={formDocente.correo}
+                        onChange={(e) => setFormDocente({ ...formDocente, correo: e.target.value })}
+                        placeholder="Correo (@unmsm.edu.pe)"
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      />
+                      <input
+                        type="text"
+                        value={formDocente.horario_asesoria}
+                        onChange={(e) => setFormDocente({ ...formDocente, horario_asesoria: e.target.value })}
+                        placeholder="Horario de asesoría"
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="url"
+                        value={formDocente.cti_vitae_url}
+                        onChange={(e) => setFormDocente({ ...formDocente, cti_vitae_url: e.target.value })}
+                        placeholder="URL CTI Vitae (CONCYTEC)"
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      />
+                      <input
+                        type="url"
+                        value={formDocente.orcid_url}
+                        onChange={(e) => setFormDocente({ ...formDocente, orcid_url: e.target.value })}
+                        placeholder="URL ORCID"
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      />
+                      <input
+                        type="url"
+                        value={formDocente.google_scholar_url}
+                        onChange={(e) => setFormDocente({ ...formDocente, google_scholar_url: e.target.value })}
+                        placeholder="URL Google Scholar"
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      />
+                      <input
+                        type="url"
+                        value={formDocente.linkedin_url}
+                        onChange={(e) => setFormDocente({ ...formDocente, linkedin_url: e.target.value })}
+                        placeholder="URL LinkedIn"
+                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      />
+                    </div>
+
+                    <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer">
+                      {formDocente.id ? "Guardar Cambios del Docente" : "Registrar Docente en Supabase"}
                     </button>
                   </form>
 
-                  <div className="lg:col-span-7 space-y-3">
-                    {noticias.map((n) => (
-                      <div key={n.id} className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3.5">
-                          <img src={n.imagen_url} alt={n.titulo} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0" />
-                          <div>
-                            <span className="text-[11px] font-bold text-red-700">{n.categoria} • {n.fecha_publicacion}</span>
-                            <h4 className="font-extrabold text-xs sm:text-sm text-[#002855]">{n.titulo}</h4>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button onClick={() => setFormNoticia({ ...n })} className="p-2 rounded-lg bg-slate-100 text-[#002855]"><Edit3 className="w-4 h-4" /></button>
-                          <button
-                            onClick={async () => {
-                              const filtradas = noticias.filter((item) => item.id !== n.id);
-                              setNoticias(filtradas);
-                              await sincronizarPortalConfigSupabase({ noticias_data: filtradas });
-                              lanzarToast("🗑️ Noticia eliminada de Supabase.");
-                            }}
-                            className="p-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-700 hover:text-white"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="lg:col-span-7 space-y-4">
+                    <div className="flex flex-wrap gap-2 bg-white border border-slate-200 p-3 rounded-2xl">
+                      <button
+                        type="button"
+                        onClick={() => setAdminFiltroCarreraDocentes("TODAS")}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${
+                          adminFiltroCarreraDocentes === "TODAS" ? "bg-[#002855] text-white" : "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        Todas ({docentes.length})
+                      </button>
+                      {carreras.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setAdminFiltroCarreraDocentes(c.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${
+                            adminFiltroCarreraDocentes === c.id ? TEMA_CARRERA[c.id].badgeSolid : "bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          {c.nombre} ({docentes.filter((d) => d.carrera_id === c.id).length})
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {docentes
+                        .filter((d) => adminFiltroCarreraDocentes === "TODAS" || d.carrera_id === adminFiltroCarreraDocentes)
+                        .map((doc) => {
+                          const temaD = TEMA_CARRERA[doc.carrera_id];
+                          return (
+                            <div key={doc.id} className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                {doc.foto_url ? (
+                                  <img src={doc.foto_url} alt={doc.nombre_completo} className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0" />
+                                ) : (
+                                  <div className={`w-14 h-14 rounded-xl ${temaD.headerBg} text-white font-extrabold text-sm flex items-center justify-center shrink-0`}>
+                                    {obtenerInicialesDocente(doc.nombre_completo)}
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-extrabold border ${temaD.badgeSoft}`}>
+                                    {carreras.find((c) => c.id === doc.carrera_id)?.nombre}
+                                  </span>
+                                  <h4 className="font-extrabold text-xs sm:text-sm text-[#002855] truncate mt-0.5">
+                                    {doc.grado_academico} {doc.nombre_completo}
+                                  </h4>
+                                  <p className="text-[11px] text-slate-500 truncate">{doc.especialidad}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditarDocenteEnAdmin(doc)}
+                                  className="p-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-[#002855] cursor-pointer"
+                                >
+                                  <Edit3 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleEliminarDocenteEnAdmin(doc.id)}
+                                  className="p-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-700 hover:text-white cursor-pointer"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -2418,7 +4192,14 @@ export default function PortalFacultadCienciasMatematicas() {
                   {cursosDependientesSubida.map((cur) => <option key={cur.id} value={cur.id}>[{cur.codigo}] {cur.nombre_curso}</option>)}
                 </select>
                 <select required value={formSubidaAnon.docenteSeleccionado} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, docenteSeleccionado: e.target.value })} className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold">
-                  {DOCENTES_SUGERIDOS.map((doc) => <option key={doc} value={doc}>{doc}</option>)}
+                  {docentes.map((doc) => {
+                    const etiqueta = `${doc.grado_academico} ${doc.nombre_completo}`;
+                    return (
+                      <option key={doc.id} value={etiqueta}>
+                        {etiqueta} ({carreras.find((c) => c.id === doc.carrera_id)?.nombre})
+                      </option>
+                    );
+                  })}
                 </select>
                 <div className="grid grid-cols-3 gap-3">
                   <select value={formSubidaAnon.tipo_archivo} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, tipo_archivo: e.target.value as TipoArchivo })} className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold">
@@ -2467,15 +4248,164 @@ export default function PortalFacultadCienciasMatematicas() {
         </div>
       )}
 
+      {/* MODAL INFORMATIVO DE FICHA COMPLETA DEL DOCENTE */}
+      {docenteModalActivo && (
+        <div
+          onClick={() => setDocenteModalActivo(null)}
+          className="fixed inset-0 z-50 bg-slate-900/75 flex items-center justify-center p-4 overflow-y-auto"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-2xl w-full rounded-3xl border-2 border-[#002855] bg-white overflow-hidden shadow-2xl"
+          >
+            <div className={`${TEMA_CARRERA[docenteModalActivo.carrera_id].headerBg} text-white p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 ${TEMA_CARRERA[docenteModalActivo.carrera_id].borderAccent}`}>
+              <div className="flex items-center gap-4">
+                {docenteModalActivo.foto_url ? (
+                  <img
+                    src={docenteModalActivo.foto_url}
+                    alt={docenteModalActivo.nombre_completo}
+                    className="w-20 h-20 rounded-2xl object-cover border-2 border-white/80 shadow-md shrink-0"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-2xl bg-black/30 border-2 border-white/60 flex items-center justify-center text-2xl font-extrabold text-white shrink-0">
+                    {obtenerInicialesDocente(docenteModalActivo.nombre_completo)}
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded bg-black/30 text-[10px] font-extrabold uppercase tracking-wider text-white border border-white/20">
+                      Escuela de {carreras.find((c) => c.id === docenteModalActivo.carrera_id)?.nombre}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded bg-white/20 text-[10px] font-bold text-white">
+                      Docente {docenteModalActivo.categoria_docente} • {docenteModalActivo.condicion}
+                    </span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-white leading-snug">
+                    {docenteModalActivo.grado_academico} {docenteModalActivo.nombre_completo}
+                  </h3>
+                  <p className="text-xs text-white/90 font-mono">{docenteModalActivo.correo}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDocenteModalActivo(null)}
+                className="self-start sm:self-center px-3 py-1.5 rounded-xl bg-black/25 hover:bg-black/40 text-xs font-bold text-white cursor-pointer"
+              >
+                ✕ Cerrar
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 text-xs sm:text-sm">
+              <div className="space-y-1.5">
+                <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
+                  Área de Especialidad Académica
+                </h4>
+                <p className="text-slate-800 font-semibold leading-relaxed">{docenteModalActivo.especialidad}</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
+                  Líneas de Investigación Activas
+                </h4>
+                <p className="text-slate-600 leading-relaxed">{docenteModalActivo.lineas_investigacion}</p>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
+                  Asignaturas a su Cargo
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {docenteModalActivo.cursos_dictados.map((cursoStr, i) => (
+                    <span
+                      key={i}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold border ${TEMA_CARRERA[docenteModalActivo.carrera_id].badgeSoft}`}
+                    >
+                      {cursoStr}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-2xl bg-slate-50 border border-slate-200 p-4 text-xs">
+                <div className="flex items-start gap-2.5">
+                  <Mail className={`w-4 h-4 shrink-0 mt-0.5 ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`} />
+                  <div>
+                    <p className="font-bold text-slate-500 uppercase text-[10px]">Correo Institucional</p>
+                    <p className="font-mono font-bold text-slate-900 break-all">{docenteModalActivo.correo}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <Clock className={`w-4 h-4 shrink-0 mt-0.5 ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`} />
+                  <div>
+                    <p className="font-bold text-slate-500 uppercase text-[10px]">Horario de Asesoría</p>
+                    <p className="font-semibold text-slate-800">{docenteModalActivo.horario_asesoria}</p>
+                  </div>
+                </div>
+              </div>
+
+              {(docenteModalActivo.cti_vitae_url ||
+                docenteModalActivo.orcid_url ||
+                docenteModalActivo.google_scholar_url ||
+                docenteModalActivo.linkedin_url) && (
+                <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-xs font-bold text-slate-500">Perfiles Científicos e Investigación:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {docenteModalActivo.cti_vitae_url && (
+                      <a
+                        href={docenteModalActivo.cti_vitae_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-1.5"
+                      >
+                        <span>CTI Vitae</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {docenteModalActivo.orcid_url && (
+                      <a
+                        href={docenteModalActivo.orcid_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5"
+                      >
+                        <span>ORCID</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {docenteModalActivo.google_scholar_url && (
+                      <a
+                        href={docenteModalActivo.google_scholar_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold flex items-center gap-1.5"
+                      >
+                        <span>Google Scholar</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {docenteModalActivo.linkedin_url && (
+                      <a
+                        href={docenteModalActivo.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5"
+                      >
+                        <span>LinkedIn</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* COMPONENTE GLOBAL <Footer /> */}
       <Footer
         logoUrl={logoUrl}
-        onOpenAdmin={() => {
-          setVistaActual("/admin");
-          if (typeof window !== "undefined") {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }
-        }}
+        onOpenAdmin={() => navegar("/admin")}
       />
     </div>
   );

@@ -1,52 +1,42 @@
 -- ============================================================================
--- SCRIPT SQL PARA SUPABASE: TABLA GLOBAL `portal_config` + POLÍTICAS RLS
--- Ejecutar en el SQL Editor de Supabase
+-- SQL DE ACTUALIZACIÓN PARA SUPABASE: COLUMNA `docentes_data` EN `portal_config`
+-- Ejecuta este comando en el SQL Editor de Supabase para habilitar la
+-- persistencia de la Plana Docente sin perder tus datos actuales:
 -- ============================================================================
 
+ALTER TABLE public.portal_config
+ADD COLUMN IF NOT EXISTS docentes_data jsonb DEFAULT '[]'::jsonb;
+
+-- ============================================================================
+-- (Opcional) Esquema completo de `portal_config` por si instalas desde cero:
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.portal_config (
-  id INT PRIMARY KEY DEFAULT 1,
-  logo_url TEXT NOT NULL DEFAULT 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/UNMSM_coatofarms_seal.svg/240px-UNMSM_coatofarms_seal.svg.png',
-  carreras_data JSONB DEFAULT '[]'::jsonb,
-  noticias_data JSONB DEFAULT '[]'::jsonb,
-  storage_data JSONB DEFAULT '[]'::jsonb,
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  CONSTRAINT portal_config_single_row CHECK (id = 1)
+  id integer PRIMARY KEY DEFAULT 1,
+  logo_url text,
+  carreras_data jsonb DEFAULT '[]'::jsonb,
+  noticias_data jsonb DEFAULT '[]'::jsonb,
+  storage_data jsonb DEFAULT '[]'::jsonb,
+  docentes_data jsonb DEFAULT '[]'::jsonb,
+  updated_at timestamptz DEFAULT now()
 );
 
--- Insertar fila inicial (id = 1) si aún no existe
-INSERT INTO public.portal_config (id, logo_url)
-VALUES (
-  1,
-  'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/UNMSM_coatofarms_seal.svg/240px-UNMSM_coatofarms_seal.svg.png'
-)
-ON CONFLICT (id) DO NOTHING;
-
--- Activar Row Level Security (RLS)
 ALTER TABLE public.portal_config ENABLE ROW LEVEL SECURITY;
 
--- Eliminar políticas previas si existieran para evitar duplicados al re-ejecutar
-DROP POLICY IF EXISTS "Lectura publica de portal_config" ON public.portal_config;
-DROP POLICY IF EXISTS "Insercion publica de portal_config" ON public.portal_config;
-DROP POLICY IF EXISTS "Actualizacion publica de portal_config" ON public.portal_config;
-
--- Política 1: Lectura pública para todo visitante del portal (SELECT)
-CREATE POLICY "Lectura publica de portal_config"
-ON public.portal_config
-FOR SELECT
+DROP POLICY IF EXISTS "Lectura publica portal_config" ON public.portal_config;
+CREATE POLICY "Lectura publica portal_config"
+ON public.portal_config FOR SELECT
 TO anon, authenticated
 USING (true);
 
--- Política 2: Inserción pública para el CMS con upsert (INSERT)
-CREATE POLICY "Insercion publica de portal_config"
-ON public.portal_config
-FOR INSERT
+DROP POLICY IF EXISTS "Upsert publico portal_config" ON public.portal_config;
+CREATE POLICY "Upsert publico portal_config"
+ON public.portal_config FOR INSERT
 TO anon, authenticated
 WITH CHECK (true);
 
--- Política 3: Actualización pública para el CMS con upsert (UPDATE)
-CREATE POLICY "Actualizacion publica de portal_config"
-ON public.portal_config
-FOR UPDATE
+DROP POLICY IF EXISTS "Update publico portal_config" ON public.portal_config;
+CREATE POLICY "Update publico portal_config"
+ON public.portal_config FOR UPDATE
 TO anon, authenticated
 USING (true)
 WITH CHECK (true);
