@@ -3733,6 +3733,46 @@ export default function PortalFacultadCienciasMatematicas() {
                     <p className="text-xs font-mono text-slate-700">{item.correo}</p>
                   </div>
                 ))}
+
+                {/* Redes Sociales y Canales Oficiales FCM */}
+                <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50/60 to-white p-4 shadow-xs space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-red-700" />
+                    <h3 className="text-xs font-extrabold text-[#002855]">Redes Sociales y Canales Oficiales</h3>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Sigue las transmisiones en vivo de ceremonias, conferencias magistrales, eventos y comunicados:
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <a
+                      href="https://www.facebook.com/FacultadDeCienciasMatematicasOficial"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-blue-200 hover:border-[#1877F2] text-xs font-extrabold transition-all shadow-2xs hover:scale-102"
+                    >
+                      <Facebook className="w-3.5 h-3.5" />
+                      <span>Facebook</span>
+                    </a>
+                    <a
+                      href="https://www.instagram.com/facultaddecienciasmatematicas/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gradient-to-r hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 text-pink-700 hover:text-white border border-pink-200 text-xs font-extrabold transition-all shadow-2xs hover:scale-102"
+                    >
+                      <Instagram className="w-3.5 h-3.5" />
+                      <span>Instagram</span>
+                    </a>
+                    <a
+                      href="https://www.youtube.com/@fcmunmsm/videos"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FF0000] text-red-700 hover:text-white border border-red-200 text-xs font-extrabold transition-all shadow-2xs hover:scale-102"
+                    >
+                      <Youtube className="w-3.5 h-3.5" />
+                      <span>YouTube</span>
+                    </a>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -5628,17 +5668,45 @@ function Footer({ logoUrl, onOpenAdmin }: { logoUrl: string; onOpenAdmin: () => 
             <p className="font-extrabold uppercase tracking-wider text-xs text-white">Redes Sociales Oficiales</p>
             <p className="text-xs text-blue-200">Conéctate con las transmisiones, eventos y comunicados de la facultad:</p>
             <div className="flex items-center gap-3 pt-1">
-              <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook Oficial FCM UNMSM" className="w-10 h-10 rounded-xl bg-blue-950 hover:bg-red-700 border border-blue-800 flex items-center justify-center transition-colors">
+              <a
+                href="https://www.facebook.com/FacultadDeCienciasMatematicasOficial"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook Oficial FCM UNMSM"
+                title="Facebook Oficial FCM UNMSM"
+                className="w-10 h-10 rounded-xl bg-blue-950 hover:bg-[#1877F2] border border-blue-800 flex items-center justify-center transition-all hover:scale-105 shadow-xs"
+              >
                 <Facebook className="w-4 h-4 text-white" />
               </a>
-              <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram Oficial FCM UNMSM" className="w-10 h-10 rounded-xl bg-blue-950 hover:bg-red-700 border border-blue-800 flex items-center justify-center transition-colors">
+              <a
+                href="https://www.instagram.com/facultaddecienciasmatematicas/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram Oficial FCM UNMSM"
+                title="Instagram Oficial FCM UNMSM"
+                className="w-10 h-10 rounded-xl bg-blue-950 hover:bg-gradient-to-tr hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 border border-blue-800 flex items-center justify-center transition-all hover:scale-105 shadow-xs"
+              >
                 <Instagram className="w-4 h-4 text-white" />
               </a>
-              <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Oficial FCM UNMSM" className="w-10 h-10 rounded-xl bg-blue-950 hover:bg-red-700 border border-blue-800 flex items-center justify-center transition-colors">
-                <Linkedin className="w-4 h-4 text-white" />
-              </a>
-              <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube Oficial FCM UNMSM" className="w-10 h-10 rounded-xl bg-blue-950 hover:bg-red-700 border border-blue-800 flex items-center justify-center transition-colors">
+              <a
+                href="https://www.youtube.com/@fcmunmsm/videos"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube Oficial FCM UNMSM"
+                title="Canal Oficial de YouTube FCM UNMSM"
+                className="w-10 h-10 rounded-xl bg-blue-950 hover:bg-[#FF0000] border border-blue-800 flex items-center justify-center transition-all hover:scale-105 shadow-xs"
+              >
                 <Youtube className="w-4 h-4 text-white" />
+              </a>
+              <a
+                href="https://www.linkedin.com/school/universidad-nacional-mayor-de-san-marcos/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn Institucional UNMSM"
+                title="LinkedIn Institucional UNMSM"
+                className="w-10 h-10 rounded-xl bg-blue-950 hover:bg-[#0A66C2] border border-blue-800 flex items-center justify-center transition-all hover:scale-105 shadow-xs"
+              >
+                <Linkedin className="w-4 h-4 text-white" />
               </a>
             </div>
           </div>
