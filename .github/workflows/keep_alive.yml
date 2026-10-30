@@ -12,14 +12,24 @@ jobs:
     steps:
       - name: Ping a la tabla portal_config de Supabase
         run: |
+          URL="${{ secrets.SUPABASE_URL }}"
+          if [ -z "$URL" ]; then
+            URL="https://cbtwoflmrbkxtpxzdsvu.supabase.co"
+          fi
+
+          KEY="${{ secrets.SUPABASE_ANON_KEY }}"
+          if [ -z "$KEY" ]; then
+            KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNidHdvZmxtcmJreHRweHpkc3Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyMzE2MzksImV4cCI6MjEwODgwNzYzOX0.VjU4I44gUlXSjayzK12eTOnygM1xOA_635rPca1Tl-o"
+          fi
+
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/portal_config?select=id&limit=1" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+            "$URL/rest/v1/portal_config?select=id&limit=1" \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY")
           
           echo "Supabase HTTP Status Code: $HTTP_STATUS"
           if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
-            echo "✅ Supabase está activo y respondiendo exitosamente."
+            echo "✅ Supabase está activo y respondiendo exitosamente (HTTP $HTTP_STATUS)."
           else
             echo "❌ Error al contactar Supabase. Código HTTP: $HTTP_STATUS"
             exit 1
