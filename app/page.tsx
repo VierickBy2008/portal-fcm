@@ -871,6 +871,9 @@ export default function PortalFacultadCienciasMatematicas() {
   const [logoUrl, setLogoUrl] = useState<string>(LOGO_UNMSM_TRANSPARENTE_DEFAULT);
   const [heroBgUrl, setHeroBgUrl] = useState<string>(HERO_BG_DEFAULT);
   const [heroBgInputUrl, setHeroBgInputUrl] = useState<string>(HERO_BG_DEFAULT);
+  const [heroBlur, setHeroBlur] = useState<number>(1);
+  const [heroOverlayOpacity, setHeroOverlayOpacity] = useState<number>(45);
+  const [heroOverlayColor, setHeroOverlayColor] = useState<string>("#0f172a");
   const [cargandoConfig, setCargandoConfig] = useState<boolean>(true);
 
   // Filtros y modal de la sección Plana Docente + Calificaciones y Reseñas
@@ -1143,11 +1146,29 @@ export default function PortalFacultadCienciasMatematicas() {
   // ==========================================================================
   useEffect(() => {
     let activo = true;
+    const aplicarHeroCfgDesdeString = (rawUrl: string) => {
+      const [cleanUrl, cfgHash] = rawUrl.split("#fcm_cfg=");
+      const urlFinal = cleanUrl || HERO_BG_DEFAULT;
+      setHeroBgUrl(urlFinal);
+      setHeroBgInputUrl(urlFinal);
+      if (cfgHash) {
+        const [bStr, opStr, colStr] = cfgHash.split("|");
+        const bVal = Number(bStr);
+        const opVal = Number(opStr);
+        if (!Number.isNaN(bVal) && bVal >= 0 && bVal <= 12) setHeroBlur(bVal);
+        if (!Number.isNaN(opVal) && opVal >= 0 && opVal <= 95) setHeroOverlayOpacity(opVal);
+        if (colStr) setHeroOverlayColor(decodeURIComponent(colStr));
+      }
+    };
+
     const cargarConfiguracionDesdeSupabase = async () => {
       try {
         if (typeof window !== "undefined") {
           const localLogo = window.localStorage.getItem("fcm_logo_url");
           const localHeroBg = window.localStorage.getItem("fcm_hero_bg_url");
+          const localHeroBlur = window.localStorage.getItem("fcm_hero_blur");
+          const localHeroOpacity = window.localStorage.getItem("fcm_hero_overlay_opacity");
+          const localHeroColor = window.localStorage.getItem("fcm_hero_overlay_color");
           const localCarreras = window.localStorage.getItem("fcm_carreras_data");
           const localNoticias = window.localStorage.getItem("fcm_noticias_data");
           const localStorageImgs = window.localStorage.getItem("fcm_storage_data");
@@ -1156,8 +1177,18 @@ export default function PortalFacultadCienciasMatematicas() {
           const localMateriales = window.localStorage.getItem("fcm_materiales_data");
           if (localLogo && activo) setLogoUrl(localLogo);
           if (localHeroBg && activo) {
-            setHeroBgUrl(localHeroBg);
-            setHeroBgInputUrl(localHeroBg);
+            aplicarHeroCfgDesdeString(localHeroBg);
+          }
+          if (localHeroBlur !== null && activo) {
+            const b = Number(localHeroBlur);
+            if (!Number.isNaN(b)) setHeroBlur(b);
+          }
+          if (localHeroOpacity !== null && activo) {
+            const op = Number(localHeroOpacity);
+            if (!Number.isNaN(op)) setHeroOverlayOpacity(op);
+          }
+          if (localHeroColor && activo) {
+            setHeroOverlayColor(localHeroColor);
           }
           if (localCarreras && activo) {
             const parsed = JSON.parse(localCarreras);
@@ -1200,9 +1231,20 @@ export default function PortalFacultadCienciasMatematicas() {
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_logo_url", data.logo_url);
           }
           if (data.hero_bg_url && typeof data.hero_bg_url === "string") {
-            setHeroBgUrl(data.hero_bg_url);
-            setHeroBgInputUrl(data.hero_bg_url);
+            aplicarHeroCfgDesdeString(data.hero_bg_url);
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_bg_url", data.hero_bg_url);
+          }
+          if (typeof data.hero_blur === "number") {
+            setHeroBlur(data.hero_blur);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_blur", String(data.hero_blur));
+          }
+          if (typeof data.hero_overlay_opacity === "number") {
+            setHeroOverlayOpacity(data.hero_overlay_opacity);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_overlay_opacity", String(data.hero_overlay_opacity));
+          }
+          if (typeof data.hero_overlay_color === "string" && data.hero_overlay_color) {
+            setHeroOverlayColor(data.hero_overlay_color);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_overlay_color", data.hero_overlay_color);
           }
           if (Array.isArray(data.carreras_data) && data.carreras_data.length > 0) {
             setCarreras(data.carreras_data);
@@ -1248,6 +1290,9 @@ export default function PortalFacultadCienciasMatematicas() {
   const sincronizarPortalConfigSupabase = async (cambios: {
     logo_url?: string;
     hero_bg_url?: string;
+    hero_blur?: number;
+    hero_overlay_opacity?: number;
+    hero_overlay_color?: string;
     carreras_data?: Carrera[];
     noticias_data?: Noticia[];
     storage_data?: ImagenStorage[];
@@ -1258,6 +1303,9 @@ export default function PortalFacultadCienciasMatematicas() {
     if (typeof window !== "undefined") {
       if (cambios.logo_url) window.localStorage.setItem("fcm_logo_url", cambios.logo_url);
       if (cambios.hero_bg_url) window.localStorage.setItem("fcm_hero_bg_url", cambios.hero_bg_url);
+      if (typeof cambios.hero_blur === "number") window.localStorage.setItem("fcm_hero_blur", String(cambios.hero_blur));
+      if (typeof cambios.hero_overlay_opacity === "number") window.localStorage.setItem("fcm_hero_overlay_opacity", String(cambios.hero_overlay_opacity));
+      if (cambios.hero_overlay_color) window.localStorage.setItem("fcm_hero_overlay_color", cambios.hero_overlay_color);
       if (cambios.carreras_data) window.localStorage.setItem("fcm_carreras_data", JSON.stringify(cambios.carreras_data));
       if (cambios.noticias_data) window.localStorage.setItem("fcm_noticias_data", JSON.stringify(cambios.noticias_data));
       if (cambios.storage_data) window.localStorage.setItem("fcm_storage_data", JSON.stringify(cambios.storage_data));
@@ -1270,7 +1318,22 @@ export default function PortalFacultadCienciasMatematicas() {
         { id: 1, ...cambios, updated_at: new Date().toISOString() },
         { onConflict: "id" }
       );
-      return !error;
+      if (error) {
+        // Fallback seguro si alguna columna nueva aún no existe en el esquema SQL de portal_config
+        const { hero_blur, hero_overlay_opacity, hero_overlay_color, ...resto } = cambios;
+        void hero_blur;
+        void hero_overlay_opacity;
+        void hero_overlay_color;
+        if (Object.keys(resto).length > 0) {
+          const { error: retryErr } = await supabase.from("portal_config").upsert(
+            { id: 1, ...resto, updated_at: new Date().toISOString() },
+            { onConflict: "id" }
+          );
+          return !retryErr;
+        }
+        return false;
+      }
+      return true;
     } catch {
       return false;
     }
@@ -1290,13 +1353,32 @@ export default function PortalFacultadCienciasMatematicas() {
     }
   };
 
-  // Botón para establecer imagen de fondo difuminada en el Hero del Home
-  const handleUsarComoFondoHero = async (nuevaUrlHero: string) => {
-    const limpia = nuevaUrlHero.trim() || HERO_BG_DEFAULT;
+  // Botón para establecer imagen y personalización de difuminado/color en el Hero del Home
+  const handleUsarComoFondoHero = async (
+    nuevaUrlHero: string,
+    blurCustom?: number,
+    opacityCustom?: number,
+    colorCustom?: string
+  ) => {
+    const limpia = (nuevaUrlHero.split("#fcm_cfg=")[0] || "").trim() || HERO_BG_DEFAULT;
+    const bFinal = typeof blurCustom === "number" ? blurCustom : heroBlur;
+    const opFinal = typeof opacityCustom === "number" ? opacityCustom : heroOverlayOpacity;
+    const colFinal = colorCustom || heroOverlayColor;
+
     setHeroBgUrl(limpia);
     setHeroBgInputUrl(limpia);
-    await sincronizarPortalConfigSupabase({ hero_bg_url: limpia });
-    lanzarToast("🖼️ Imagen de fondo difuminada del Hero actualizada y guardada en Supabase.");
+    setHeroBlur(bFinal);
+    setHeroOverlayOpacity(opFinal);
+    setHeroOverlayColor(colFinal);
+
+    const urlConConfig = `${limpia}#fcm_cfg=${bFinal}|${opFinal}|${encodeURIComponent(colFinal)}`;
+    await sincronizarPortalConfigSupabase({
+      hero_bg_url: urlConConfig,
+      hero_blur: bFinal,
+      hero_overlay_opacity: opFinal,
+      hero_overlay_color: colFinal,
+    });
+    lanzarToast("🖼️ Personalización del Hero (imagen, difuminado y color) guardada en Supabase.");
   };
 
   const abrirMenuServicioConHover = () => {
@@ -2373,15 +2455,26 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* VISTA A: INICIO / HOME (/) */}
       {vistaActual === "/" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-14">
-          <section className="relative rounded-3xl bg-[#002855] text-white p-6 sm:p-12 text-center shadow-2xl border-b-4 border-red-700">
-            {/* Capa de imagen de fondo visible con difuminado mínimo y velo institucional transparente */}
+          <section
+            className="relative rounded-3xl text-white p-6 sm:p-12 text-center shadow-2xl border-b-4 border-red-700 transition-colors duration-300"
+            style={{ backgroundColor: heroOverlayColor || "#0f172a" }}
+          >
+            {/* Capa de imagen de fondo con difuminado, color y opacidad configurables */}
             <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
               <img
                 src={heroBgUrl || HERO_BG_DEFAULT}
                 alt="Fondo Institucional FCM UNMSM"
-                className="w-full h-full object-cover object-center scale-102 blur-[0.8px] opacity-90 transition-all duration-700"
+                className="w-full h-full object-cover object-center scale-102 transition-all duration-500"
+                style={{ filter: `blur(${heroBlur}px)` }}
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-[#002855]/55 via-[#002855]/45 to-[#001833]/70" />
+              <div
+                className="absolute inset-0 transition-all duration-300"
+                style={{
+                  backgroundColor: heroOverlayColor || "#0f172a",
+                  opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/15" />
             </div>
 
             {adminAutenticado && (
@@ -2391,10 +2484,10 @@ export default function PortalFacultadCienciasMatematicas() {
                   setTabAdmin("storage");
                   navegar("/admin");
                 }}
-                className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-black/45 hover:bg-black/70 border border-white/30 text-[11px] font-bold text-white flex items-center gap-1.5 backdrop-blur-xs cursor-pointer"
+                className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-black/55 hover:bg-black/80 border border-white/30 text-[11px] font-bold text-white flex items-center gap-1.5 backdrop-blur-xs cursor-pointer"
               >
                 <ImageIcon className="w-3.5 h-3.5 text-red-400" />
-                <span>Cambiar Fondo Hero</span>
+                <span>Personalizar Fondo Hero ({heroOverlayOpacity}% • {heroBlur}px)</span>
               </button>
             )}
 
@@ -2680,81 +2773,245 @@ export default function PortalFacultadCienciasMatematicas() {
               </div>
             </div>
 
-            {/* Grid Centrado de Tarjetas Institucionales de Docentes */}
-            {docentesFiltradosHome.length === 0 ? (
-              <div className="max-w-xl mx-auto rounded-2xl border border-slate-200 bg-white p-10 text-center space-y-2">
-                <Users className="w-10 h-10 text-slate-400 mx-auto" />
-                <p className="text-sm font-extrabold text-[#002855]">No se encontraron docentes con ese criterio</p>
-                <p className="text-xs text-slate-500">Prueba cambiando la pestaña de Escuela Profesional o limpiando el buscador.</p>
-              </div>
-            ) : (
-              <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {docentesFiltradosHome.map((doc) => {
-                  const temaDoc = TEMA_CARRERA[doc.carrera_id];
-                  const nombreEscuela = carreras.find((c) => c.id === doc.carrera_id)?.nombre || "FCM";
-                  const statsDoc = obtenerEstadisticasDocente(doc.id);
+            {/* Vista por Cuadros de Escuela Profesional o Sección de Escuela Seleccionada */}
+            {filtroDocenteCarrera === "TODAS" && busquedaDocentes.trim() === "" ? (
+              <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {carreras.map((car) => {
+                  const temaCar = TEMA_CARRERA[car.id];
+                  const docentesEscuela = docentes.filter((d) => d.carrera_id === car.id);
+                  const principalesCount = docentesEscuela.filter((d) => d.categoria_docente === "Principal").length;
                   return (
                     <div
-                      key={doc.id}
-                      onClick={() => abrirModalDocente(doc)}
-                      className={`group rounded-2xl bg-white border border-slate-200 ${temaDoc.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
+                      key={car.id}
+                      onClick={() => navegar("/", { docenteCarrera: car.id, skipScroll: true })}
+                      className={`group rounded-2xl bg-white border border-slate-200 ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
                     >
                       <div>
-                        {/* Fotografía Superior Uniforme o Avatar Institucional */}
-                        <div className="relative h-52 w-full bg-slate-100 overflow-hidden border-b border-slate-100">
-                          {doc.foto_url ? (
-                            <img
-                              src={doc.foto_url}
-                              alt={`${doc.grado_academico} ${doc.nombre_completo}`}
-                              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className={`w-full h-full ${temaDoc.headerBg} flex items-center justify-center text-white text-3xl font-extrabold tracking-wider`}>
-                              {obtenerInicialesDocente(doc.nombre_completo)}
-                            </div>
-                          )}
-                          <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-black/70 text-white backdrop-blur-xs">
-                            {doc.categoria_docente}
-                          </span>
-                        </div>
+                        {/* Cabecera Superior Temática del Cuadro de Escuela */}
+                        <div className={`relative h-44 w-full ${temaCar.headerBg} overflow-hidden flex flex-col items-center justify-center p-5 text-white`}>
+                          <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-black/25 text-white/95">
+                            {car.codigo_escuela}
+                          </div>
+                          <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-white/20 text-white backdrop-blur-xs">
+                            {docentesEscuela.length} {docentesEscuela.length === 1 ? "Docente" : "Docentes"}
+                          </div>
 
-                        {/* Franja de color de su Escuela Profesional */}
-                        <div className={`h-1.5 w-full ${temaDoc.headerBg}`} />
-
-                        {/* Información Centrada estilo matematicas.unmsm.edu.pe */}
-                        <div className="p-5 space-y-2">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${temaDoc.badgeSoft}`}>
-                            {nombreEscuela}
-                          </span>
-                          <h3 className={`text-sm sm:text-base font-extrabold text-[#002855] ${temaDoc.groupHoverText} transition-colors leading-snug`}>
-                            {doc.grado_academico} {doc.nombre_completo}
-                          </h3>
-
-                          {/* Badge sutil de promedio de estrellas y votos debajo del nombre */}
-                          <div className="flex items-center justify-center">
-                            {statsDoc.total > 0 ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-extrabold text-amber-800">
-                                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                                <span>{statsDoc.promedio.toFixed(1)}</span>
-                                <span className="text-amber-600 font-semibold">({statsDoc.total})</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">
-                                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                                <span>Nuevo • Calificar</span>
-                              </span>
+                          {/* Avatares superpuestos de los catedráticos de esta Escuela */}
+                          <div className="flex items-center justify-center -space-x-3 mb-3 mt-3">
+                            {docentesEscuela.slice(0, 4).map((doc) => (
+                              <div
+                                key={doc.id}
+                                className="w-12 h-12 rounded-full border-2 border-white bg-slate-800 overflow-hidden shadow-md flex items-center justify-center text-xs font-extrabold text-white"
+                                title={`${doc.grado_academico} ${doc.nombre_completo}`}
+                              >
+                                {doc.foto_url ? (
+                                  <img
+                                    src={doc.foto_url}
+                                    alt={doc.nombre_completo}
+                                    className="w-full h-full object-cover object-top"
+                                  />
+                                ) : (
+                                  <span>{obtenerInicialesDocente(doc.nombre_completo)}</span>
+                                )}
+                              </div>
+                            ))}
+                            {docentesEscuela.length > 4 && (
+                              <div className="w-12 h-12 rounded-full border-2 border-white bg-black/60 text-white text-xs font-extrabold flex items-center justify-center shadow-md">
+                                +{docentesEscuela.length - 4}
+                              </div>
                             )}
                           </div>
 
+                          <span className="text-[11px] font-bold text-white/90 tracking-wide uppercase">
+                            Plana Catedrática Oficial
+                          </span>
+                        </div>
+
+                        <div className={`h-1.5 w-full ${temaCar.headerBg} opacity-80`} />
+
+                        <div className="p-5 space-y-3">
+                          <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${temaCar.badgeSoft}`}>
+                            Escuela Profesional
+                          </span>
+                          <h3 className={`text-base sm:text-lg font-extrabold text-[#002855] ${temaCar.groupHoverText} transition-colors leading-snug`}>
+                            {car.nombre}
+                          </h3>
                           <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
-                            {doc.especialidad}
+                            {docentesEscuela
+                              .slice(0, 2)
+                              .map((d) => `${d.grado_academico} ${d.nombre_completo.split(",")[0]}`)
+                              .join(" • ")}
+                            {docentesEscuela.length > 2 ? ` y ${docentesEscuela.length - 2} más` : ""}
                           </p>
+                          <div className="flex items-center justify-center gap-2 pt-1">
+                            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200">
+                              {principalesCount} Principales
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[10px] font-bold border border-amber-200 flex items-center gap-1">
+                              <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> Calificar
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] font-extrabold text-[#002855] group-hover:text-red-700">
-                        <span>Ver Ficha y Calificar</span>
-                        <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      <div className="px-4 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-xs font-extrabold text-[#002855] group-hover:text-red-700">
+                        <span>Ver Docentes de {car.nombre}</span>
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : docentesFiltradosHome.length === 0 ? (
+              <div className="max-w-xl mx-auto rounded-2xl border border-slate-200 bg-white p-10 text-center space-y-3">
+                <Users className="w-10 h-10 text-slate-400 mx-auto" />
+                <p className="text-sm font-extrabold text-[#002855]">No se encontraron docentes con ese criterio</p>
+                <p className="text-xs text-slate-500">Prueba cambiando la Escuela Profesional o limpiando el buscador.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBusquedaDocentes("");
+                    navegar("/", { docenteCarrera: "TODAS", skipScroll: true });
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#002855] text-white text-xs font-extrabold cursor-pointer"
+                >
+                  Volver a las 4 Escuelas
+                </button>
+              </div>
+            ) : (
+              <div className="max-w-6xl mx-auto space-y-8">
+                {/* Si hay una escuela específica seleccionada, mostramos su barra de cabecera + botón para regresar a los 4 cuadros */}
+                {filtroDocenteCarrera !== "TODAS" && (() => {
+                  const escuelaObj = carreras.find((c) => c.id === filtroDocenteCarrera) || CARRERAS_INICIALES[0];
+                  const temaEsc = TEMA_CARRERA[escuelaObj.id];
+                  return (
+                    <div className={`rounded-2xl ${temaEsc.headerBg} text-white p-5 shadow-md flex flex-wrap items-center justify-between gap-4 border-b-4 ${temaEsc.borderAccent}`}>
+                      <div className="flex items-center gap-3.5">
+                        <div className="p-2.5 rounded-xl bg-white/15 backdrop-blur-xs border border-white/20">
+                          {renderIconoCarrera(escuelaObj.id)}
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-white/80 block">
+                            {escuelaObj.codigo_escuela} • Plana Docente por Escuela
+                          </span>
+                          <h3 className="text-lg sm:text-xl font-extrabold text-white">
+                            Escuela Profesional de {escuelaObj.nombre} ({docentesFiltradosHome.length})
+                          </h3>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => navegar("/", { docenteCarrera: "TODAS", skipScroll: true })}
+                        className="px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-extrabold flex items-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>Ver las 4 Escuelas</span>
+                      </button>
+                    </div>
+                  );
+                })()}
+
+                {/* Si busca en TODAS, agrupa ordenadamente por cada Escuela con resultados; si eligió una escuela, muestra su cuadrícula */}
+                {(filtroDocenteCarrera === "TODAS"
+                  ? carreras.filter((c) => docentesFiltradosHome.some((d) => d.carrera_id === c.id))
+                  : carreras.filter((c) => c.id === filtroDocenteCarrera)
+                ).map((escuelaGrupo) => {
+                  const temaGrupo = TEMA_CARRERA[escuelaGrupo.id];
+                  const listaDocentesGrupo = docentesFiltradosHome.filter((d) => d.carrera_id === escuelaGrupo.id);
+                  return (
+                    <div key={escuelaGrupo.id} className="space-y-4">
+                      {filtroDocenteCarrera === "TODAS" && (
+                        <div className="flex items-center justify-between border-b-2 border-slate-200 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-3 h-3 rounded-full ${temaGrupo.headerBg}`} />
+                            <h3 className="text-base font-extrabold text-[#002855]">
+                              E.P. de {escuelaGrupo.nombre}
+                            </h3>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${temaGrupo.badgeSoft}`}>
+                              {listaDocentesGrupo.length} {listaDocentesGrupo.length === 1 ? "docente" : "docentes"}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => navegar("/", { docenteCarrera: escuelaGrupo.id, skipScroll: true })}
+                            className="text-xs font-bold text-[#002855] hover:text-red-700 cursor-pointer"
+                          >
+                            Ver solo esta escuela →
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {listaDocentesGrupo.map((doc) => {
+                          const temaDoc = TEMA_CARRERA[doc.carrera_id];
+                          const nombreEscuela = carreras.find((c) => c.id === doc.carrera_id)?.nombre || "FCM";
+                          const statsDoc = obtenerEstadisticasDocente(doc.id);
+                          return (
+                            <div
+                              key={doc.id}
+                              onClick={() => abrirModalDocente(doc)}
+                              className={`group rounded-2xl bg-white border border-slate-200 ${temaDoc.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
+                            >
+                              <div>
+                                {/* Fotografía Superior Uniforme o Avatar Institucional */}
+                                <div className="relative h-52 w-full bg-slate-100 overflow-hidden border-b border-slate-100">
+                                  {doc.foto_url ? (
+                                    <img
+                                      src={doc.foto_url}
+                                      alt={`${doc.grado_academico} ${doc.nombre_completo}`}
+                                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                  ) : (
+                                    <div className={`w-full h-full ${temaDoc.headerBg} flex items-center justify-center text-white text-3xl font-extrabold tracking-wider`}>
+                                      {obtenerInicialesDocente(doc.nombre_completo)}
+                                    </div>
+                                  )}
+                                  <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-black/70 text-white backdrop-blur-xs">
+                                    {doc.categoria_docente}
+                                  </span>
+                                </div>
+
+                                {/* Franja de color de su Escuela Profesional */}
+                                <div className={`h-1.5 w-full ${temaDoc.headerBg}`} />
+
+                                {/* Información Centrada estilo matematicas.unmsm.edu.pe */}
+                                <div className="p-5 space-y-2">
+                                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${temaDoc.badgeSoft}`}>
+                                    {nombreEscuela}
+                                  </span>
+                                  <h3 className={`text-sm sm:text-base font-extrabold text-[#002855] ${temaDoc.groupHoverText} transition-colors leading-snug`}>
+                                    {doc.grado_academico} {doc.nombre_completo}
+                                  </h3>
+
+                                  {/* Badge sutil de promedio de estrellas y votos debajo del nombre */}
+                                  <div className="flex items-center justify-center">
+                                    {statsDoc.total > 0 ? (
+                                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-extrabold text-amber-800">
+                                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                                        <span>{statsDoc.promedio.toFixed(1)}</span>
+                                        <span className="text-amber-600 font-semibold">({statsDoc.total})</span>
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">
+                                        <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                                        <span>Nuevo • Calificar</span>
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                                    {doc.especialidad}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] font-extrabold text-[#002855] group-hover:text-red-700">
+                                <span>Ver Ficha y Calificar</span>
+                                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -4301,46 +4558,161 @@ export default function PortalFacultadCienciasMatematicas() {
                       </div>
                     </div>
 
-                    {/* Configuración directa del Fondo Difuminado del Hero */}
+                    {/* Configuración directa del Fondo Difuminado, Opacidad y Color del Hero */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
                       <div className="border-b border-slate-200 pb-2.5">
                         <h3 className="font-extrabold text-sm text-[#002855]">
-                          🖼️ Imagen de Fondo Difuminada del Hero (Home)
+                          🖼️ Personalización del Fondo Hero (Difuminado, Opacidad y Color)
                         </h3>
                         <p className="text-[11px] text-slate-500">
-                          Se aplica automáticamente con filtro difuminado y degradado institucional #002855.
+                          Ajusta el nivel de desenfoque, el porcentaje de transparencia y el color de la capa superpuesta.
                         </p>
                       </div>
-                      <div className="relative h-28 rounded-xl overflow-hidden bg-[#002855] border border-slate-200">
+
+                      {/* Vista Previa en Tiempo Real */}
+                      <div
+                        className="relative h-32 rounded-xl overflow-hidden border border-slate-200 transition-colors"
+                        style={{ backgroundColor: heroOverlayColor || "#0f172a" }}
+                      >
                         <img
-                          src={heroBgUrl || HERO_BG_DEFAULT}
+                          src={heroBgInputUrl || heroBgUrl || HERO_BG_DEFAULT}
                           alt="Vista previa Hero"
-                          className="w-full h-full object-cover blur-[0.8px] opacity-90"
+                          className="w-full h-full object-cover transition-all duration-300"
+                          style={{ filter: `blur(${heroBlur}px)` }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#002855]/55 via-[#002855]/45 to-[#001833]/70 flex items-center justify-center p-3 text-center">
-                          <span className="text-xs font-extrabold text-white drop-shadow-md">
-                            Vista Previa • Portal Académico e Investigación FCM
+                        <div
+                          className="absolute inset-0 transition-all duration-200"
+                          style={{
+                            backgroundColor: heroOverlayColor || "#0f172a",
+                            opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/15 flex flex-col items-center justify-center p-3 text-center">
+                          <span className="text-xs font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+                            Vista Previa en Vivo • Portal Académico FCM
+                          </span>
+                          <span className="mt-1 px-2.5 py-0.5 rounded-full bg-black/55 text-[10px] font-bold text-white border border-white/20">
+                            Difuminado: {heroBlur}px • Capa: {heroOverlayOpacity}% ({heroOverlayColor})
                           </span>
                         </div>
                       </div>
-                      <input
-                        type="url"
-                        value={heroBgInputUrl}
-                        onChange={(e) => setHeroBgInputUrl(e.target.value)}
-                        placeholder="Pega aquí la URL de la imagen de fondo para el Hero..."
-                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
-                      />
-                      <div className="flex gap-2">
+
+                      {/* URL de la imagen */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-extrabold text-slate-700">URL de la Imagen de Fondo:</label>
+                        <input
+                          type="url"
+                          value={heroBgInputUrl}
+                          onChange={(e) => setHeroBgInputUrl(e.target.value)}
+                          placeholder="Pega aquí la URL de la imagen de fondo para el Hero..."
+                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        />
+                      </div>
+
+                      {/* Control Deslizante 1: Nivel de Difuminado (Blur en px) */}
+                      <div className="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-extrabold text-[#002855]">1. Nivel de Difuminado (Desenfoque):</span>
+                          <span className="px-2 py-0.5 rounded-md bg-[#002855] text-white font-mono text-[11px] font-bold">
+                            {heroBlur} px {heroBlur === 0 ? "(Nítido)" : heroBlur <= 1.5 ? "(Sutil)" : "(Intenso)"}
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={8}
+                          step={0.5}
+                          value={heroBlur}
+                          onChange={(e) => setHeroBlur(Number(e.target.value))}
+                          className="w-full accent-[#002855] cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
+                          <span>0px (Sin blur)</span>
+                          <span>1px (Recomendado)</span>
+                          <span>4px (Medio)</span>
+                          <span>8px (Máximo)</span>
+                        </div>
+                      </div>
+
+                      {/* Control Deslizante 2: Porcentaje de Opacidad de la Capa */}
+                      <div className="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-extrabold text-[#002855]">2. Opacidad / Oscuridad del Fondo:</span>
+                          <span className="px-2 py-0.5 rounded-md bg-red-700 text-white font-mono text-[11px] font-bold">
+                            {heroOverlayOpacity}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={90}
+                          step={5}
+                          value={heroOverlayOpacity}
+                          onChange={(e) => setHeroOverlayOpacity(Number(e.target.value))}
+                          className="w-full accent-red-700 cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
+                          <span>0% (Imagen 100% libre)</span>
+                          <span>45% (Equilibrado)</span>
+                          <span>90% (Muy oscuro)</span>
+                        </div>
+                      </div>
+
+                      {/* Selector 3: Color de la Capa (Normal Neutro, Negro, Gris, Azul o Libre) */}
+                      <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-extrabold text-[#002855]">3. Color del Filtro / Capa:</span>
+                          <span className="font-mono text-[11px] font-bold text-slate-600">{heroOverlayColor}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {[
+                            { label: "Neutro Carbón (Normal)", hex: "#0f172a" },
+                            { label: "Negro Cinematográfico", hex: "#000000" },
+                            { label: "Gris Grafito Suave", hex: "#27272a" },
+                            { label: "Azul Institucional", hex: "#002855" },
+                          ].map((preset) => (
+                            <button
+                              key={preset.hex}
+                              type="button"
+                              onClick={() => setHeroOverlayColor(preset.hex)}
+                              className={`px-2.5 py-2 rounded-lg text-[11px] font-bold flex items-center gap-2 border transition-all cursor-pointer ${
+                                heroOverlayColor.toLowerCase() === preset.hex.toLowerCase()
+                                  ? "border-[#002855] bg-blue-50 text-[#002855] ring-2 ring-[#002855]/20"
+                                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                              }`}
+                            >
+                              <span
+                                className="w-3.5 h-3.5 rounded-full border border-white shadow-xs shrink-0"
+                                style={{ backgroundColor: preset.hex }}
+                              />
+                              <span className="truncate">{preset.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-[11px] font-semibold text-slate-600">O elige un color personalizado:</span>
+                          <input
+                            type="color"
+                            value={heroOverlayColor}
+                            onChange={(e) => setHeroOverlayColor(e.target.value)}
+                            className="w-9 h-7 rounded cursor-pointer border border-slate-300 bg-white p-0.5"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-1">
                         <button
                           type="button"
-                          onClick={() => handleUsarComoFondoHero(heroBgInputUrl)}
-                          className="flex-1 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer"
+                          onClick={() =>
+                            handleUsarComoFondoHero(heroBgInputUrl, heroBlur, heroOverlayOpacity, heroOverlayColor)
+                          }
+                          className="flex-1 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer shadow-xs"
                         >
-                          Guardar Fondo Hero
+                          Guardar Personalización del Banner
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleUsarComoFondoHero(HERO_BG_DEFAULT)}
+                          onClick={() => handleUsarComoFondoHero(HERO_BG_DEFAULT, 1, 45, "#0f172a")}
                           className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
                         >
                           Restaurar
