@@ -1,12 +1,15 @@
 -- ============================================================================
--- SQL DE ACTUALIZACIÓN PARA SUPABASE: COLUMNAS `docentes_data` Y `resenas_docentes`
+-- SQL DE ACTUALIZACIÓN PARA SUPABASE:
+-- Columnas `docentes_data`, `resenas_docentes`, `materiales_data` y `hero_bg_url`
 -- Ejecuta este comando en el SQL Editor de Supabase para habilitar la
--- persistencia de la Plana Docente y del Sistema de Calificaciones y Reseñas:
+-- persistencia completa del Repositorio, Fondo Hero, Docentes y Reseñas:
 -- ============================================================================
 
 ALTER TABLE public.portal_config
+ADD COLUMN IF NOT EXISTS hero_bg_url text,
 ADD COLUMN IF NOT EXISTS docentes_data jsonb DEFAULT '[]'::jsonb,
-ADD COLUMN IF NOT EXISTS resenas_docentes jsonb DEFAULT '[]'::jsonb;
+ADD COLUMN IF NOT EXISTS resenas_docentes jsonb DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS materiales_data jsonb DEFAULT '[]'::jsonb;
 
 -- ============================================================================
 -- (Opcional) Esquema completo de `portal_config` por si instalas desde cero:
@@ -14,11 +17,13 @@ ADD COLUMN IF NOT EXISTS resenas_docentes jsonb DEFAULT '[]'::jsonb;
 CREATE TABLE IF NOT EXISTS public.portal_config (
   id integer PRIMARY KEY DEFAULT 1,
   logo_url text,
+  hero_bg_url text,
   carreras_data jsonb DEFAULT '[]'::jsonb,
   noticias_data jsonb DEFAULT '[]'::jsonb,
   storage_data jsonb DEFAULT '[]'::jsonb,
   docentes_data jsonb DEFAULT '[]'::jsonb,
   resenas_docentes jsonb DEFAULT '[]'::jsonb,
+  materiales_data jsonb DEFAULT '[]'::jsonb,
   updated_at timestamptz DEFAULT now()
 );
 

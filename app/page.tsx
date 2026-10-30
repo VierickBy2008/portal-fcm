@@ -320,7 +320,7 @@ interface MaterialRepositorio {
 interface ImagenStorage {
   id: string;
   nombre_archivo: string;
-  categoria: "Logo Institucional" | "Banner Noticia" | "Foto Facultad";
+  categoria: "Logo Institucional" | "Banner Noticia" | "Foto Facultad" | "Fondo Hero Home";
   url_publica: string;
   tamano_kb: string;
   fecha_subida: string;
@@ -338,6 +338,9 @@ interface TicketSoporte {
 
 const LOGO_UNMSM_TRANSPARENTE_DEFAULT =
   "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/UNMSM_coatofarms_seal.svg/240px-UNMSM_coatofarms_seal.svg.png";
+
+const HERO_BG_DEFAULT =
+  "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1600&q=80";
 
 const CARRERAS_INICIALES: Carrera[] = [
   {
@@ -726,40 +729,40 @@ const MALLA_POR_CICLO: Record<CarreraId, string[]> = {
     "AI268|VISIÓN COMPUTACIONAL|5|O|AI264;AI367|TÓPICOS EN INTELIGENCIA ARTIFICIAL|5|O|AI264;CS400|PRÁCTICAS PRE-PROFESIONALES|3;MA403|PROYECTO DE FINAL DE CARRERA III|5|O|MA402;CS254|VISUALIZACIÓN DE DATOS AVANZADA|4|E|CS253;QC381|INTRODUCCIÓN A LA COMPUTACIÓN CUÁNTICA|4|E|MA381,QC251",
   ],
   "matematica": [
-    "MA100|MATEMÁTICA BÁSICA|5;CS111|INTRODUCCIÓN A LA PROGRAMACIÓN|5;FG140|FUNDAMENTOS DE INVESTIGACIÓN CIENTÍFICA|3;FG109|AMBIENTE Y DESARROLLO SOSTENIBLE|3;FG101|LENGUAJE|2;FG112|MÉTODOS DE GESTIÓN PERSONAL UNIVERSITARIA|2",
-    "MAT111|CÁLCULO I|5|O|MA100;MAT121|ÁLGEBRA I (TEORÍA DE CONJUNTOS Y ENTEROS)|5|O|MA100;FI101|FÍSICA GENERAL I|5|O|MA100;MAT130|GEOMETRÍA ANALÍTICA VECTORIAL|4|O|MA100;ID101|INGLÉS CIENTÍFICO I|3",
-    "MAT211|CÁLCULO II|5|O|MAT111;MAT221|ÁLGEBRA LINEAL I|5|O|MAT121,MAT130;MAT281|TEORÍA DE NÚMEROS Y COMBINATORIA|4|O|MAT121;FI102|FÍSICA GENERAL II (ELECTROMAGNETISMO)|4|O|FI101,MAT111;MAT205|SOFTWARE MATEMÁTICO Y SIMBÓLICO|3|O|CS111;ID102|INGLÉS CIENTÍFICO II|3|O|ID101",
-    "MAT212|CÁLCULO III (VARIAS VARIABLES)|5|O|MAT211,MAT221;MAT222|ÁLGEBRA LINEAL II (FORMAS CANÓNICAS)|5|O|MAT221;MAT241|ESTRUCTURAS ALGEBRAICAS I (GRUPOS)|5|O|MAT281;MAT251|PROBABILIDAD Y ESTADÍSTICA MATEMÁTICA|4|O|MAT211;MAT232|GEOMETRÍA EUCLIDIANA Y PROYECTIVA|4|O|MAT130",
-    "MAT311|ANÁLISIS REAL I|5|O|MAT212;MAT342|ESTRUCTURAS ALGEBRAICAS II (ANILLOS Y CUERPOS)|5|O|MAT241;MAT315|ECUACIONES DIFERENCIALES ORDINARIAS|5|O|MAT212,MAT222;MAT321|ANÁLISIS NUMÉRICO I|4|O|MAT222,MAT205;MAT331|CÁLCULO EN VARIEDADES|4|O|MAT212;MAT309|HISTORIA Y EPISTEMOLOGÍA DE LA MATEMÁTICA|2|E|MAT241",
-    "MAT312|ANÁLISIS REAL II (MEDIDA E INTEGRACIÓN)|5|O|MAT311;MAT361|TOPOLOGÍA GENERAL Y ESPACIOS MÉTRICOS|5|O|MAT311;MAT318|VARIABLE COMPLEJA I|5|O|MAT311;MAT345|TEORÍA DE MÓDULOS Y ÁLGEBRA MULTILINEAL|4|O|MAT342,MAT222;MAT325|ANÁLISIS NUMÉRICO II|4|O|MAT321,MAT315",
-    "MAT411|ANÁLISIS FUNCIONAL I|5|O|MAT312,MAT361;MAT431|GEOMETRÍA DIFERENCIAL I|5|O|MAT331,MAT361;MAT415|ECUACIONES DIFERENCIALES PARCIALES I|5|O|MAT315,MAT312;MAT441|TEORÍA DE GALOIS|4|O|MAT342;MAT462|TOPOLOGÍA ALGEBRAICA|4|E|MAT361,MAT241;MAT419|VARIABLE COMPLEJA II|4|E|MAT318",
-    "MAT412|ANÁLISIS FUNCIONAL II (TEORÍA ESPECTRAL)|5|O|MAT411;MAT432|GEOMETRÍA RIEMANNIANA|5|O|MAT431;MAT416|ECUACIONES DIFERENCIALES PARCIALES II|5|O|MAT415,MAT411;MAT401|PROYECTO DE TESIS EN MATEMÁTICA I|3|O|MAT411;MAT471|SISTEMAS DINÁMICOS Y TEORÍA DE BIFURCACIONES|4|E|MAT315,MAT361;MAT482|ÁLGEBRA CONMUTATIVA Y GEOMETRÍA ALGEBRAICA|4|E|MAT441",
-    "MAT501|SEMINARIO DE TESIS EN MATEMÁTICA II|5|O|MAT401;MAT511|TEORÍA DE DISTRIBUCIONES Y ESPACIOS DE SOBOLEV|5|O|MAT412,MAT416;MAT541|GRUPOS Y ÁLGEBRAS DE LIE|4|E|MAT432;MAT521|ELEMENTOS FINITOS PARA EDP|4|E|MAT415,MAT325;MAT551|PROBABILIDAD AVANZADA Y MARTINGALAS|4|E|MAT312,MAT251;MAT565|OPTIMIZACIÓN VARIACIONAL Y CONTROL ÓPTIMO|4|E|MAT412",
-    "MAT502|TRABAJO DE INVESTIGACIÓN FINAL (TESIS III)|6|O|MAT501;MAT590|PRÁCTICAS PRE-PROFESIONALES EN MATEMÁTICA|4|O|MAT401;MAT575|TÓPICOS AVANZADOS EN ANÁLISIS NO LINEAL|4|E|MAT511;MAT585|CRIPTOGRAFÍA ELÍPTICA Y TEORÍA DE CÓDIGOS|4|E|MAT441;MAT595|SEMINARIO DE FÍSICA MATEMÁTICA Y CUÁNTICA|4|E|MAT412",
+    "23EG11|LENGUAJE|2|O;23EG12|MÉTODOS DE GESTIÓN PERSONAL UNIVERSITARIA|2|O;23EG13|FÍSICA GENERAL|5|O;23EG14|CÁLCULO I|5|O;23EG15|MATEMÁTICA BÁSICA|5|O;23EGEB1|INTRODUCCIÓN A LA CIENCIA DE LA COMPUTACIÓN|5|O",
+    "23EG21|AMBIENTE Y DESARROLLO SOSTENIBLE|3|O;23EG22|CÁLCULO II|4|O|23EG14 - CÁLCULO I;23EG23|INTRODUCCIÓN A LA ESTADÍSTICA|4|O;23EG24|FUNDAMENTOS DE INVESTIGACIÓN CIENTÍFICA|3|O;23EG25|INGLÉS TÉCNICO|2|O;23EGB2|MATEMÁTICA FINANCIERA|4|O;23EGEB2|COMPLEMENTOS DE MATEMÁTICA|4|O",
+    "2314131|ÁLGEBRA LINEAL I|6|O|23EG15 - MATEMÁTICA BÁSICA;2314132|CÁLCULO III|6|O|23EG22 - CÁLCULO II;2314133|METODOLOGÍA DE LA INVESTIGACIÓN|4|O|23EG24 - FUNDAMENTOS DE INVESTIGACIÓN CIENTÍFICA;2314134|TEORÍA DE NÚMEROS|6|O|23EGEB2 - COMPLEMENTOS DE MATEMÁTICA",
+    "2314141|ÁLGEBRA LINEAL II|6|O|2314131 - ÁLGEBRA LINEAL I;2314142|ANÁLISIS REAL I|6|O|2314134 - TEORÍA DE NÚMEROS;2314143|CÁLCULO IV|6|O|2314132 - CÁLCULO III;2314144|PROGRAMACIÓN DE COMPUTADORAS|4|O|23EGEB1 - INTRODUCCIÓN A LA CIENCIA DE LA COMPUTACIÓN",
+    "2314151|ESTRUCTURAS ALGEBRAICAS I|6|O|2314141 - ÁLGEBRA LINEAL II;2314152|ANÁLISIS REAL II|6|O|2314142 - ANÁLISIS REAL I;2314153|MÉTODOS NUMÉRICOS I|4|O|2314144 - PROGRAMACIÓN DE COMPUTADORAS;2314154|INTRODUCCIÓN A LAS ECUACIONES DIFERENCIALES|6|O|2314143 - CÁLCULO IV",
+    "2314161|ESTRUCTURAS ALGEBRAICAS II|6|O|2314151 - ESTRUCTURAS ALGEBRAICAS I;2314162|ANÁLISIS COMPLEJO|6|O|2314152 - ANÁLISIS REAL II;2314163|MÉTODOS NUMÉRICOS II|4|O|2314153 - MÉTODOS NUMÉRICOS I;2314164|FUNDAMENTOS DE LA MATEMÁTICA|6|O|2314142 - ANÁLISIS REAL I",
+    "2314171|TEORÍA DE LA MEDIDA E INTEGRACIÓN|6|O|2314162 - ANÁLISIS COMPLEJO;2314172|ECUACIONES DIFERENCIALES ORDINARIAS|6|O|2314154 - INTRODUCCIÓN A LAS ECUACIONES DIFERENCIALES;2314173|GEOMETRÍA DIFERENCIAL|6|O|2314152 - ANÁLISIS REAL II;2314174|ANÁLISIS CONVEXO|5|E;2314175|TEORÍA DE GALOIS|5|E;2314176|DIDÁCTICA DE LA ENSEÑANZA DE LA MATEMÁTICA|5|E",
+    "2314181|ANÁLISIS FUNCIONAL|6|O|2314171 - TEORÍA DE LA MEDIDA E INTEGRACIÓN;2314182|ECUACIONES EN DERIVADAS PARCIALES|6|O|2314172 - ECUACIONES DIFERENCIALES ORDINARIAS;2314183|TOPOLOGÍA GENERAL|6|O|2314173 - GEOMETRÍA DIFERENCIAL;2314184|ÁLGEBRA CONMUTATIVA|5|E;2314185|CÁLCULO VARIACIONAL|5|E;2314186|TÓPICOS DE PROGRAMACIÓN MATEMÁTICA|5|E;2314187|EL PROBLEMA DE STURM-LIOUVILLE|5|E;2314188|INTRODUCCIÓN A LOS SISTEMAS DINÁMICOS CAÓTICOS|5|E;2314189|MODELACIÓN MATEMÁTICA|5|E",
+    "2314191|TESIS I|6|O;2314192|SEMINARIO DE MATEMÁTICA I|6|O;2314193|MATEMÁTICA COMPUTACIONAL I|4|O|2314163 - MÉTODOS NUMÉRICOS II;23141910|VARIEDADES DIFERENCIABLES|5|E;2314194|ÁLGEBRA HOMOLÓGICA|5|E;2314195|GEOMETRÍA ALGEBRAICA|5|E;2314196|TEORÍA DE DISTRIBUCIONES Y ESPACIOS DE SOBOLEV|5|E;2314197|TÓPICOS DE ECUACIONES DIFERENCIALES|5|E;2314198|TÓPICOS EN TEORÍA DE OPTIMIZACIÓN|5|E;2314199|TOPOLOGÍA ALGEBRAICA|5|E",
+    "23141101|TESIS II|6|O|2314191 - TESIS I;23141102|SEMINARIO DE MATEMÁTICA II|6|O|2314192 - SEMINARIO DE MATEMÁTICA I;23141108|TRABAJO DE INVESTIGACIÓN|5|O|2314191 - TESIS I;23141103|ANÁLISIS FUNCIONAL NO LINEAL|5|E;23141104|GEOMETRÍA RIEMANNIANA|5|E;23141105|MATEMÁTICA COMPUTACIONAL II|5|E;23141106|TOPOLOGÍA DIFERENCIAL|5|E;23141107|TÓPICOS DE ANÁLISIS FUNCIONAL|5|E",
   ],
   "estadistica": [
-    "MA100|MATEMÁTICA BÁSICA|5;CS111|INTRODUCCIÓN A LA PROGRAMACIÓN|5;EST101|ESTADÍSTICA DESCRIPTIVA Y EXPLORATORIA|4;FG140|FUNDAMENTOS DE INVESTIGACIÓN CIENTÍFICA|3;FG101|LENGUAJE Y COMUNICACIÓN|2;FG109|AMBIENTE Y DESARROLLO SOSTENIBLE|3",
-    "MA111|CÁLCULO I|5|O|MA100;MA121|ÁLGEBRA LINEAL I|4|O|MA100;EST112|CÁLCULO DE PROBABILIDADES I|5|O|EST101,MA100;EST120|PROGRAMACIÓN EN R Y PYTHON PARA ESTADÍSTICA|4|O|CS111;ID101|INGLÉS I|3",
-    "MA112|CÁLCULO II|4|O|MA111;MA122|ÁLGEBRA LINEAL II (ÁLGEBRA MATRICIAL)|4|O|MA121;EST211|CÁLCULO DE PROBABILIDADES II|5|O|EST112,MA111;EST221|GESTIÓN DE BASES DE DATOS ESTADÍSTICAS (SQL)|4|O|EST120;EC101|MICROECONOMÍA Y MACROECONOMÍA|3|O|MA100;ID102|INGLÉS II|3|O|ID101",
-    "MA210|CÁLCULO III|4|O|MA112;EST215|INFERENCIA ESTADÍSTICA PARAMÉTRICA I|5|O|EST211;EST231|TEORÍA DEL MUESTREO I|4|O|EST211;EST241|MÉTODOS NUMÉRICOS PARA ESTADÍSTICA|4|O|MA122,EST120;EST250|DEMOGRAFÍA Y ESTADÍSTICAS POBLACIONALES|3|O|EST101;ID201|INGLÉS III|3|O|ID102",
-    "EST315|INFERENCIA ESTADÍSTICA II (TEORÍA ASINTÓTICA)|5|O|EST215;EST318|MODELOS LINEALES Y REGRESIÓN APLICADA|5|O|EST215,MA122;EST332|MUESTREO AVANZADO Y DISEÑO DE ENCUESTAS|4|O|EST231;EST361|ESTADÍSTICA NO PARAMÉTRICA|4|O|EST215;EST352|PROCESOS ESTOCÁSTICOS I|4|O|EST211,MA210;EST325|VISUALIZACIÓN CIENTÍFICA Y DASHBOARDS|3|E|EST221",
-    "EST341|DISEÑO Y ANÁLISIS DE EXPERIMENTOS I|5|O|EST318;EST371|MODELOS LINEALES GENERALIZADOS (GLM)|5|O|EST318,EST315;EST381|ESTADÍSTICA COMPUTACIONAL Y BOOTSTRAP|4|O|EST315,EST241;EST353|PROCESOS ESTOCÁSTICOS II (CADENAS DE MARKOV)|4|O|EST352;EST391|CONTROL ESTADÍSTICO DE LA CALIDAD Y SEIS SIGMA|4|O|EST318",
-    "EST420|ANÁLISIS MULTIVARIADO I|5|O|EST371;EST431|ANÁLISIS DE SERIES DE TIEMPO I|5|O|EST318,EST353;EST442|DISEÑO DE EXPERIMENTOS II (SUPERFICIES DE RESPUESTA)|4|O|EST341;EST451|ESTADÍSTICA BAYESIANA I|4|O|EST315,EST381;EST461|ANÁLISIS DE DATOS CATEGÓRICOS|4|E|EST371;EST471|PSICOMETRÍA Y MODELOS DE ECUACIONES ESTRUCTURALES|3|E|EST371",
-    "EST422|ANÁLISIS MULTIVARIADO II Y REDUCCIÓN DIMENSIONAL|5|O|EST420;EST481|APRENDIZAJE ESTADÍSTICO (STATISTICAL LEARNING)|5|O|EST420,EST381;EST432|ECONOMETRÍA FINANCIERA Y SERIES DE TIEMPO II|4|O|EST431;EST401|PROYECTO DE TESIS EN ESTADÍSTICA I|3|O|EST420;EST491|BIOESTADÍSTICA Y ENSAYOS CLÍNICOS|4|E|EST341,EST371;EST452|MÉTODOS MCMC Y BAYESIANA COMPUTACIONAL|4|E|EST451",
-    "EST501|SEMINARIO DE TESIS EN ESTADÍSTICA II|5|O|EST401;EST511|ANÁLISIS DE SUPERVIVENCIA Y CONFIABILIDAD|5|O|EST371;EST521|ESTADÍSTICA ESPACIAL Y GEOESTADÍSTICA|4|E|EST431,EST422;EST531|MINERÍA DE DATOS Y BIG DATA ANALYTICS|4|E|EST481;EST541|MODELOS DE RIESGO CREDITICIO Y ACTUARIAL|4|E|EST432",
-    "EST502|TRABAJO DE INVESTIGACIÓN FINAL (TESIS III)|6|O|EST501;EST590|PRÁCTICAS PRE-PROFESIONALES EN ESTADÍSTICA|4|O|EST401;EST555|CONSULTORÍA ESTADÍSTICA APLICADA|4|O|EST481;EST565|REDES NEURONALES Y DEEP LEARNING ESTADÍSTICO|4|E|EST481;EST575|ESTADÍSTICA GENÓMICA Y BIOINFORMÁTICA|4|E|EST491",
+    "23EG14|CÁLCULO I|5|O;23EG11|LENGUAJE|2|O;23EG02|RAZONAMIENTO ESTADÍSTICO I|5|O;23EG13|FÍSICA GENERAL|5|O;23EG15|MATEMÁTICA BÁSICA|5|O;23EG12|MÉTODOS DE GESTIÓN PERSONAL UNIVERSITARIO|2|O",
+    "23EG22|CÁLCULO II|4|O|23EG14 - CÁLCULO I;23EG21|AMBIENTE Y DESARROLLO SOSTENIBLE|3|O;23EG23|INTRODUCCIÓN A LA ESTADÍSTICA|4|O;23EG24|FUNDAMENTOS DE INVESTIGACIÓN CIENTÍFICA|3|O;23EG07|RAZONAMIENTO ESTADÍSTICO II|4|O|23EG02 - RAZONAMIENTO ESTADÍSTICO I;23EG25|INGLÉS TÉCNICO|2|O;23EG03|INTRODUCCIÓN A LA PROGRAMACIÓN|4|O",
+    "232031|CÁLCULO III|5|O|23EG22 - CÁLCULO II;232032|ÁLGEBRA LINEAL APLICADO A LA ESTADÍSTICA|5|O;232033|PROBABILIDAD I|5|O;232034|MÉTODOS ESTADÍSTICOS|4|O|23EG23 - INTRODUCCIÓN A LA ESTADÍSTICA;232035|ÉTICA Y LIDERAZGO|3|O",
+    "232041|ANÁLISIS REAL|5|O|232031 - CÁLCULO III;232042|PROGRAMACIÓN Y MÉTODOS NUMÉRICOS|4|O;232043|PROBABILIDAD II|5|O|232033 - PROBABILIDAD I;232044|PROGRAMACIÓN EN LENGUAJE ESTADÍSTICO|4|O|232032 - ÁLGEBRA LINEAL APLICADO A LA ESTADÍSTICA;232045|FUNDAMENTOS DE ECONOMÍA|3|O;232046|MÉTODO CIENTÍFICO Y REDACCIÓN|2|O",
+    "232051|BASE DE DATOS|4|O|232041 - ANÁLISIS REAL;232052|INFERENCIA ESTADÍSTICA PARAMÉTRICA|5|O|232043 - PROBABILIDAD II;232053|DEMOGRAFÍA|4|O|232034 - MÉTODOS ESTADÍSTICOS;232054|FUNDAMENTOS DE FINANZAS|4|O|232045 - FUNDAMENTOS DE ECONOMÍA;232055|FORMULACIÓN Y EVALUACIÓN DE PROYECTOS|4|O|232045 - FUNDAMENTOS DE ECONOMÍA",
+    "232061|MODELOS LINEALES|5|O|232052 - INFERENCIA ESTADÍSTICA PARAMÉTRICA;232062|TÉCNICAS DE MUESTREO I|5|O|232052 - INFERENCIA ESTADÍSTICA PARAMÉTRICA;232063|GESTIÓN DE BASES DE DATOS|4|O|232051 - BASE DE DATOS;232064|COMPUTACIÓN ESTADÍSTICA|5|O|232044 - PROGRAMACIÓN EN LENGUAJE ESTADÍSTICO;232065|INFERENCIA ESTADÍSTICA NO PARAMÉTRICA|5|O|232052 - INFERENCIA ESTADÍSTICA PARAMÉTRICA",
+    "232071|ANÁLISIS DE REGRESIÓN|5|O|232061 - MODELOS LINEALES;232072|TÉCNICAS DE MUESTREO II|5|O|232062 - TÉCNICAS DE MUESTREO I;232073|INFERENCIA ESTADÍSTICA BAYESIANA|5|O|232065 - INFERENCIA ESTADÍSTICA NO PARAMÉTRICA;232074|DISEÑO Y ANÁLISIS DE EXPERIMENTOS|5|O|232061 - MODELOS LINEALES;232075|PROCESOS ESTOCÁSTICOS|4|O|232043 - PROBABILIDAD II",
+    "232081|ANÁLISIS MULTIVARIANTE I|5|O|232071 - ANÁLISIS DE REGRESIÓN;232082|ESTADÍSTICA ESPACIAL|5|O|232075 - PROCESOS ESTOCÁSTICOS;232083|MODELOS DE PRONÓSTICOS|5|O|232075 - PROCESOS ESTOCÁSTICOS;232084|MODELOS DE SOBREVIVENCIA|5|O|232071 - ANÁLISIS DE REGRESIÓN;232085|CÁLCULO ACTUARIAL|4|O|232053 - DEMOGRAFÍA",
+    "232091|ANÁLISIS MULTIVARIANTE II|5|O|232081 - ANÁLISIS MULTIVARIANTE I;232092|MINERÍA DE DATOS I|5|O|232081 - ANÁLISIS MULTIVARIANTE I,232063 - GESTIÓN DE BASES DE DATOS;232093|PROYECTO DE TESIS I|4|O|232081 - ANÁLISIS MULTIVARIANTE I,232072 - TÉCNICAS DE MUESTREO II,232083 - MODELOS DE PRONÓSTICOS;232111|INVESTIGACIÓN OPERATIVA|4|E|232052 - INFERENCIA ESTADÍSTICA PARAMÉTRICA;232112|TEORÍA DE RESPUESTA AL ÍTEM|5|E|232071 - ANÁLISIS DE REGRESIÓN;232113|CONTROL DE CALIDAD|4|E|232074 - DISEÑO Y ANÁLISIS DE EXPERIMENTOS;232115|EPIDEMIOLOGÍA|4|E|232033 - PROBABILIDAD I",
+    "232101|CONSULTORÍA ESTADÍSTICA|3|O|232091 - ANÁLISIS MULTIVARIANTE II,232084 - MODELOS DE SOBREVIVENCIA,232074 - DISEÑO Y ANÁLISIS DE EXPERIMENTOS;232102|MINERÍA DE DATOS II|5|O|232092 - MINERÍA DE DATOS I;232103|PROYECTO DE TESIS II|4|O|232093 - PROYECTO DE TESIS I;232114|ECONOMETRÍA|4|E|232071 - ANÁLISIS DE REGRESIÓN;232116|ANÁLISIS BAYESIANO|5|E|232073 - INFERENCIA ESTADÍSTICA BAYESIANA;232117|BIG DATA ANALYSIS|5|E|232091 - ANÁLISIS MULTIVARIANTE II",
   ],
   "investigacion-operativa": [
-    "MA100|MATEMÁTICA BÁSICA|5;CS111|INTRODUCCIÓN A LA PROGRAMACIÓN|5;IO101|FUNDAMENTOS DE INVESTIGACIÓN DE OPERACIONES|4;FG140|FUNDAMENTOS DE INVESTIGACIÓN CIENTÍFICA|3;FG101|LENGUAJE Y COMUNICACIÓN|2;FG109|AMBIENTE Y DESARROLLO SOSTENIBLE|3",
-    "MA111|CÁLCULO I|5|O|MA100;IO115|ÁLGEBRA LINEAL COMPUTACIONAL Y CONVEXIDAD|5|O|MA100;CS112|PROGRAMACIÓN ORIENTADA A OBJETOS|4|O|CS111;IO120|TEORÍA GENERAL DE SISTEMAS Y ORGANIZACIONES|4|O|IO101;ID101|INGLÉS I|3",
-    "MA112|CÁLCULO II|4|O|MA111;IO201|PROGRAMACIÓN LINEAL Y MÉTODO SIMPLEX|5|O|IO115;IO210|ALGORITMOS Y ESTRUCTURAS DE DATOS PARA OPTIMIZACIÓN|4|O|CS112;EST201|PROBABILIDADES Y ESTADÍSTICA APLICADA|4|O|MA111;IO230|CONTABILIDAD DE COSTOS Y PRESUPUESTOS|3|O|IO101;ID102|INGLÉS II|3|O|ID101",
-    "MA210|CÁLCULO III (OPTIMIZACIÓN MULTIVARIABLE)|4|O|MA112;IO214|OPTIMIZACIÓN EN REDES Y FLUJOS EN GRAFOS|5|O|IO201,IO210;IO225|DUALIDAD Y ANÁLISIS DE SENSIBILIDAD|4|O|IO201;EST215|INFERENCIA ESTADÍSTICA Y PRONÓSTICOS|4|O|EST201;IO240|MICROECONOMÍA CUANTITATIVA|3|O|IO230;IO250|BASES DE DATOS EMPRESARIALES|3|O|IO210",
-    "IO305|PROGRAMACIÓN ENTERA Y COMBINATORIA|5|O|IO214,IO225;IO312|PROGRAMACIÓN NO LINEAL I|5|O|MA210,IO201;IO351|PROCESOS ESTOCÁSTICOS I|4|O|EST215;IO331|INGENIERÍA ECONÓMICA Y EVALUACIÓN FINANCIERA|4|O|IO240;IO341|MODELADO CON LENGUAJES ALGEBRAICOS (AMPL/GUROBI/PYOMO)|4|O|IO214;IO360|GESTIÓN DE OPERACIONES Y PRODUCCIÓN I|3|O|IO201",
-    "IO320|PROGRAMACIÓN DINÁMICA DETERMINÍSTICA Y ESTOCÁSTICA|5|O|IO305,IO351;IO322|OPTIMIZACIÓN CONVEXA Y MÉTODOS DE PUNTO INTERIOR|5|O|IO312;IO355|TEORÍA DE COLAS Y SISTEMAS DE SERVICIO|4|O|IO351;IO371|TEORÍA DE INVENTARIOS Y ALMACENES|4|O|IO360,IO351;IO381|ANÁLISIS DE DECISIONES Y TEORÍA DE UTILIDAD|4|O|EST215",
-    "IO418|SIMULACIÓN DE SISTEMAS DISCRETOS Y MONTE CARLO|5|O|IO355;IO425|TEORÍA DE JUEGOS Y EQUILIBRIO DE NASH|4|O|IO322,IO381;IO431|LOGÍSTICA CUANTITATIVA Y RUTEO DE VEHÍCULOS (VRP)|5|O|IO305,IO371;IO441|PLANIFICACIÓN Y PROGRAMACIÓN DE PROYECTOS (CPM/PERT)|4|O|IO305;IO451|CONFIABILIDAD Y MANTENIMIENTO DE SISTEMAS|4|E|IO355;IO461|MÉTODOS MULTICRITERIO (AHP, TOPSIS, DEA)|3|E|IO381",
-    "IO503|METAHEURÍSTICAS Y ALGORITMOS EVOLUTIVOS|5|O|IO431;IO471|GESTIÓN DE CADENAS DE SUMINISTRO (SUPPLY CHAIN)|5|O|IO431;IO481|SIMULACIÓN DINÁMICA DE SISTEMAS (SYSTEM DYNAMICS)|4|O|IO418;IO401|PROYECTO DE TESIS EN INVESTIGACIÓN OPERATIVA I|3|O|IO418;IO491|OPTIMIZACIÓN DE CARTERAS Y FINANZAS CUANTITATIVAS|4|E|IO322,IO331;IO495|REVENUE MANAGEMENT Y PRICING DINÁMICO|4|E|IO320",
-    "IO501|SEMINARIO DE TESIS EN INVESTIGACIÓN OPERATIVA II|5|O|IO401;IO511|PROGRAMACIÓN ESTOCÁSTICA Y OPTIMIZACIÓN ROBUSTA|5|O|IO320,IO503;IO521|MACHINE LEARNING APLICADO A OPERACIONES|4|E|IO503;IO531|PLANIFICACIÓN DE SISTEMAS ENERGÉTICOS Y TRANSPORTE|4|E|IO471;IO541|DESCOMPOSICIÓN DE BENDERS Y GENERACIÓN DE COLUMNAS|4|E|IO305",
-    "IO502|TRABAJO DE INVESTIGACIÓN FINAL (TESIS III)|6|O|IO501;IO590|PRÁCTICAS PRE-PROFESIONALES EN INVESTIGACIÓN OPERATIVA|4|O|IO401;IO555|CONSULTORÍA EN INVESTIGACIÓN DE OPERACIONES|4|O|IO471;IO565|ANALÍTICA PRESCRIPTIVA INDUSTRIAL|4|E|IO511;IO575|OPTIMIZACIÓN EN TELECOMUNICACIONES Y SMART CITIES|4|E|IO503",
+    "23144AO01|LENGUAJE|2|O;23144AO02|MÉTODOS DE GESTIÓN PERSONAL UNIVERSITARIA|2|O;23144AO03|FÍSICA GENERAL|5|O;23144AO04|CÁLCULO I|5|O;23144AO05|MATEMÁTICA BÁSICA|5|O;23144AO06|CURSO DE ESPECIALIDAD BÁSICA: INTRODUCCIÓN A LA INVESTIGACIÓN OPERATIVA|5|O",
+    "23144BO01|AMBIENTE Y DESARROLLO SOSTENIBLE|3|O;23144BO02|CÁLCULO II|4|O|23144AO04 - CÁLCULO I;23144BO03|INTRODUCCIÓN A LA ESTADÍSTICA|4|O;23144BO04|FUNDAMENTOS DE INVESTIGACIÓN CIENTÍFICA|3|O;23144BO05|INGLÉS TÉCNICO|2|O;23144BO06|CURSO DE ESPECIALIDAD BÁSICA: INTRODUCCIÓN A LA PROGRAMACIÓN|4|O;23144BO07|CURSO DE ESPECIALIDAD: MATEMÁTICA FINANCIERA|4|O",
+    "23144CO01|CÁLCULO III|5|O|23144BO02 - CÁLCULO II;23144CO02|ÁLGEBRA LINEAL|6|O|23144AO05 - MATEMÁTICA BÁSICA;23144CO03|ESTADÍSTICA DESCRIPTIVA|5|O|23144BO03 - INTRODUCCIÓN A LA ESTADÍSTICA;23144CO04|CONTABILIDAD|3|O;23144CO05|MODELOS DETERMINÍSTICOS EN INVESTIGACIÓN OPERATIVA I|5|O|23144AO06 - INTRODUCCIÓN A LA INVESTIGACIÓN OPERATIVA,23144AO04 - CÁLCULO I",
+    "23144DO01|PROGRAMACIÓN DE COMPUTADORAS|5|O|23144CO05 - MODELOS DETERMINÍSTICOS EN IO I;23144DO02|CÁLCULO DE PROBABILIDADES|5|O|23144BO02 - CÁLCULO II,23144CO03 - ESTADÍSTICA DESCRIPTIVA;23144DO03|ECONOMÍA Y FINANZAS|4|O|23144CO04 - CONTABILIDAD,23144BO01 - AMBIENTE Y DESARROLLO SOSTENIBLE;23144DO04|ECUACIONES DIFERENCIALES ORDINARIAS|4|O|23144CO01 - CÁLCULO III,23144CO02 - ÁLGEBRA LINEAL;23144DO05|PROGRAMACIÓN LINEAL|6|O|23144CO02 - ÁLGEBRA LINEAL",
+    "23144EO01|TEORÍA, ANÁLISIS Y DISEÑO DE SISTEMAS|5|O|23144CO05 - MODELOS DETERMINÍSTICOS EN IO I;23144EO02|MODELOS DETERMINÍSTICOS EN INVESTIGACIÓN OPERATIVA II|5|O|23144CO05 - MODELOS DETERMINÍSTICOS EN IO I,23144DO05 - PROGRAMACIÓN LINEAL;23144EO03|COSTOS Y PRESUPUESTOS|3|O|23144DO03 - ECONOMÍA Y FINANZAS;23144EO04|MÉTODOS NUMÉRICOS|6|O|23144BO02 - CÁLCULO II,23144DO01 - PROGRAMACIÓN DE COMPUTADORAS,23144CO02 - ÁLGEBRA LINEAL;23144EO05|INFERENCIA ESTADÍSTICA|5|O|23144DO02 - CÁLCULO DE PROBABILIDADES",
+    "23144FO01|MODELOS PROBABILÍSTICOS EN INVESTIGACIÓN OPERATIVA|6|O|23144CO05 - MODELOS DETERMINÍSTICOS EN IO I,23144DO02 - CÁLCULO DE PROBABILIDADES;23144FO02|TEORÍA DE DECISIONES|5|O|23144EO05 - INFERENCIA ESTADÍSTICA;23144FO03|GESTIÓN DE SISTEMAS ORGANIZACIONALES|4|O|23144EO01 - TEORÍA, ANÁLISIS Y DISEÑO DE SISTEMAS;23144FO04|MODELOS ECONOMÉTRICOS|5|O|23144EO05 - INFERENCIA ESTADÍSTICA,23144EO03 - COSTOS Y PRESUPUESTOS;23144FO05|BASE DE DATOS|3|O|23144DO01 - PROGRAMACIÓN DE COMPUTADORAS",
+    "23144GO01|PROCESOS ESTOCÁSTICOS|6|O|23144DO02 - CÁLCULO DE PROBABILIDADES,23144DO04 - ECUACIONES DIFERENCIALES ORDINARIAS;23144GO02|TEORÍA DE GRAFOS Y PROGRAMACIÓN ENTERA|6|O|23144DO05 - PROGRAMACIÓN LINEAL;23144GO03|FORMULACIÓN Y GESTIÓN DE PROYECTOS|3|O|23144EO03 - COSTOS Y PRESUPUESTOS,23144FO03 - GESTIÓN DE SISTEMAS ORGANIZACIONALES;23144GO04|SEMINARIO DE INVESTIGACIÓN I|3|O|23144EO02 - MODELOS DETERMINÍSTICOS EN IO II;23144GO05|MINERÍA DE DATOS|3|O|23144FO05 - BASE DE DATOS;23144ZE06|LOGÍSTICA Y CADENA DE SUMINISTRO|3|E|23144CO05 - MODELOS DETERMINÍSTICOS EN IO I;23144ZE04|MODELOS DE TRANSPORTE|3|E|23144EO02 - MODELOS DETERMINÍSTICOS EN IO II",
+    "23144HO01|HEURÍSTICAS Y METAHEURÍSTICAS|6|O|23144GO02 - TEORÍA DE GRAFOS Y PROGRAMACIÓN ENTERA,23144FO05 - BASE DE DATOS;23144HO02|SIMULACIÓN DE SISTEMAS|6|O|23144GO01 - PROCESOS ESTOCÁSTICOS,23144EO05 - INFERENCIA ESTADÍSTICA,23144FO01 - MODELOS PROBABILÍSTICOS EN IO;23144HO03|PROGRAMACIÓN NO LINEAL Y DINÁMICA|6|O|23144EO04 - MÉTODOS NUMÉRICOS,23144CO01 - CÁLCULO III,23144DO05 - PROGRAMACIÓN LINEAL;23144HO04|SEMINARIO DE INVESTIGACIÓN II|3|O|23144GO04 - SEMINARIO DE INVESTIGACIÓN I;23144HO05|PROGRAMACIÓN EN DISPOSITIVOS MÓVILES ORIENTADOS A LA IO|3|O|23144GO05 - MINERÍA DE DATOS;23144ZE01|GESTIÓN DE LA CALIDAD|3|E|23144FO03 - GESTIÓN DE SISTEMAS ORGANIZACIONALES;23144ZE07|MODELOS PARA LAS FINANZAS|3|E|23144EO03 - COSTOS Y PRESUPUESTOS",
+    "23144IO01|SEMINARIO DE TESIS DE INVESTIGACIÓN OPERATIVA|6|O|23144FO02 - TEORÍA DE DECISIONES,23144HO01 - HEURÍSTICAS Y METAHEURÍSTICAS,23144HO03 - PROGRAMACIÓN NO LINEAL,23144HO02 - SIMULACIÓN DE SISTEMAS,23144HO04 - SEMINARIO DE INVESTIGACIÓN II;23144IO02|ESTUDIO DE CASOS DE INVESTIGACIÓN OPERATIVA|3|O|23144HO03 - PROGRAMACIÓN NO LINEAL,23144HO01 - HEURÍSTICAS Y METAHEURÍSTICAS,23144FO02 - TEORÍA DE DECISIONES;23144IO03|SERIES CRONOLÓGICAS|4|O|23144FO04 - MODELOS ECONOMÉTRICOS;23144IO04|INTELIGENCIA ARTIFICIAL|5|O|23144HO01 - HEURÍSTICAS Y METAHEURÍSTICAS,23144GO05 - MINERÍA DE DATOS;23144ZE02|INDICADORES DE GESTIÓN|3|E|23144ZE01 - GESTIÓN DE LA CALIDAD;23144ZE03|TÉCNICAS DE MEJORAMIENTO DE LA CALIDAD|3|E|23144ZE01 - GESTIÓN DE LA CALIDAD;23144ZE05|REDES DE OPTIMIZACIÓN|3|E|23144HO01 - HEURÍSTICAS Y METAHEURÍSTICAS;23144ZE08|ANÁLISIS DE RIESGOS FINANCIEROS|3|E|23144ZE07 - MODELOS PARA LAS FINANZAS",
+    "23144JO01|ANALÍTICA DE NEGOCIOS|5|O|23144HO02 - SIMULACIÓN DE SISTEMAS,23144IO04 - INTELIGENCIA ARTIFICIAL;23144JO02|TRABAJO DE INVESTIGACIÓN|6|O|23144IO01 - SEMINARIO DE TESIS DE INVESTIGACIÓN OPERATIVA;23144JO03|PRÁCTICA PRE-PROFESIONAL|3|O|23144GO03 - FORMULACIÓN Y GESTIÓN DE PROYECTOS;23144ZE09|GESTIÓN DE PROYECTOS FINANCIEROS|3|E|23144ZE08 - ANÁLISIS DE RIESGOS FINANCIEROS",
   ],
 };
 
@@ -838,11 +841,9 @@ const NOTICIAS_INICIALES: Noticia[] = [
 const MATERIALES_INICIALES: MaterialRepositorio[] = [
   { id: "mat-1", titulo: "Solucionario Examen Parcial POO II (C++20, Templates, STL y Smart Pointers)", tipo_archivo: "Examen", url_archivo: "https://github.com/unmsm-fcm/cs113-poo2-parcial", carrera_id: "computacion-cientifica", ciclo: 3, curso_id: "cc-301", docente: "Mg. Herminio Paucar Curasma", autor_alias: "Comité Académico CC", fecha_subida: "2026-10-14", estado: "aprobado" },
   { id: "mat-2", titulo: "Compendio de Estructuras Discretas I en LaTeX: Lógica, Inducción y Grafos", tipo_archivo: "Apunte", url_archivo: "https://drive.google.com/file/d/cs1d1-discretas-apuntes", carrera_id: "computacion-cientifica", ciclo: 3, curso_id: "cc-302", docente: "Mg. Rosa Medina Sandoval", autor_alias: "Admin FCM", fecha_subida: "2026-10-16", estado: "aprobado" },
-  { id: "mat-3", titulo: "Problemas Resueltos de Análisis Real II (Medida de Lebesgue y Convergencia)", tipo_archivo: "PDF", url_archivo: "https://drive.google.com/file/d/mat312-analisis-real", carrera_id: "matematica", ciclo: 6, curso_id: "mat-601", docente: "Dr. Eugenio Cabanillas Lapa", autor_alias: "Seminario Análisis UNMSM", fecha_subida: "2026-10-18", estado: "aprobado" },
-  { id: "mat-4", titulo: "Scripts en R y Python para Inferencia Estadística Paramétrica y Modelos Lineales", tipo_archivo: "Codigo", url_archivo: "https://github.com/unmsm-fcm/est318-modelos-lineales", carrera_id: "estadistica", ciclo: 5, curso_id: "est-502", docente: "Dra. María Calvo Gutiérrez", autor_alias: "Laboratorio Estadística", fecha_subida: "2026-10-19", estado: "aprobado" },
-  { id: "mat-5", titulo: "Guía Práctica de Programación Entera y Ruteo de Vehículos con Gurobi / Pyomo", tipo_archivo: "Codigo", url_archivo: "https://github.com/unmsm-fcm/io305-entera", carrera_id: "investigacion-operativa", ciclo: 5, curso_id: "io-501", docente: "Dr. Víctor Soto Cáceres", autor_alias: "Círculo IO San Marcos", fecha_subida: "2026-10-21", estado: "aprobado" },
-  { id: "mat-pend-1", titulo: "Examen Final Resuelto 2026-I de Álgebra Lineal I (Valores Propios y Diagonalización)", tipo_archivo: "Examen", url_archivo: "https://drive.google.com/file/d/ma121-final-resuelto", carrera_id: "computacion-cientifica", ciclo: 3, curso_id: "cc-306", docente: "Dr. Alfonso Pérez Salvatierra", autor_alias: "Estudiante Anónimo FCM", fecha_subida: "2026-10-27", estado: "pendiente" },
-  { id: "mat-pend-2", titulo: "Apuntes de Cálculo II en Overleaf: Integrales Múltiples y Teorema de Stokes", tipo_archivo: "Apunte", url_archivo: "https://drive.google.com/file/d/ma112-calculo2-latex", carrera_id: "computacion-cientifica", ciclo: 3, curso_id: "cc-305", docente: "Dr. Eugenio Cabanillas Lapa", autor_alias: "Anónimo Base 25", fecha_subida: "2026-10-28", estado: "pendiente" },
+  { id: "mat-3", titulo: "Problemas Resueltos de Análisis Real II (Medida de Lebesgue y Convergencia)", tipo_archivo: "PDF", url_archivo: "https://drive.google.com/file/d/mat312-analisis-real", carrera_id: "matematica", ciclo: 5, curso_id: "mat-502", docente: "Dr. Eugenio Cabanillas Lapa", autor_alias: "Seminario Análisis UNMSM", fecha_subida: "2026-10-18", estado: "aprobado" },
+  { id: "mat-4", titulo: "Scripts en R y Python para Inferencia Estadística Paramétrica y Modelos Lineales", tipo_archivo: "Codigo", url_archivo: "https://github.com/unmsm-fcm/est318-modelos-lineales", carrera_id: "estadistica", ciclo: 6, curso_id: "est-601", docente: "Dra. María Calvo Gutiérrez", autor_alias: "Laboratorio Estadística", fecha_subida: "2026-10-19", estado: "aprobado" },
+  { id: "mat-5", titulo: "Guía Práctica de Programación Entera y Ruteo de Vehículos con Gurobi / Pyomo", tipo_archivo: "Codigo", url_archivo: "https://github.com/unmsm-fcm/io305-entera", carrera_id: "investigacion-operativa", ciclo: 7, curso_id: "io-702", docente: "Dr. Víctor Soto Cáceres", autor_alias: "Círculo IO San Marcos", fecha_subida: "2026-10-21", estado: "aprobado" },
 ];
 
 const IMAGENES_STORAGE_INICIALES: ImagenStorage[] = [
@@ -868,6 +869,8 @@ export default function PortalFacultadCienciasMatematicas() {
   const [tickets, setTickets] = useState<TicketSoporte[]>(TICKETS_INICIALES);
   const [imagenesStorage, setImagenesStorage] = useState<ImagenStorage[]>(IMAGENES_STORAGE_INICIALES);
   const [logoUrl, setLogoUrl] = useState<string>(LOGO_UNMSM_TRANSPARENTE_DEFAULT);
+  const [heroBgUrl, setHeroBgUrl] = useState<string>(HERO_BG_DEFAULT);
+  const [heroBgInputUrl, setHeroBgInputUrl] = useState<string>(HERO_BG_DEFAULT);
   const [cargandoConfig, setCargandoConfig] = useState<boolean>(true);
 
   // Filtros y modal de la sección Plana Docente + Calificaciones y Reseñas
@@ -982,7 +985,7 @@ export default function PortalFacultadCienciasMatematicas() {
   const [subiendoFotoDocente, setSubiendoFotoDocente] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [categoriaNuevaImagen, setCategoriaNuevaImagen] = useState<"Logo Institucional" | "Banner Noticia" | "Foto Facultad">("Banner Noticia");
+  const [categoriaNuevaImagen, setCategoriaNuevaImagen] = useState<"Logo Institucional" | "Banner Noticia" | "Foto Facultad" | "Fondo Hero Home">("Banner Noticia");
   const [subiendoStorage, setSubiendoStorage] = useState(false);
   const [urlCopiadaId, setUrlCopiadaId] = useState<string | null>(null);
 
@@ -1144,12 +1147,18 @@ export default function PortalFacultadCienciasMatematicas() {
       try {
         if (typeof window !== "undefined") {
           const localLogo = window.localStorage.getItem("fcm_logo_url");
+          const localHeroBg = window.localStorage.getItem("fcm_hero_bg_url");
           const localCarreras = window.localStorage.getItem("fcm_carreras_data");
           const localNoticias = window.localStorage.getItem("fcm_noticias_data");
           const localStorageImgs = window.localStorage.getItem("fcm_storage_data");
           const localDocentes = window.localStorage.getItem("fcm_docentes_data");
           const localResenas = window.localStorage.getItem("fcm_resenas_docentes");
+          const localMateriales = window.localStorage.getItem("fcm_materiales_data");
           if (localLogo && activo) setLogoUrl(localLogo);
+          if (localHeroBg && activo) {
+            setHeroBgUrl(localHeroBg);
+            setHeroBgInputUrl(localHeroBg);
+          }
           if (localCarreras && activo) {
             const parsed = JSON.parse(localCarreras);
             if (Array.isArray(parsed) && parsed.length > 0) setCarreras(parsed);
@@ -1170,6 +1179,13 @@ export default function PortalFacultadCienciasMatematicas() {
             const parsed = JSON.parse(localResenas);
             if (Array.isArray(parsed) && parsed.length > 0) setResenasDocentes(parsed);
           }
+          if (localMateriales && activo) {
+            const parsed = JSON.parse(localMateriales);
+            if (Array.isArray(parsed)) {
+              const limpios = parsed.filter((m: MaterialRepositorio) => m.id !== "mat-pend-1" && m.id !== "mat-pend-2");
+              setMateriales(limpios);
+            }
+          }
         }
 
         const { data, error } = await supabase
@@ -1182,6 +1198,11 @@ export default function PortalFacultadCienciasMatematicas() {
           if (data.logo_url && typeof data.logo_url === "string") {
             setLogoUrl(data.logo_url);
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_logo_url", data.logo_url);
+          }
+          if (data.hero_bg_url && typeof data.hero_bg_url === "string") {
+            setHeroBgUrl(data.hero_bg_url);
+            setHeroBgInputUrl(data.hero_bg_url);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_bg_url", data.hero_bg_url);
           }
           if (Array.isArray(data.carreras_data) && data.carreras_data.length > 0) {
             setCarreras(data.carreras_data);
@@ -1208,6 +1229,11 @@ export default function PortalFacultadCienciasMatematicas() {
             setResenasDocentes(data.resenas_docentes);
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(data.resenas_docentes));
           }
+          if (Array.isArray(data.materiales_data) && data.materiales_data.length > 0) {
+            const limpios = data.materiales_data.filter((m: MaterialRepositorio) => m.id !== "mat-pend-1" && m.id !== "mat-pend-2");
+            setMateriales(limpios);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_materiales_data", JSON.stringify(limpios));
+          }
         }
       } catch {
         // Mantiene estado por defecto si la tabla aún no fue creada
@@ -1221,19 +1247,23 @@ export default function PortalFacultadCienciasMatematicas() {
 
   const sincronizarPortalConfigSupabase = async (cambios: {
     logo_url?: string;
+    hero_bg_url?: string;
     carreras_data?: Carrera[];
     noticias_data?: Noticia[];
     storage_data?: ImagenStorage[];
     docentes_data?: Docente[];
     resenas_docentes?: ResenaDocente[];
+    materiales_data?: MaterialRepositorio[];
   }): Promise<boolean> => {
     if (typeof window !== "undefined") {
       if (cambios.logo_url) window.localStorage.setItem("fcm_logo_url", cambios.logo_url);
+      if (cambios.hero_bg_url) window.localStorage.setItem("fcm_hero_bg_url", cambios.hero_bg_url);
       if (cambios.carreras_data) window.localStorage.setItem("fcm_carreras_data", JSON.stringify(cambios.carreras_data));
       if (cambios.noticias_data) window.localStorage.setItem("fcm_noticias_data", JSON.stringify(cambios.noticias_data));
       if (cambios.storage_data) window.localStorage.setItem("fcm_storage_data", JSON.stringify(cambios.storage_data));
       if (cambios.docentes_data) window.localStorage.setItem("fcm_docentes_data", JSON.stringify(cambios.docentes_data));
       if (cambios.resenas_docentes) window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(cambios.resenas_docentes));
+      if (cambios.materiales_data) window.localStorage.setItem("fcm_materiales_data", JSON.stringify(cambios.materiales_data));
     }
     try {
       const { error } = await supabase.from("portal_config").upsert(
@@ -1258,6 +1288,15 @@ export default function PortalFacultadCienciasMatematicas() {
           : "✅ Logo actualizado y persistido en la configuración del portal."
       );
     }
+  };
+
+  // Botón para establecer imagen de fondo difuminada en el Hero del Home
+  const handleUsarComoFondoHero = async (nuevaUrlHero: string) => {
+    const limpia = nuevaUrlHero.trim() || HERO_BG_DEFAULT;
+    setHeroBgUrl(limpia);
+    setHeroBgInputUrl(limpia);
+    await sincronizarPortalConfigSupabase({ hero_bg_url: limpia });
+    lanzarToast("🖼️ Imagen de fondo difuminada del Hero actualizada y guardada en Supabase.");
   };
 
   const abrirMenuServicioConHover = () => {
@@ -1597,7 +1636,7 @@ export default function PortalFacultadCienciasMatematicas() {
     setFormSubidaAnon((prev) => ({ ...prev, ciclo: nuevoCiclo, curso_id: compatibles.length > 0 ? compatibles[0].id : "" }));
   };
 
-  const handleSubidaRepositorioAnonima = (e: React.FormEvent) => {
+  const handleSubidaRepositorioAnonima = async (e: React.FormEvent) => {
     e.preventDefault();
     const docenteFinal = formSubidaAnon.modoDocente === "manual" ? formSubidaAnon.docenteManual.trim() : formSubidaAnon.docenteSeleccionado;
     if (!formSubidaAnon.titulo.trim() || !formSubidaAnon.url_archivo.trim() || !formSubidaAnon.curso_id || !docenteFinal) {
@@ -1617,9 +1656,27 @@ export default function PortalFacultadCienciasMatematicas() {
       fecha_subida: new Date().toISOString().split("T")[0],
       estado: "pendiente",
     };
-    setMateriales((prev) => [nuevoMat, ...prev]);
+    const nuevosMateriales = [nuevoMat, ...materiales];
+    setMateriales(nuevosMateriales);
+    await sincronizarPortalConfigSupabase({ materiales_data: nuevosMateriales });
     setExitoSubidaModal(true);
-    lanzarToast("Material clasificado y enviado en estado 'pendiente'.");
+    lanzarToast("📥 Material clasificado, guardado en Supabase y enviado a moderación.");
+  };
+
+  const handleAprobarMaterialAdmin = async (idMat: string) => {
+    const actualizados = materiales.map((item) =>
+      item.id === idMat ? { ...item, estado: "aprobado" as EstadoMaterial } : item
+    );
+    setMateriales(actualizados);
+    await sincronizarPortalConfigSupabase({ materiales_data: actualizados });
+    lanzarToast("✅ Material aprobado y guardado permanentemente en Supabase.");
+  };
+
+  const handleEliminarMaterialAdmin = async (idMat: string) => {
+    const filtrados = materiales.filter((item) => item.id !== idMat);
+    setMateriales(filtrados);
+    await sincronizarPortalConfigSupabase({ materiales_data: filtrados });
+    lanzarToast("🗑️ Material eliminado permanentemente del repositorio y Supabase.");
   };
 
   const handleSubirArchivoStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1642,6 +1699,11 @@ export default function PortalFacultadCienciasMatematicas() {
         setLogoUrl(publicUrl);
         await sincronizarPortalConfigSupabase({ logo_url: publicUrl, storage_data: nuevaListaStorage });
         lanzarToast("✅ Imagen subida a Storage y guardada como Logo en Supabase.");
+      } else if (categoriaNuevaImagen === "Fondo Hero Home") {
+        setHeroBgUrl(publicUrl);
+        setHeroBgInputUrl(publicUrl);
+        await sincronizarPortalConfigSupabase({ hero_bg_url: publicUrl, storage_data: nuevaListaStorage });
+        lanzarToast("🖼️ Imagen subida y establecida como Fondo Difuminado del Hero en Supabase.");
       } else {
         await sincronizarPortalConfigSupabase({ storage_data: nuevaListaStorage });
         lanzarToast(`✅ Imagen "${file.name}" subida al bucket 'fcm-assets' con URL pública.`);
@@ -2311,19 +2373,44 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* VISTA A: INICIO / HOME (/) */}
       {vistaActual === "/" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-14">
-          <section className="relative rounded-3xl bg-gradient-to-br from-[#002855] via-blue-900 to-blue-950 text-white p-6 sm:p-12 text-center shadow-xl border-b-4 border-red-700">
-            <div className="max-w-3xl mx-auto space-y-5">
+          <section className="relative rounded-3xl bg-[#002855] text-white p-6 sm:p-12 text-center shadow-2xl border-b-4 border-red-700">
+            {/* Capa de imagen de fondo difuminada y elegante */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+              <img
+                src={heroBgUrl || HERO_BG_DEFAULT}
+                alt="Fondo Institucional FCM UNMSM"
+                className="w-full h-full object-cover object-center scale-105 blur-[2px] opacity-40 transition-all duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#002855]/92 via-[#002855]/85 to-[#001833]/94 backdrop-blur-[1px]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.22),transparent_70%)]" />
+            </div>
+
+            {adminAutenticado && (
+              <button
+                type="button"
+                onClick={() => {
+                  setTabAdmin("storage");
+                  navegar("/admin");
+                }}
+                className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-black/40 hover:bg-black/65 border border-white/25 text-[11px] font-bold text-white flex items-center gap-1.5 backdrop-blur-xs cursor-pointer"
+              >
+                <ImageIcon className="w-3.5 h-3.5 text-red-400" />
+                <span>Cambiar Fondo Hero</span>
+              </button>
+            )}
+
+            <div className="relative z-10 max-w-3xl mx-auto space-y-5">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-700 text-white text-xs font-bold uppercase tracking-wide shadow">
                 <Building2 className="w-3.5 h-3.5" />
                 <span>Facultad de Ciencias Matemáticas • UNMSM</span>
               </div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-xs">
                 Portal Académico e Investigación en{" "}
                 <span className="underline decoration-red-500 decoration-4 underline-offset-4">
                   Ciencias Exactas y Computación Científica
                 </span>
               </h1>
-              <p className="text-blue-100 text-sm sm:text-base max-w-2xl mx-auto">
+              <p className="text-blue-100 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
                 Explora los planes de estudio completos de los 10 ciclos para{" "}
                 <strong className="text-white">Computación Científica</strong>,{" "}
                 <strong className="text-white">Matemática</strong>,{" "}
@@ -4184,36 +4271,86 @@ export default function PortalFacultadCienciasMatematicas() {
 
               {tabAdmin === "storage" && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 space-y-5 h-fit">
-                    <div className="flex items-center gap-2.5 border-b border-slate-200 pb-3">
-                      <ImageIcon className="w-5 h-5 text-red-700" />
-                      <div>
-                        <h3 className="font-extrabold text-sm text-[#002855]">Subir Imagen a Supabase Storage</h3>
-                        <p className="text-[11px] text-slate-500">Bucket público: <code className="font-bold text-red-700">fcm-assets</code></p>
+                  <div className="lg:col-span-5 space-y-6 h-fit">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-5">
+                      <div className="flex items-center gap-2.5 border-b border-slate-200 pb-3">
+                        <ImageIcon className="w-5 h-5 text-red-700" />
+                        <div>
+                          <h3 className="font-extrabold text-sm text-[#002855]">Subir Imagen a Supabase Storage</h3>
+                          <p className="text-[11px] text-slate-500">Bucket público: <code className="font-bold text-red-700">fcm-assets</code></p>
+                        </div>
+                      </div>
+                      <select
+                        value={categoriaNuevaImagen}
+                        onChange={(e) => setCategoriaNuevaImagen(e.target.value as typeof categoriaNuevaImagen)}
+                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold"
+                      >
+                        <option value="Logo Institucional">Logo Institucional Transparente (Navbar)</option>
+                        <option value="Fondo Hero Home">Fondo Difuminado para el Hero del Home</option>
+                        <option value="Banner Noticia">Banner para Noticias del Home</option>
+                        <option value="Foto Facultad">Foto Referencial de la Facultad</option>
+                      </select>
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="rounded-2xl border-2 border-dashed border-blue-900/40 hover:border-red-600 bg-slate-50 p-6 text-center cursor-pointer space-y-2"
+                      >
+                        <Upload className="w-8 h-8 text-[#002855] mx-auto" />
+                        <p className="text-xs font-bold text-[#002855]">
+                          {subiendoStorage ? "Subiendo imagen..." : "Haz clic aquí para elegir una imagen de tu PC"}
+                        </p>
+                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleSubirArchivoStorage} className="hidden" />
                       </div>
                     </div>
-                    <select
-                      value={categoriaNuevaImagen}
-                      onChange={(e) => setCategoriaNuevaImagen(e.target.value as typeof categoriaNuevaImagen)}
-                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold"
-                    >
-                      <option value="Logo Institucional">Logo Institucional Transparente (Navbar)</option>
-                      <option value="Banner Noticia">Banner para Noticias del Home</option>
-                      <option value="Foto Facultad">Foto Referencial de la Facultad</option>
-                    </select>
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="rounded-2xl border-2 border-dashed border-blue-900/40 hover:border-red-600 bg-slate-50 p-6 text-center cursor-pointer space-y-2"
-                    >
-                      <Upload className="w-8 h-8 text-[#002855] mx-auto" />
-                      <p className="text-xs font-bold text-[#002855]">
-                        {subiendoStorage ? "Subiendo imagen..." : "Haz clic aquí para elegir una imagen de tu PC"}
-                      </p>
-                      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleSubirArchivoStorage} className="hidden" />
+
+                    {/* Configuración directa del Fondo Difuminado del Hero */}
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
+                      <div className="border-b border-slate-200 pb-2.5">
+                        <h3 className="font-extrabold text-sm text-[#002855]">
+                          🖼️ Imagen de Fondo Difuminada del Hero (Home)
+                        </h3>
+                        <p className="text-[11px] text-slate-500">
+                          Se aplica automáticamente con filtro difuminado y degradado institucional #002855.
+                        </p>
+                      </div>
+                      <div className="relative h-28 rounded-xl overflow-hidden bg-[#002855] border border-slate-200">
+                        <img
+                          src={heroBgUrl || HERO_BG_DEFAULT}
+                          alt="Vista previa Hero"
+                          className="w-full h-full object-cover blur-[1.5px] opacity-45"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#002855]/90 via-[#002855]/80 to-[#001833]/90 flex items-center justify-center p-3 text-center">
+                          <span className="text-xs font-extrabold text-white">
+                            Vista Previa • Portal Académico e Investigación FCM
+                          </span>
+                        </div>
+                      </div>
+                      <input
+                        type="url"
+                        value={heroBgInputUrl}
+                        onChange={(e) => setHeroBgInputUrl(e.target.value)}
+                        placeholder="Pega aquí la URL de la imagen de fondo para el Hero..."
+                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleUsarComoFondoHero(heroBgInputUrl)}
+                          className="flex-1 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer"
+                        >
+                          Guardar Fondo Hero
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUsarComoFondoHero(HERO_BG_DEFAULT)}
+                          className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
+                        >
+                          Restaurar
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 h-fit">
                     {imagenesStorage.map((img) => (
                       <div key={img.id} className="rounded-2xl border border-slate-200 bg-white overflow-hidden flex flex-col justify-between">
                         <div>
@@ -4226,7 +4363,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <p className="text-[10px] text-slate-400">{img.tamano_kb} • {img.fecha_subida}</p>
                           </div>
                         </div>
-                        <div className="p-3 bg-slate-50 border-t border-slate-100 flex gap-1.5">
+                        <div className="p-3 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-1.5">
                           <button
                             type="button"
                             onClick={() => {
@@ -4235,9 +4372,16 @@ export default function PortalFacultadCienciasMatematicas() {
                               setTimeout(() => setUrlCopiadaId(null), 2000);
                               lanzarToast("📋 URL pública copiada.");
                             }}
-                            className="flex-1 py-1.5 px-2 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center justify-center gap-1"
+                            className="flex-1 py-1.5 px-2 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer"
                           >
                             {urlCopiadaId === img.id ? <><Check className="w-3 h-3" /> Copiada</> : <><Copy className="w-3 h-3" /> Copiar URL</>}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleUsarComoFondoHero(img.url_publica)}
+                            className="py-1.5 px-2.5 rounded-lg bg-blue-100 hover:bg-[#002855] hover:text-white text-[#002855] text-[11px] font-bold transition-colors cursor-pointer"
+                          >
+                            Usar en Hero
                           </button>
                           <button
                             type="button"
@@ -4355,12 +4499,15 @@ export default function PortalFacultadCienciasMatematicas() {
                     )}
                   </div>
 
-                  {/* SECCIÓN 2: MODERACIÓN DE ARCHIVOS DEL REPOSITORIO ESTUDIANTIL */}
+                  {/* SECCIÓN 2: MODERACIÓN DE ARCHIVOS DEL REPOSITORIO PENDIENTES */}
                   <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-                    <div className="bg-slate-100 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+                    <div className="bg-slate-100 px-5 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="text-sm font-extrabold text-[#002855]">
                         Archivos del Repositorio Pendientes de Aprobación ({materialesPendientes.length})
                       </h3>
+                      <span className="text-[11px] text-slate-500">
+                        Sincronizado en <code className="font-bold text-[#002855]">portal_config.materiales_data</code>
+                      </span>
                     </div>
                     {materialesPendientes.length === 0 ? (
                       <div className="p-10 text-center space-y-2">
@@ -4368,42 +4515,100 @@ export default function PortalFacultadCienciasMatematicas() {
                         <h3 className="text-sm font-bold text-slate-900">No hay archivos pendientes de moderación</h3>
                       </div>
                     ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-[#002855] text-white uppercase text-[11px]">
+                              <th className="py-3.5 px-4">Material</th>
+                              <th className="py-3.5 px-4">Carrera / Curso</th>
+                              <th className="py-3.5 px-4">Docente / Autor</th>
+                              <th className="py-3.5 px-4 text-right">Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200">
+                            {materialesPendientes.map((m) => {
+                              const curso = malla.find((c) => c.id === m.curso_id);
+                              const carrera = carreras.find((ca) => ca.id === m.carrera_id);
+                              return (
+                                <tr key={m.id}>
+                                  <td className="py-4 px-4">
+                                    <p className="font-bold text-[#002855]">{m.titulo}</p>
+                                    <a
+                                      href={m.url_archivo}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[11px] text-red-700 hover:underline font-mono"
+                                    >
+                                      Ver enlace del archivo ↗
+                                    </a>
+                                  </td>
+                                  <td className="py-4 px-4">
+                                    {carrera?.nombre} • [{curso?.codigo || m.curso_id}] {curso?.nombre_curso || `Ciclo ${m.ciclo}`}
+                                  </td>
+                                  <td className="py-4 px-4">
+                                    <div className="font-semibold text-slate-800">{m.docente}</div>
+                                    <div className="text-[10px] text-slate-500">Por: {m.autor_alias} ({m.fecha_subida})</div>
+                                  </td>
+                                  <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAprobarMaterialAdmin(m.id)}
+                                      className="px-3 py-1.5 rounded-lg bg-[#002855] hover:bg-blue-900 text-white font-bold cursor-pointer"
+                                    >
+                                      ✅ Aprobar
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEliminarMaterialAdmin(m.id)}
+                                      className="px-3 py-1.5 rounded-lg bg-red-700 hover:bg-red-800 text-white font-bold cursor-pointer"
+                                    >
+                                      ❌ Rechazar
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SECCIÓN 3: ARCHIVOS APROBADOS PUBLICADOS EN EL REPOSITORIO */}
+                  <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                    <div className="bg-slate-100 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+                      <h3 className="text-sm font-extrabold text-[#002855]">
+                        Materiales Publicados en el Repositorio ({materialesAprobados.length})
+                      </h3>
+                    </div>
+                    <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse text-xs">
                         <thead>
-                          <tr className="bg-[#002855] text-white uppercase text-[11px]">
-                            <th className="py-3.5 px-4">Material</th>
-                            <th className="py-3.5 px-4">Carrera / Curso</th>
-                            <th className="py-3.5 px-4">Docente</th>
-                            <th className="py-3.5 px-4 text-right">Acciones</th>
+                          <tr className="bg-slate-50 text-slate-600 uppercase text-[10px] border-b border-slate-200">
+                            <th className="py-3 px-4">Título del Material</th>
+                            <th className="py-3 px-4">Escuela / Asignatura</th>
+                            <th className="py-3 px-4">Docente</th>
+                            <th className="py-3 px-4 text-right">Acción</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
-                          {materialesPendientes.map((m) => {
+                          {materialesAprobados.map((m) => {
                             const curso = malla.find((c) => c.id === m.curso_id);
                             const carrera = carreras.find((ca) => ca.id === m.carrera_id);
                             return (
-                              <tr key={m.id}>
-                                <td className="py-4 px-4 font-bold text-[#002855]">{m.titulo}</td>
-                                <td className="py-4 px-4">{carrera?.nombre} • [{curso?.codigo}] {curso?.nombre_curso}</td>
-                                <td className="py-4 px-4">{m.docente}</td>
-                                <td className="py-4 px-4 text-right space-x-2">
+                              <tr key={m.id} className="hover:bg-slate-50/70">
+                                <td className="py-3 px-4 font-bold text-[#002855]">{m.titulo}</td>
+                                <td className="py-3 px-4">
+                                  {carrera?.nombre} • [{curso?.codigo || m.curso_id}] {curso?.nombre_curso || `Ciclo ${m.ciclo}`}
+                                </td>
+                                <td className="py-3 px-4">{m.docente}</td>
+                                <td className="py-3 px-4 text-right">
                                   <button
-                                    onClick={() => {
-                                      setMateriales((prev) => prev.map((item) => (item.id === m.id ? { ...item, estado: "aprobado" } : item)));
-                                      lanzarToast("✅ Material aprobado.");
-                                    }}
-                                    className="px-3 py-1.5 rounded-lg bg-[#002855] text-white font-bold"
+                                    type="button"
+                                    onClick={() => handleEliminarMaterialAdmin(m.id)}
+                                    className="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-700 text-red-700 hover:text-white font-bold text-[11px] transition-colors cursor-pointer"
                                   >
-                                    ✅ Aprobar
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setMateriales((prev) => prev.filter((item) => item.id !== m.id));
-                                      lanzarToast("❌ Material rechazado.");
-                                    }}
-                                    className="px-3 py-1.5 rounded-lg bg-red-700 text-white font-bold"
-                                  >
-                                    ❌ Rechazar
+                                    🗑️ Eliminar
                                   </button>
                                 </td>
                               </tr>
@@ -4411,7 +4616,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           })}
                         </tbody>
                       </table>
-                    )}
+                    </div>
                   </div>
                 </div>
               )}
