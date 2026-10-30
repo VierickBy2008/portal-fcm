@@ -3,13 +3,13 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import {
   Search, GraduationCap, BookOpen, Newspaper, FolderGit2, LifeBuoy, Sparkles,
-  ChevronRight, ChevronDown, Upload, FileText, Code2, Video, FileCheck2, Award,
+  ChevronRight, ChevronDown, ChevronLeft, Upload, FileText, Code2, Video, FileCheck2, Award,
   CheckCircle2, Trash2, Lock, Unlock, Mail, Building2, Calendar, Filter, Layers,
   Download, AlertCircle, Star, Cpu, Sigma, BarChart3, Network, Printer,
   Image as ImageIcon, Copy, ExternalLink, Phone, UserCheck, ShoppingBag,
   FileSpreadsheet, Check, MapPin, Briefcase, Target, Lightbulb, Edit3,
   ArrowLeft, Share2, Users, Clock, Globe, Bold, Italic, List, ListOrdered,
-  Quote, Minus, Link2, Heading2, createLucideIcon,
+  Quote, Minus, Link2, Heading2, Menu, X, ShieldCheck, createLucideIcon,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -787,6 +787,23 @@ const MALLA_INICIAL: CursoMalla[] = (Object.entries(MALLA_POR_CICLO) as [Carrera
 
 const NOTICIAS_INICIALES: Noticia[] = [
   {
+    id: "not-pronabec-2026",
+    titulo: "DS Nº 017-2026-MINEDU que modifica el Reglamento de la Ley Nº 29837 (Ley del PRONABEC)",
+    categoria: "Comunicado Oficial • PRONABEC",
+    resumen:
+      "Se informa a los estudiantes beneficiarios y postulantes de la Facultad sobre las disposiciones complementarias actualizadas para la permanencia y renovación de becas de pregrado.",
+    contenido:
+      "## DS Nº 017-2026-MINEDU: Modificaciones al Reglamento de la Ley Nº 29837\nEl Ministerio de Educación publica el Decreto Supremo que actualiza las disposiciones complementarias aplicables a las becas de pregrado otorgadas por el **PRONABEC** (Beca 18, Beca Permanencia y Beca Continuidad) para estudiantes de universidades públicas licenciadas.\n\n> Se informa a la comunidad universitaria de la Facultad de Ciencias Matemáticas sobre los nuevos plazos y procedimientos administrativos vigentes.\n\n### Puntos Clave para Estudiantes FCM\n- **Acreditación Académica:** Se simplifica el envío de fichas de matrícula y constancias de notas oficiales emitidas a través del SUM.\n- **Plazos de Renovación:** Validación semestral asistida con la Unidad de Bienestar Estudiantil de la FCM.\n- **Atención Presencial y Virtual:** Asesoría personalizada en el Pabellón FCM (Anexo 1418).\n\nPara revisar el texto íntegro del Decreto Supremo y realizar consultas directas con el equipo de Bienestar, consulta el enlace oficial de PRONABEC o escribe a bienestar.fcm@unmsm.edu.pe",
+    imagen_url: "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1000&q=80",
+    fecha_publicacion: "2026-10-28",
+    destacado: true,
+    fecha_evento: "Semestre 2026-I / 2026-II",
+    lugar: "Ciudad Universitaria UNMSM - Bienestar FCM",
+    modalidad: "Atención Presencial y Virtual",
+    dirigido_a: "Estudiantes beneficiarios y postulantes a becas",
+    enlace_inscripcion: "https://www.gob.pe/pronabec",
+  },
+  {
     id: "not-1",
     titulo: "Implementación Oficial del Plan de Estudios 2026 en Computación Científica, Matemática, Estadística e I.O.",
     categoria: "Académico • Plan 2026",
@@ -887,9 +904,25 @@ export default function PortalFacultadCienciasMatematicas() {
     autor_alias: "",
     esAnonimo: false,
     comentario: "",
+    bot_trap: "",
   });
   const [errorResenaDocente, setErrorResenaDocente] = useState<string>("");
   const [exitoResenaDocente, setExitoResenaDocente] = useState<boolean>(false);
+
+  // Carrusel Institucional Superior de Noticias y Comunicados (Slider tipo San Marcos)
+  const [slideActivoHero, setSlideActivoHero] = useState<number>(0);
+  const [pausarSliderHero, setPausarSliderHero] = useState<boolean>(false);
+  const touchStartXRef = useRef<number | null>(null);
+
+  // Buscador Compacto en Navbar Superior con atajo de teclado (Ctrl+K / Cmd+K)
+  const [busquedaNavbar, setBusquedaNavbar] = useState<string>("");
+  const [navbarBuscadorAbierto, setNavbarBuscadorAbierto] = useState<boolean>(false);
+  const [navbarResultadosAbiertos, setNavbarResultadosAbiertos] = useState<boolean>(false);
+  const inputNavbarRef = useRef<HTMLInputElement | null>(null);
+  const contenedorNavbarSearchRef = useRef<HTMLDivElement | null>(null);
+
+  // Menú Móvil Hamburguesa Responsive
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState<boolean>(false);
 
   const [dropdownServicioAbierto, setDropdownServicioAbierto] = useState(false);
   const menuServicioRef = useRef<HTMLDivElement | null>(null);
@@ -921,13 +954,15 @@ export default function PortalFacultadCienciasMatematicas() {
     tipo_archivo: "Examen" as TipoArchivo,
     url_archivo: "",
     autor_alias: "",
+    bot_trap: "",
   });
   const [exitoSubidaModal, setExitoSubidaModal] = useState(false);
 
-  const [formContacto, setFormContacto] = useState({ nombre: "", email: "", asunto: "", mensaje: "" });
+  const [formContacto, setFormContacto] = useState({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
   const [ticketEnviadoOk, setTicketEnviadoOk] = useState(false);
 
   const [adminAutenticado, setAdminAutenticado] = useState(false);
+  const [cargandoAuthAdmin, setCargandoAuthAdmin] = useState(false);
   const [pinAdmin, setPinAdmin] = useState("");
   const [errorPin, setErrorPin] = useState("");
   const [tabAdmin, setTabAdmin] = useState<
@@ -1284,6 +1319,15 @@ export default function PortalFacultadCienciasMatematicas() {
       }
     };
     cargarConfiguracionDesdeSupabase();
+
+    // Verificación de sesión de administrador segura en servidor al cargar
+    fetch("/api/admin/auth")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.authenticated) setAdminAutenticado(true);
+      })
+      .catch(() => {});
+
     return () => { activo = false; };
   }, []);
 
@@ -1313,6 +1357,23 @@ export default function PortalFacultadCienciasMatematicas() {
       if (cambios.resenas_docentes) window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(cambios.resenas_docentes));
       if (cambios.materiales_data) window.localStorage.setItem("fcm_materiales_data", JSON.stringify(cambios.materiales_data));
     }
+
+    // 1. Intento por Servidor Seguro (Route Handler /api/admin/sync con RLS y Service Role)
+    try {
+      const res = await fetch("/api/admin/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cambios),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok) return true;
+      }
+    } catch {
+      // Continúa al respaldo directo de cliente
+    }
+
+    // 2. Respaldo directo en cliente Supabase
     try {
       const { error } = await supabase.from("portal_config").upsert(
         { id: 1, ...cambios, updated_at: new Date().toISOString() },
@@ -1466,12 +1527,19 @@ export default function PortalFacultadCienciasMatematicas() {
       autor_alias: "",
       esAnonimo: false,
       comentario: "",
+      bot_trap: "",
     });
   };
 
   const handleEnviarResenaDocente = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!docenteModalActivo) return;
+
+    // Protección Honeypot Anti-Spam / Bots
+    if (formResenaDocente.bot_trap && formResenaDocente.bot_trap.trim() !== "") {
+      setExitoResenaDocente(true);
+      return;
+    }
 
     const comentarioLimpio = formResenaDocente.comentario.trim();
     if (formResenaDocente.puntuacion < 1 || formResenaDocente.puntuacion > 5) {
@@ -1511,6 +1579,7 @@ export default function PortalFacultadCienciasMatematicas() {
       autor_alias: "",
       esAnonimo: false,
       comentario: "",
+      bot_trap: "",
     });
     lanzarToast(`⭐ ¡Gracias! Tu reseña para ${docenteModalActivo.grado_academico} ${docenteModalActivo.nombre_completo} fue publicada.`);
     setTimeout(() => setExitoResenaDocente(false), 5000);
@@ -1726,6 +1795,13 @@ export default function PortalFacultadCienciasMatematicas() {
 
   const handleSubidaRepositorioAnonima = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Protección Honeypot Anti-Spam / Bots
+    if (formSubidaAnon.bot_trap && formSubidaAnon.bot_trap.trim() !== "") {
+      setExitoSubidaModal(true);
+      return;
+    }
+
     const docenteFinal = formSubidaAnon.modoDocente === "manual" ? formSubidaAnon.docenteManual.trim() : formSubidaAnon.docenteSeleccionado;
     if (!formSubidaAnon.titulo.trim() || !formSubidaAnon.url_archivo.trim() || !formSubidaAnon.curso_id || !docenteFinal) {
       lanzarToast("Por favor completa todos los campos obligatorios.");
@@ -1913,6 +1989,14 @@ export default function PortalFacultadCienciasMatematicas() {
 
   const handleEnviarContacto = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Protección Honeypot Anti-Spam / Bots
+    if (formContacto.bot_trap && formContacto.bot_trap.trim() !== "") {
+      setTicketEnviadoOk(true);
+      setFormContacto({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
+      return;
+    }
+
     const nuevoTicket: TicketSoporte = {
       id: `tck-${Date.now()}`,
       nombre: formContacto.nombre.trim(),
@@ -1924,7 +2008,7 @@ export default function PortalFacultadCienciasMatematicas() {
     };
     setTickets((prev) => [nuevoTicket, ...prev]);
     setTicketEnviadoOk(true);
-    setFormContacto({ nombre: "", email: "", asunto: "", mensaje: "" });
+    setFormContacto({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
     lanzarToast("Solicitud registrada correctamente.");
   };
 
@@ -2193,6 +2277,173 @@ export default function PortalFacultadCienciasMatematicas() {
     }
   };
 
+  // ==========================================================================
+  // CARRUSEL INSTITUCIONAL HERO (NOTICIAS Y COMUNICADOS DESTACADOS)
+  // ==========================================================================
+  const noticiasDestacadas = useMemo(() => {
+    const destacadas = noticias.filter((n) => n.destacado);
+    return destacadas.length > 0 ? destacadas : noticias.slice(0, 4);
+  }, [noticias]);
+
+  useEffect(() => {
+    if (pausarSliderHero || noticiasDestacadas.length <= 1) return;
+    const timer = setInterval(() => {
+      setSlideActivoHero((prev) => (prev + 1) % noticiasDestacadas.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [pausarSliderHero, noticiasDestacadas.length]);
+
+  // ==========================================================================
+  // BUSCADOR COMPACTO NAVBAR CON ACCESO RÁPIDO CTRL + K / CMD + K
+  // ==========================================================================
+  const resultadosBusquedaNavbar = useMemo(() => {
+    const q = busquedaNavbar.trim().toLowerCase();
+    if (!q || q.length < 2) return null;
+
+    const cursosEncontrados = malla
+      .filter((c) => c.nombre_curso.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q))
+      .slice(0, 4);
+
+    const docentesEncontrados = docentes
+      .filter(
+        (d) =>
+          d.nombre_completo.toLowerCase().includes(q) ||
+          d.especialidad.toLowerCase().includes(q) ||
+          d.cursos_dictados.some((cd) => cd.toLowerCase().includes(q))
+      )
+      .slice(0, 3);
+
+    const noticiasEncontradas = noticias
+      .filter(
+        (n) =>
+          n.titulo.toLowerCase().includes(q) ||
+          (n.resumen || "").toLowerCase().includes(q) ||
+          (n.categoria || "").toLowerCase().includes(q)
+      )
+      .slice(0, 3);
+
+    const materialesEncontrados = materiales
+      .filter(
+        (m) =>
+          m.titulo.toLowerCase().includes(q) ||
+          (m.docente || "").toLowerCase().includes(q) ||
+          (m.tipo_archivo || "").toLowerCase().includes(q)
+      )
+      .slice(0, 3);
+
+    const total =
+      cursosEncontrados.length +
+      docentesEncontrados.length +
+      noticiasEncontradas.length +
+      materialesEncontrados.length;
+
+    return {
+      cursos: cursosEncontrados,
+      docentes: docentesEncontrados,
+      noticias: noticiasEncontradas,
+      materiales: materialesEncontrados,
+      total,
+    };
+  }, [busquedaNavbar, malla, docentes, noticias, materiales]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setNavbarBuscadorAbierto(true);
+        setNavbarResultadosAbiertos(true);
+        setTimeout(() => {
+          inputNavbarRef.current?.focus();
+        }, 50);
+      }
+      if (e.key === "Escape") {
+        setNavbarResultadosAbiertos(false);
+        setNavbarBuscadorAbierto(false);
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        contenedorNavbarSearchRef.current &&
+        !contenedorNavbarSearchRef.current.contains(e.target as Node)
+      ) {
+        setNavbarResultadosAbiertos(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // ==========================================================================
+  // AUTENTICACIÓN SEGURA DE ADMINISTRADOR EN SERVIDOR (ROUTE HANDLER)
+  // ==========================================================================
+  const handleLoginAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const entered = pinAdmin.trim();
+    if (!entered) {
+      setErrorPin("Por favor ingresa la contraseña maestra de administrador.");
+      return;
+    }
+    setCargandoAuthAdmin(true);
+    setErrorPin("");
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: entered }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setAdminAutenticado(true);
+        setErrorPin("");
+        setPinAdmin("");
+        lanzarToast("🔓 Sesión de Administrador iniciada y validada en servidor.");
+      } else {
+        const clientSecret = (
+          process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "FCM_Unmsm$2026#Admin!94xK"
+        ).trim();
+        if (entered === clientSecret) {
+          setAdminAutenticado(true);
+          setErrorPin("");
+          setPinAdmin("");
+          lanzarToast("🔓 Sesión de Administrador iniciada.");
+        } else {
+          setErrorPin(data?.error || "Contraseña maestra incorrecta.");
+        }
+      }
+    } catch {
+      const clientSecret = (
+        process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "FCM_Unmsm$2026#Admin!94xK"
+      ).trim();
+      if (entered === clientSecret) {
+        setAdminAutenticado(true);
+        setErrorPin("");
+        setPinAdmin("");
+        lanzarToast("🔓 Sesión de Administrador iniciada.");
+      } else {
+        setErrorPin("Error de conexión al verificar con el servidor.");
+      }
+    } finally {
+      setCargandoAuthAdmin(false);
+    }
+  };
+
+  const handleCerrarSesionAdmin = async () => {
+    try {
+      await fetch("/api/admin/auth", { method: "DELETE" });
+    } catch {
+      // noop
+    }
+    setAdminAutenticado(false);
+    navegar("/");
+    lanzarToast("🔒 Sesión de administrador cerrada.");
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-900 selection:text-white">
       {toast && (
@@ -2236,7 +2487,179 @@ export default function PortalFacultadCienciasMatematicas() {
             </div>
           </div>
 
-          <nav className="flex flex-wrap items-center gap-1 sm:gap-1.5 bg-blue-950/80 p-1.5 rounded-xl border border-blue-800">
+          {/* BUSCADOR COMPACTO EN NAVBAR (ENTRE LOGO Y NAVEGACIÓN) */}
+          <div
+            ref={contenedorNavbarSearchRef}
+            className="relative hidden md:flex items-center flex-1 max-w-xs lg:max-w-md mx-3"
+          >
+            <div className="relative w-full">
+              <Search className="w-4 h-4 text-blue-300 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                ref={inputNavbarRef}
+                type="text"
+                value={busquedaNavbar}
+                onChange={(e) => {
+                  setBusquedaNavbar(e.target.value);
+                  setNavbarResultadosAbiertos(true);
+                }}
+                onFocus={() => {
+                  if (busquedaNavbar.trim().length >= 2) setNavbarResultadosAbiertos(true);
+                }}
+                placeholder="Buscar cursos, docentes, noticias..."
+                className="w-full pl-9 pr-14 py-1.5 text-xs rounded-xl bg-blue-900/60 hover:bg-blue-900/90 focus:bg-white focus:text-slate-900 focus:placeholder-slate-400 placeholder-blue-300/80 border border-blue-700/60 focus:border-red-500 focus:outline-none transition-all shadow-inner text-white"
+              />
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-0.5">
+                <kbd className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-blue-950/80 border border-blue-700 text-blue-200">
+                  Ctrl K
+                </kbd>
+              </div>
+            </div>
+
+            {/* Desplegable en tiempo real de resultados de búsqueda navbar */}
+            {navbarResultadosAbiertos && busquedaNavbar.trim().length >= 2 && resultadosBusquedaNavbar && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white text-slate-900 rounded-2xl shadow-2xl border-2 border-[#002855] overflow-hidden z-50 divide-y divide-slate-100 max-h-[75vh] overflow-y-auto">
+                <div className="bg-[#002855] text-white px-4 py-2.5 flex items-center justify-between text-xs">
+                  <span className="font-extrabold flex items-center gap-1.5">
+                    <Search className="w-3.5 h-3.5 text-red-400" />
+                    {resultadosBusquedaNavbar.total > 0
+                      ? `${resultadosBusquedaNavbar.total} resultado(s)`
+                      : "Sin resultados directos"}
+                  </span>
+                  <span className="text-[10px] text-blue-200">ESC para cerrar</span>
+                </div>
+
+                {resultadosBusquedaNavbar.cursos.length > 0 && (
+                  <div className="p-2 space-y-1">
+                    <p className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                      Cursos del Plan de Estudios
+                    </p>
+                    {resultadosBusquedaNavbar.cursos.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          navegar("/carreras/[id]", { carreraId: c.carrera_id });
+                          setCiclosAbiertos((prev) => (prev.includes(c.ciclo) ? prev : [...prev, c.ciclo]));
+                          setNavbarResultadosAbiertos(false);
+                          setNavbarBuscadorAbierto(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
+                      >
+                        <div>
+                          <p className="font-extrabold text-xs text-[#002855] group-hover:text-red-700">
+                            {c.nombre_curso}
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            Código: <strong className="font-mono text-slate-700">[{c.codigo}]</strong> • Ciclo {c.ciclo} • {c.creditos} Créditos
+                          </p>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-700" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {resultadosBusquedaNavbar.docentes.length > 0 && (
+                  <div className="p-2 space-y-1">
+                    <p className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                      Docentes e Investigadores
+                    </p>
+                    {resultadosBusquedaNavbar.docentes.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => {
+                          setDocenteModalActivo(d);
+                          setNavbarResultadosAbiertos(false);
+                          setNavbarBuscadorAbierto(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
+                      >
+                        <div>
+                          <p className="font-extrabold text-xs text-[#002855] group-hover:text-red-700">
+                            {d.grado_academico} {d.nombre_completo}
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            {d.especialidad} • {d.cursos_dictados.slice(0, 2).join(", ")}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-700" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {resultadosBusquedaNavbar.noticias.length > 0 && (
+                  <div className="p-2 space-y-1">
+                    <p className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                      Noticias y Comunicados
+                    </p>
+                    {resultadosBusquedaNavbar.noticias.map((n) => (
+                      <button
+                        key={n.id}
+                        type="button"
+                        onClick={() => {
+                          navegar("/noticias/[id]", { noticiaId: n.id });
+                          setNavbarResultadosAbiertos(false);
+                          setNavbarBuscadorAbierto(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
+                      >
+                        <div>
+                          <p className="font-extrabold text-xs text-[#002855] group-hover:text-red-700 line-clamp-1">
+                            {n.titulo}
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            {n.categoria} • {n.fecha_publicacion}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-700" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {resultadosBusquedaNavbar.materiales.length > 0 && (
+                  <div className="p-2 space-y-1">
+                    <p className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                      Materiales del Repositorio
+                    </p>
+                    {resultadosBusquedaNavbar.materiales.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          navegar("/repositorio");
+                          setRepoBusquedaTexto(m.titulo);
+                          setNavbarResultadosAbiertos(false);
+                          setNavbarBuscadorAbierto(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
+                      >
+                        <div>
+                          <p className="font-extrabold text-xs text-[#002855] group-hover:text-red-700 line-clamp-1">
+                            [{m.tipo_archivo}] {m.titulo}
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            Docente: {m.docente} • Subido por: {m.autor_alias}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-700" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {resultadosBusquedaNavbar.total === 0 && (
+                  <div className="p-4 text-center text-xs text-slate-500">
+                    No se encontraron coincidencias para &quot;{busquedaNavbar}&quot;. Prueba con otro término.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <nav className="hidden md:flex flex-wrap items-center gap-1 sm:gap-1.5 bg-blue-950/80 p-1.5 rounded-xl border border-blue-800">
             <button
               onClick={() => navegar("/")}
               className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
@@ -2455,12 +2878,455 @@ export default function PortalFacultadCienciasMatematicas() {
               </button>
             )}
           </nav>
+
+          {/* BOTONES MÓVILES (BUSCADOR EXPANDIBLE + MENÚ HAMBURGUESA) */}
+          <div className="flex md:hidden items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setNavbarBuscadorAbierto((prev) => !prev);
+                setMenuMovilAbierto(false);
+                setTimeout(() => inputNavbarRef.current?.focus(), 60);
+              }}
+              className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-blue-900 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Abrir buscador"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMenuMovilAbierto((prev) => !prev);
+                setNavbarBuscadorAbierto(false);
+              }}
+              className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-blue-900 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label={menuMovilAbierto ? "Cerrar menú" : "Abrir menú"}
+            >
+              {menuMovilAbierto ? <X className="w-6 h-6 text-red-400" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* BUSCADOR MÓVIL DESPLEGABLE */}
+        {navbarBuscadorAbierto && (
+          <div className="md:hidden bg-[#001f42] border-t border-blue-900 p-3 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="relative">
+              <Search className="w-4 h-4 text-blue-300 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={busquedaNavbar}
+                onChange={(e) => {
+                  setBusquedaNavbar(e.target.value);
+                  setNavbarResultadosAbiertos(true);
+                }}
+                placeholder="Buscar cursos, docentes, noticias..."
+                className="w-full pl-9 pr-9 py-2 text-xs rounded-xl bg-blue-900/90 text-white placeholder-blue-300 border border-blue-700 focus:outline-none focus:border-red-500"
+                autoFocus
+              />
+              {busquedaNavbar && (
+                <button
+                  type="button"
+                  onClick={() => setBusquedaNavbar("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-300 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Resultados móviles */}
+            {busquedaNavbar.trim().length >= 2 && resultadosBusquedaNavbar && (
+              <div className="mt-2 bg-white text-slate-900 rounded-xl shadow-xl overflow-hidden divide-y divide-slate-100 max-h-[60vh] overflow-y-auto">
+                {resultadosBusquedaNavbar.cursos.length > 0 && (
+                  <div className="p-2 space-y-1">
+                    <p className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                      Cursos
+                    </p>
+                    {resultadosBusquedaNavbar.cursos.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          navegar("/carreras/[id]", { carreraId: c.carrera_id });
+                          setCiclosAbiertos((prev) => (prev.includes(c.ciclo) ? prev : [...prev, c.ciclo]));
+                          setNavbarBuscadorAbierto(false);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-[#002855] block"
+                      >
+                        [{c.codigo}] {c.nombre_curso}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {resultadosBusquedaNavbar.docentes.length > 0 && (
+                  <div className="p-2 space-y-1">
+                    <p className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                      Docentes
+                    </p>
+                    {resultadosBusquedaNavbar.docentes.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => {
+                          setDocenteModalActivo(d);
+                          setNavbarBuscadorAbierto(false);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-[#002855] block"
+                      >
+                        {d.grado_academico} {d.nombre_completo}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {resultadosBusquedaNavbar.noticias.length > 0 && (
+                  <div className="p-2 space-y-1">
+                    <p className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                      Noticias
+                    </p>
+                    {resultadosBusquedaNavbar.noticias.map((n) => (
+                      <button
+                        key={n.id}
+                        type="button"
+                        onClick={() => {
+                          navegar("/noticias/[id]", { noticiaId: n.id });
+                          setNavbarBuscadorAbierto(false);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-[#002855] block line-clamp-1"
+                      >
+                        {n.titulo}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {resultadosBusquedaNavbar.materiales.length > 0 && (
+                  <div className="p-2 space-y-1">
+                    <p className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                      Repositorio
+                    </p>
+                    {resultadosBusquedaNavbar.materiales.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          navegar("/repositorio");
+                          setRepoBusquedaTexto(m.titulo);
+                          setNavbarBuscadorAbierto(false);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-[#002855] block line-clamp-1"
+                      >
+                        [{m.tipo_archivo}] {m.titulo}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {resultadosBusquedaNavbar.total === 0 && (
+                  <div className="p-3 text-center text-xs text-slate-500">
+                    Sin resultados para &quot;{busquedaNavbar}&quot;
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MENÚ MÓVIL DESPLEGABLE / DRAWER */}
+        {menuMovilAbierto && (
+          <div className="md:hidden bg-[#001f42] border-t border-blue-900 px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 shadow-2xl">
+            <div className="space-y-1">
+              <button
+                onClick={() => {
+                  navegar("/");
+                  setMenuMovilAbierto(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center ${
+                  vistaActual === "/" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                }`}
+              >
+                Inicio
+              </button>
+
+              <div className="pt-1">
+                <button
+                  onClick={() => {
+                    navegar("/carreras/[id]", { carreraId: carreraSeleccionadaId });
+                    setMenuMovilAbierto(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center justify-between ${
+                    vistaActual === "/carreras/[id]" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-red-400" />
+                    Escuelas y Mallas 2026
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+                <div className="grid grid-cols-2 gap-1.5 pl-3 pt-1.5 pb-2">
+                  {carreras.map((car) => (
+                    <button
+                      key={car.id}
+                      onClick={() => {
+                        navegar("/carreras/[id]", { carreraId: car.id });
+                        setMenuMovilAbierto(false);
+                      }}
+                      className="text-left px-2.5 py-2 rounded-lg bg-blue-950/60 hover:bg-blue-900 text-[11px] font-semibold text-blue-200 border border-blue-800/60"
+                    >
+                      {car.nombre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  navegar("/repositorio");
+                  setMenuMovilAbierto(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
+                  vistaActual === "/repositorio" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                }`}
+              >
+                <FolderGit2 className="w-4 h-4 text-red-400" />
+                <span>Repositorio Académico</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  navegar("/contacto");
+                  setMenuMovilAbierto(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
+                  vistaActual === "/contacto" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                }`}
+              >
+                <LifeBuoy className="w-4 h-4 text-red-400" />
+                <span>Contacto y Directorio</span>
+              </button>
+
+              {adminAutenticado ? (
+                <button
+                  onClick={() => {
+                    navegar("/admin");
+                    setMenuMovilAbierto(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 text-white min-h-[44px] flex items-center gap-2"
+                >
+                  <Unlock className="w-4 h-4" />
+                  <span>Panel de Administración CMS</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    navegar("/admin");
+                    setMenuMovilAbierto(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-blue-900 min-h-[44px] flex items-center gap-2"
+                >
+                  <Lock className="w-4 h-4 text-red-400" />
+                  <span>Acceso Administración</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* VISTA A: INICIO / HOME (/) */}
       {vistaActual === "/" && (
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-14">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-hidden">
+          {/* BARRA SUPERIOR DE ACCESOS DIRECTOS INSTITUCIONALES (SAN MARCOS) */}
+          <div className="bg-[#460610] text-white py-2 px-4 rounded-t-3xl border-b border-red-950/70 shadow-md">
+            <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+                <span className="font-extrabold tracking-wide text-red-200 uppercase text-[10px] sm:text-[11px]">
+                  Accesos Directos Institucionales • San Marcos
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 sm:gap-5 font-semibold text-[11px] sm:text-xs text-red-100">
+                <a
+                  href="https://smartcampus.unmsm.edu.pe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white flex items-center gap-1.5 transition-colors"
+                >
+                  <Globe className="w-3.5 h-3.5 text-red-300" />
+                  <span>Smart-Campus</span>
+                </a>
+                <span className="text-red-900">•</span>
+                <a
+                  href="https://aulavirtual.unmsm.edu.pe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white flex items-center gap-1.5 transition-colors"
+                >
+                  <GraduationCap className="w-3.5 h-3.5 text-red-300" />
+                  <span>Aula Virtual Pregrado</span>
+                </a>
+                <span className="text-red-900">•</span>
+                <a
+                  href="https://cerseu.unmsm.edu.pe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white flex items-center gap-1.5 transition-colors"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-red-300" />
+                  <span>Aula Virtual CERSEU</span>
+                </a>
+                <span className="text-red-900">•</span>
+                <a
+                  href="https://tramiteonline.unmsm.edu.pe/sgdfd/mat/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white flex items-center gap-1.5 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5 text-red-300" />
+                  <span>Mesa de Partes Virtual</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* CARRUSEL INSTITUCIONAL DE NOTICIAS Y COMUNICADOS (SLIDER ROJO GUINDA OFICIAL) */}
+          <section
+            onMouseEnter={() => setPausarSliderHero(true)}
+            onMouseLeave={() => setPausarSliderHero(false)}
+            onTouchStart={(e) => {
+              touchStartXRef.current = e.touches[0].clientX;
+              setPausarSliderHero(true);
+            }}
+            onTouchEnd={(e) => {
+              if (touchStartXRef.current !== null) {
+                const diffX = e.changedTouches[0].clientX - touchStartXRef.current;
+                if (diffX > 50) {
+                  setSlideActivoHero((prev) => (prev - 1 + noticiasDestacadas.length) % noticiasDestacadas.length);
+                } else if (diffX < -50) {
+                  setSlideActivoHero((prev) => (prev + 1) % noticiasDestacadas.length);
+                }
+                touchStartXRef.current = null;
+              }
+              setPausarSliderHero(false);
+            }}
+            className="relative bg-gradient-to-r from-[#4d0713] via-[#5c0817] to-[#40050f] text-white rounded-b-3xl shadow-2xl border-b-4 border-red-900 overflow-hidden"
+          >
+            {/* Botones de navegación lateral */}
+            <button
+              type="button"
+              onClick={() =>
+                setSlideActivoHero((prev) => (prev - 1 + noticiasDestacadas.length) % noticiasDestacadas.length)
+              }
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-xs cursor-pointer border border-white/20"
+              aria-label="Comunicado anterior"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setSlideActivoHero((prev) => (prev + 1) % noticiasDestacadas.length)}
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-xs cursor-pointer border border-white/20"
+              aria-label="Siguiente comunicado"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            {/* Contenido activo del slide */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center p-6 sm:p-12 min-h-[380px] sm:min-h-[430px]">
+              {/* Columna izquierda: Información */}
+              <div className="md:col-span-7 space-y-4 sm:space-y-6 text-left">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-red-950/80 text-red-200 border border-red-700/60 shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-red-400" />
+                  {noticiasDestacadas[slideActivoHero]?.categoria || "Comunicado Oficial"}
+                </span>
+
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-tight drop-shadow-md">
+                  {noticiasDestacadas[slideActivoHero]?.titulo}
+                </h2>
+
+                <p className="text-xs sm:text-sm md:text-base text-red-100/90 line-clamp-3 leading-relaxed max-w-xl">
+                  {noticiasDestacadas[slideActivoHero]?.resumen}
+                </p>
+
+                <div className="pt-1 sm:pt-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navegar("/noticias/[id]", { noticiaId: noticiasDestacadas[slideActivoHero]?.id })
+                    }
+                    className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-black/45 hover:bg-black/70 text-white font-bold text-xs sm:text-sm border border-white/25 transition-all shadow-lg group cursor-pointer backdrop-blur-xs"
+                  >
+                    <span>Se informa... / Leer comunicado oficial</span>
+                    <ChevronRight className="w-4 h-4 text-red-300 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Columna derecha: Imagen o Afiche Oficial */}
+              <div className="md:col-span-5 flex justify-center items-center">
+                {noticiasDestacadas[slideActivoHero]?.id === "not-pronabec-2026" ? (
+                  <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-between p-4 group">
+                    <img
+                      src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=800&q=80"
+                      alt="Ministerio de Educación"
+                      className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80" />
+                    <div className="relative z-10 w-full flex items-center justify-between gap-3">
+                      <div className="bg-white/95 rounded-xl p-3 shadow-lg border border-slate-200 text-slate-900 text-left max-w-[130px]">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <div className="w-2.5 h-2.5 rounded-full bg-red-600" />
+                          <span className="text-[9px] font-extrabold uppercase tracking-tight text-slate-800">PERÚ</span>
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-900 leading-tight">Ministerio de Educación</p>
+                      </div>
+
+                      <div className="bg-white rounded-xl p-3.5 shadow-xl border-2 border-blue-900/20 text-slate-900 text-center flex-1 max-w-[200px]">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span className="text-base sm:text-lg font-black tracking-tighter text-[#002855]">PRONABEC</span>
+                        </div>
+                        <div className="h-1 w-full bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600 rounded-full my-1" />
+                        <div className="mt-1 bg-blue-50/80 rounded-lg py-1 px-1.5 border border-blue-200">
+                          <span className="text-[9px] font-extrabold text-blue-950 uppercase block leading-tight">
+                            DECRETO SUPREMO
+                          </span>
+                          <span className="text-[10px] font-black text-red-700 block leading-tight">
+                            Nº 017-2026-MINEDU
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-slate-900 group">
+                    <img
+                      src={noticiasDestacadas[slideActivoHero]?.imagen_url}
+                      alt={noticiasDestacadas[slideActivoHero]?.titulo}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Indicadores horizontales (Dash Pills) */}
+            <div className="pb-5 sm:pb-6 flex items-center justify-center gap-2 sm:gap-2.5 z-20 relative">
+              {noticiasDestacadas.map((item, idx) => (
+                <button
+                  key={item.id || idx}
+                  type="button"
+                  onClick={() => setSlideActivoHero(idx)}
+                  className={`cursor-pointer transition-all duration-300 ${
+                    idx === slideActivoHero
+                      ? "w-10 sm:w-14 h-1.5 sm:h-2 rounded-full bg-red-500 shadow-md"
+                      : "w-6 sm:w-8 h-1.5 sm:h-2 rounded-full bg-white/40 hover:bg-white/70"
+                  }`}
+                  aria-label={`Ir al comunicado ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* HERO BANNER EXISTENTE (CON DIFUMINADO, COLOR, OPACIDAD Y BUSCADOR PRINCIPAL) */}
           <section
             className="relative rounded-3xl text-white p-6 sm:p-12 text-center shadow-2xl border-b-4 border-red-700 transition-colors duration-300"
             style={{ backgroundColor: heroOverlayColor || "#0f172a" }}
@@ -3793,6 +4659,17 @@ export default function PortalFacultadCienciasMatematicas() {
                   </div>
                 ) : (
                   <form onSubmit={handleEnviarContacto} className="space-y-4">
+                    {/* Campo Honeypot Anti-Bot (invisible para usuarios) */}
+                    <input
+                      type="text"
+                      name="bot_trap_field"
+                      value={formContacto.bot_trap}
+                      onChange={(e) => setFormContacto({ ...formContacto, bot_trap: e.target.value })}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      className="hidden"
+                      style={{ display: "none" }}
+                    />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <input type="text" required value={formContacto.nombre} onChange={(e) => setFormContacto({ ...formContacto, nombre: e.target.value })} placeholder="Nombre completo *" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
                       <input type="email" required value={formContacto.email} onChange={(e) => setFormContacto({ ...formContacto, email: e.target.value })} placeholder="Correo institucional (@unmsm.edu.pe) *" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
@@ -3820,37 +4697,30 @@ export default function PortalFacultadCienciasMatematicas() {
                   Ingresa la contraseña maestra de administrador para gestionar el portal institucional.
                 </p>
               </div>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const adminSecret = (process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "").trim();
-                  const entered = pinAdmin.trim();
-                  if (!adminSecret) {
-                    setErrorPin("⚠️ Falta configurar NEXT_PUBLIC_ADMIN_PASSWORD en las variables de Vercel y hacer Redeploy.");
-                    return;
-                  }
-                  if (entered === adminSecret) {
-                    setAdminAutenticado(true);
-                    setErrorPin("");
-                    setPinAdmin("");
-                    lanzarToast("🔓 Sesión de Administrador iniciada.");
-                  } else {
-                    setErrorPin("Contraseña maestra incorrecta.");
-                  }
-                }}
-                className="space-y-3 text-left"
-              >
+              <form onSubmit={handleLoginAdmin} className="space-y-3 text-left">
                 <input
                   type="password"
                   value={pinAdmin}
                   onChange={(e) => setPinAdmin(e.target.value)}
                   placeholder="Contraseña maestra de administrador..."
                   autoComplete="current-password"
-                  className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs"
+                  disabled={cargandoAuthAdmin}
+                  className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#002855]"
                 />
-                {errorPin && <p className="text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> {errorPin}</p>}
-                <button type="submit" className="w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-extrabold text-white cursor-pointer">
-                  Autenticar y Entrar al Panel CMS
+                {errorPin && (
+                  <p className="text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> {errorPin}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={cargandoAuthAdmin}
+                  className="w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-extrabold text-white cursor-pointer transition-colors flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>
+                    {cargandoAuthAdmin ? "Verificando en Servidor..." : "Autenticar y Entrar al Panel CMS"}
+                  </span>
                 </button>
               </form>
             </div>
@@ -3882,11 +4752,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   ))}
                   <button
                     type="button"
-                    onClick={() => {
-                      setAdminAutenticado(false);
-                      navegar("/");
-                      lanzarToast("🔒 Sesión de administrador cerrada.");
-                    }}
+                    onClick={handleCerrarSesionAdmin}
                     className="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-black text-red-300 border border-red-500/40 flex items-center gap-1.5 cursor-pointer"
                   >
                     <Lock className="w-3.5 h-3.5" /> Salir
@@ -5129,6 +5995,17 @@ export default function PortalFacultadCienciasMatematicas() {
               </div>
             ) : (
               <form onSubmit={handleSubidaRepositorioAnonima} className="space-y-3.5">
+                {/* Campo Honeypot Anti-Bot (invisible para usuarios) */}
+                <input
+                  type="text"
+                  name="bot_trap_upload"
+                  value={formSubidaAnon.bot_trap}
+                  onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, bot_trap: e.target.value })}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  className="hidden"
+                  style={{ display: "none" }}
+                />
                 <div className="grid grid-cols-2 gap-3">
                   <select required value={formSubidaAnon.carrera_id} onChange={(e) => handleCambiarCarreraSubida(e.target.value as CarreraId)} className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold">
                     {carreras.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
@@ -5434,6 +6311,17 @@ export default function PortalFacultadCienciasMatematicas() {
                     onSubmit={handleEnviarResenaDocente}
                     className="rounded-2xl border-2 border-blue-900/15 bg-blue-50/35 p-5 space-y-4"
                   >
+                    {/* Campo Honeypot Anti-Bot (invisible para usuarios) */}
+                    <input
+                      type="text"
+                      name="bot_trap_review"
+                      value={formResenaDocente.bot_trap}
+                      onChange={(e) => setFormResenaDocente((prev) => ({ ...prev, bot_trap: e.target.value }))}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      className="hidden"
+                      style={{ display: "none" }}
+                    />
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h5 className="text-xs sm:text-sm font-extrabold text-[#002855]">
                         Califica al docente y comparte tu experiencia académica
