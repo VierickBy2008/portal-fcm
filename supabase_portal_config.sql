@@ -1,11 +1,12 @@
 -- ============================================================================
--- SQL DE ACTUALIZACIÓN PARA SUPABASE: COLUMNA `docentes_data` EN `portal_config`
+-- SQL DE ACTUALIZACIÓN PARA SUPABASE: COLUMNAS `docentes_data` Y `resenas_docentes`
 -- Ejecuta este comando en el SQL Editor de Supabase para habilitar la
--- persistencia de la Plana Docente sin perder tus datos actuales:
+-- persistencia de la Plana Docente y del Sistema de Calificaciones y Reseñas:
 -- ============================================================================
 
 ALTER TABLE public.portal_config
-ADD COLUMN IF NOT EXISTS docentes_data jsonb DEFAULT '[]'::jsonb;
+ADD COLUMN IF NOT EXISTS docentes_data jsonb DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS resenas_docentes jsonb DEFAULT '[]'::jsonb;
 
 -- ============================================================================
 -- (Opcional) Esquema completo de `portal_config` por si instalas desde cero:
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.portal_config (
   noticias_data jsonb DEFAULT '[]'::jsonb,
   storage_data jsonb DEFAULT '[]'::jsonb,
   docentes_data jsonb DEFAULT '[]'::jsonb,
+  resenas_docentes jsonb DEFAULT '[]'::jsonb,
   updated_at timestamptz DEFAULT now()
 );
 

@@ -73,6 +73,17 @@ interface Docente {
   linkedin_url?: string;
 }
 
+interface ResenaDocente {
+  id: string;
+  docente_id: string;
+  puntuacion: number; // 1 a 5
+  comentario: string;
+  curso: string;
+  autor_alias: string;
+  fecha: string;
+  estado: "aprobado" | "pendiente";
+}
+
 function formatearFechaEspanol(fechaIso: string): string {
   if (!fechaIso) return "Fecha institucional";
   const partes = fechaIso.split("-");
@@ -621,6 +632,79 @@ const DOCENTES_SUGERIDOS: string[] = DOCENTES_INICIALES.map(
   (d) => `${d.grado_academico} ${d.nombre_completo}`
 );
 
+const RESENAS_DOCENTES_INICIALES: ResenaDocente[] = [
+  {
+    id: "res-1",
+    docente_id: "doc-cc-1",
+    puntuacion: 5,
+    comentario: "Excelente profesor en POO II y Computación Paralela. Sus laboratorios en C++20 y OpenMP te preparan para proyectos reales de alto rendimiento.",
+    curso: "CS113 - POO II",
+    autor_alias: "Estudiante Base 23 CC",
+    fecha: "2026-10-18",
+    estado: "aprobado",
+  },
+  {
+    id: "res-2",
+    docente_id: "doc-cc-1",
+    puntuacion: 5,
+    comentario: "Muy didáctico y siempre dispuesto a asesorar en el laboratorio SECOMAT. Sus exámenes son retadores pero justos con lo visto en clase.",
+    curso: "CS3P1 - Computación Paralela",
+    autor_alias: "Estudiante Anónimo FCM",
+    fecha: "2026-10-22",
+    estado: "aprobado",
+  },
+  {
+    id: "res-3",
+    docente_id: "doc-cc-2",
+    puntuacion: 5,
+    comentario: "Domina totalmente Deep Learning y el fundamento matemático detrás de cada arquitectura. Recomendado para quienes buscan hacer tesis en IA.",
+    curso: "AI264 - Aprendizaje Profundo",
+    autor_alias: "Tesista Computación Científica",
+    fecha: "2026-10-19",
+    estado: "aprobado",
+  },
+  {
+    id: "res-4",
+    docente_id: "doc-io-1",
+    puntuacion: 5,
+    comentario: "Sus clases de Programación Entera y Logística con Gurobi/Pyomo son de nivel industrial. Explica paso a paso el modelado matemático.",
+    curso: "IO305 - Programación Entera",
+    autor_alias: "Alumno 7mo Ciclo IO",
+    fecha: "2026-10-20",
+    estado: "aprobado",
+  },
+  {
+    id: "res-5",
+    docente_id: "doc-mat-1",
+    puntuacion: 5,
+    comentario: "Rigor matemático impecable en Análisis Real y Ecuaciones Diferenciales Parciales. Sus apuntes y demostraciones son una joya para toda la carrera.",
+    curso: "MAT312 - Análisis Real II",
+    autor_alias: "Círculo de Estudios Matemática",
+    fecha: "2026-10-21",
+    estado: "aprobado",
+  },
+  {
+    id: "res-6",
+    docente_id: "doc-est-1",
+    puntuacion: 5,
+    comentario: "Explica Inferencia Bayesiana y GLM con muchísima claridad y casos aplicados en R. Siempre puntual y ordenada con las evaluaciones.",
+    curso: "EST451 - Estadística Bayesiana I",
+    autor_alias: "Estudiante Base 22 Estadística",
+    fecha: "2026-10-24",
+    estado: "aprobado",
+  },
+  {
+    id: "res-pend-1",
+    docente_id: "doc-cc-3",
+    puntuacion: 4,
+    comentario: "Muy buena base en Teoría de Grafos y Estructuras Discretas. Recomiendo repasar inducción matemática y practicar las listas de ejercicios con anticipación.",
+    curso: "CS1D1 - Estructuras Discretas I",
+    autor_alias: "Estudiante Anónimo FCM",
+    fecha: "2026-10-28",
+    estado: "pendiente",
+  },
+];
+
 const PREFIJO_CARRERA: Record<CarreraId, string> = {
   "computacion-cientifica": "cc",
   "matematica": "mat",
@@ -778,6 +862,7 @@ export default function PortalFacultadCienciasMatematicas() {
   const [noticias, setNoticias] = useState<Noticia[]>(NOTICIAS_INICIALES);
   const [carreras, setCarreras] = useState<Carrera[]>(CARRERAS_INICIALES);
   const [docentes, setDocentes] = useState<Docente[]>(DOCENTES_INICIALES);
+  const [resenasDocentes, setResenasDocentes] = useState<ResenaDocente[]>(RESENAS_DOCENTES_INICIALES);
   const [malla, setMalla] = useState<CursoMalla[]>(MALLA_INICIAL);
   const [materiales, setMateriales] = useState<MaterialRepositorio[]>(MATERIALES_INICIALES);
   const [tickets, setTickets] = useState<TicketSoporte[]>(TICKETS_INICIALES);
@@ -785,10 +870,20 @@ export default function PortalFacultadCienciasMatematicas() {
   const [logoUrl, setLogoUrl] = useState<string>(LOGO_UNMSM_TRANSPARENTE_DEFAULT);
   const [cargandoConfig, setCargandoConfig] = useState<boolean>(true);
 
-  // Filtros y modal de la sección Plana Docente
+  // Filtros y modal de la sección Plana Docente + Calificaciones y Reseñas
   const [filtroDocenteCarrera, setFiltroDocenteCarrera] = useState<"TODAS" | CarreraId>("TODAS");
   const [busquedaDocentes, setBusquedaDocentes] = useState<string>("");
   const [docenteModalActivo, setDocenteModalActivo] = useState<Docente | null>(null);
+  const [hoverEstrellaDocente, setHoverEstrellaDocente] = useState<number>(0);
+  const [formResenaDocente, setFormResenaDocente] = useState({
+    puntuacion: 5,
+    curso: "",
+    autor_alias: "",
+    esAnonimo: false,
+    comentario: "",
+  });
+  const [errorResenaDocente, setErrorResenaDocente] = useState<string>("");
+  const [exitoResenaDocente, setExitoResenaDocente] = useState<boolean>(false);
 
   const [dropdownServicioAbierto, setDropdownServicioAbierto] = useState(false);
   const menuServicioRef = useRef<HTMLDivElement | null>(null);
@@ -1053,6 +1148,7 @@ export default function PortalFacultadCienciasMatematicas() {
           const localNoticias = window.localStorage.getItem("fcm_noticias_data");
           const localStorageImgs = window.localStorage.getItem("fcm_storage_data");
           const localDocentes = window.localStorage.getItem("fcm_docentes_data");
+          const localResenas = window.localStorage.getItem("fcm_resenas_docentes");
           if (localLogo && activo) setLogoUrl(localLogo);
           if (localCarreras && activo) {
             const parsed = JSON.parse(localCarreras);
@@ -1069,6 +1165,10 @@ export default function PortalFacultadCienciasMatematicas() {
           if (localDocentes && activo) {
             const parsed = JSON.parse(localDocentes);
             if (Array.isArray(parsed) && parsed.length > 0) setDocentes(parsed);
+          }
+          if (localResenas && activo) {
+            const parsed = JSON.parse(localResenas);
+            if (Array.isArray(parsed) && parsed.length > 0) setResenasDocentes(parsed);
           }
         }
 
@@ -1104,6 +1204,10 @@ export default function PortalFacultadCienciasMatematicas() {
             setDocentes(data.docentes_data);
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_docentes_data", JSON.stringify(data.docentes_data));
           }
+          if (Array.isArray(data.resenas_docentes) && data.resenas_docentes.length > 0) {
+            setResenasDocentes(data.resenas_docentes);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(data.resenas_docentes));
+          }
         }
       } catch {
         // Mantiene estado por defecto si la tabla aún no fue creada
@@ -1121,6 +1225,7 @@ export default function PortalFacultadCienciasMatematicas() {
     noticias_data?: Noticia[];
     storage_data?: ImagenStorage[];
     docentes_data?: Docente[];
+    resenas_docentes?: ResenaDocente[];
   }): Promise<boolean> => {
     if (typeof window !== "undefined") {
       if (cambios.logo_url) window.localStorage.setItem("fcm_logo_url", cambios.logo_url);
@@ -1128,6 +1233,7 @@ export default function PortalFacultadCienciasMatematicas() {
       if (cambios.noticias_data) window.localStorage.setItem("fcm_noticias_data", JSON.stringify(cambios.noticias_data));
       if (cambios.storage_data) window.localStorage.setItem("fcm_storage_data", JSON.stringify(cambios.storage_data));
       if (cambios.docentes_data) window.localStorage.setItem("fcm_docentes_data", JSON.stringify(cambios.docentes_data));
+      if (cambios.resenas_docentes) window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(cambios.resenas_docentes));
     }
     try {
       const { error } = await supabase.from("portal_config").upsert(
@@ -1211,6 +1317,101 @@ export default function PortalFacultadCienciasMatematicas() {
 
   const materialesAprobados = useMemo(() => materiales.filter((m) => m.estado === "aprobado"), [materiales]);
   const materialesPendientes = useMemo(() => materiales.filter((m) => m.estado === "pendiente"), [materiales]);
+  const resenasPendientes = useMemo(() => resenasDocentes.filter((r) => r.estado === "pendiente"), [resenasDocentes]);
+
+  const obtenerEstadisticasDocente = useCallback(
+    (docenteId: string) => {
+      const aprobadas = resenasDocentes.filter((r) => r.docente_id === docenteId && r.estado === "aprobado");
+      const total = aprobadas.length;
+      const promedio = total > 0 ? aprobadas.reduce((acc, item) => acc + item.puntuacion, 0) / total : 0;
+      const distribucion = [5, 4, 3, 2, 1].map((estrellas) => {
+        const cantidad = aprobadas.filter((r) => r.puntuacion === estrellas).length;
+        const porcentaje = total > 0 ? Math.round((cantidad / total) * 100) : 0;
+        return { estrellas, cantidad, porcentaje };
+      });
+      return { aprobadas, total, promedio, distribucion };
+    },
+    [resenasDocentes]
+  );
+
+  const abrirModalDocente = (doc: Docente) => {
+    setDocenteModalActivo(doc);
+    setHoverEstrellaDocente(0);
+    setErrorResenaDocente("");
+    setExitoResenaDocente(false);
+    setFormResenaDocente({
+      puntuacion: 5,
+      curso: doc.cursos_dictados[0] || "Asignatura de la Escuela",
+      autor_alias: "",
+      esAnonimo: false,
+      comentario: "",
+    });
+  };
+
+  const handleEnviarResenaDocente = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!docenteModalActivo) return;
+
+    const comentarioLimpio = formResenaDocente.comentario.trim();
+    if (formResenaDocente.puntuacion < 1 || formResenaDocente.puntuacion > 5) {
+      setErrorResenaDocente("Por favor selecciona una calificación entre 1 y 5 estrellas.");
+      return;
+    }
+    if (comentarioLimpio.length < 10) {
+      setErrorResenaDocente("El comentario debe tener al menos 10 caracteres explicando tu valoración.");
+      return;
+    }
+
+    const aliasFinal = formResenaDocente.esAnonimo
+      ? "Estudiante Anónimo FCM"
+      : formResenaDocente.autor_alias.trim() || "Estudiante Anónimo FCM";
+
+    const nuevaResena: ResenaDocente = {
+      id: `res-${Date.now()}`,
+      docente_id: docenteModalActivo.id,
+      puntuacion: formResenaDocente.puntuacion as 1 | 2 | 3 | 4 | 5,
+      comentario: comentarioLimpio,
+      curso: formResenaDocente.curso.trim() || docenteModalActivo.cursos_dictados[0] || "Asignatura General",
+      autor_alias: aliasFinal,
+      fecha: new Date().toISOString().split("T")[0],
+      estado: "aprobado",
+    };
+
+    const nuevasResenas = [nuevaResena, ...resenasDocentes];
+    setResenasDocentes(nuevasResenas);
+    await sincronizarPortalConfigSupabase({ resenas_docentes: nuevasResenas });
+
+    setErrorResenaDocente("");
+    setExitoResenaDocente(true);
+    setHoverEstrellaDocente(0);
+    setFormResenaDocente({
+      puntuacion: 5,
+      curso: docenteModalActivo.cursos_dictados[0] || "Asignatura de la Escuela",
+      autor_alias: "",
+      esAnonimo: false,
+      comentario: "",
+    });
+    lanzarToast(`⭐ ¡Gracias! Tu reseña para ${docenteModalActivo.grado_academico} ${docenteModalActivo.nombre_completo} fue publicada.`);
+    setTimeout(() => setExitoResenaDocente(false), 5000);
+  };
+
+  const handleCambiarEstadoResenaAdmin = async (idResena: string, nuevoEstado: "aprobado" | "pendiente") => {
+    const actualizadas = resenasDocentes.map((r) => (r.id === idResena ? { ...r, estado: nuevoEstado } : r));
+    setResenasDocentes(actualizadas);
+    await sincronizarPortalConfigSupabase({ resenas_docentes: actualizadas });
+    lanzarToast(
+      nuevoEstado === "aprobado"
+        ? "✅ Reseña docente aprobada y visible públicamente."
+        : "⏸️ Reseña docente marcada como pendiente."
+    );
+  };
+
+  const handleEliminarResenaDocenteAdmin = async (idResena: string) => {
+    const filtradas = resenasDocentes.filter((r) => r.id !== idResena);
+    setResenasDocentes(filtradas);
+    await sincronizarPortalConfigSupabase({ resenas_docentes: filtradas });
+    lanzarToast("🗑️ Reseña de docente eliminada permanentemente de Supabase.");
+  };
 
   const resultadosBusquedaHero = useMemo(() => {
     const q = busquedaGlobal.trim().toLowerCase();
@@ -2405,10 +2606,11 @@ export default function PortalFacultadCienciasMatematicas() {
                 {docentesFiltradosHome.map((doc) => {
                   const temaDoc = TEMA_CARRERA[doc.carrera_id];
                   const nombreEscuela = carreras.find((c) => c.id === doc.carrera_id)?.nombre || "FCM";
+                  const statsDoc = obtenerEstadisticasDocente(doc.id);
                   return (
                     <div
                       key={doc.id}
-                      onClick={() => setDocenteModalActivo(doc)}
+                      onClick={() => abrirModalDocente(doc)}
                       className={`group rounded-2xl bg-white border border-slate-200 ${temaDoc.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
                     >
                       <div>
@@ -2441,6 +2643,23 @@ export default function PortalFacultadCienciasMatematicas() {
                           <h3 className={`text-sm sm:text-base font-extrabold text-[#002855] ${temaDoc.groupHoverText} transition-colors leading-snug`}>
                             {doc.grado_academico} {doc.nombre_completo}
                           </h3>
+
+                          {/* Badge sutil de promedio de estrellas y votos debajo del nombre */}
+                          <div className="flex items-center justify-center">
+                            {statsDoc.total > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-extrabold text-amber-800">
+                                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                                <span>{statsDoc.promedio.toFixed(1)}</span>
+                                <span className="text-amber-600 font-semibold">({statsDoc.total})</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">
+                                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                                <span>Nuevo • Calificar</span>
+                              </span>
+                            )}
+                          </div>
+
                           <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
                             {doc.especialidad}
                           </p>
@@ -2448,7 +2667,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       </div>
 
                       <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] font-extrabold text-[#002855] group-hover:text-red-700">
-                        <span>Ver Ficha y Cursos</span>
+                        <span>Ver Ficha y Calificar</span>
                         <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
@@ -3259,7 +3478,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     { id: "carreras_cms", label: "🏛️ Gestión de Carreras" },
                     { id: "noticias", label: `📰 Noticias (${noticias.length})` },
                     { id: "docentes_cms", label: `👨‍🏫 Docentes (${docentes.length})` },
-                    { id: "moderacion", label: `🛡️ Moderación (${materialesPendientes.length})` },
+                    { id: "moderacion", label: `🛡️ Moderación (${materialesPendientes.length + resenasDocentes.length})` },
                     { id: "storage", label: `🖼️ Imágenes Storage (${imagenesStorage.length})` },
                     { id: "malla", label: `🎓 Mallas (${malla.length})` },
                     { id: "soporte", label: `📬 Soporte (${tickets.length})` },
@@ -4035,57 +4254,165 @@ export default function PortalFacultadCienciasMatematicas() {
               )}
 
               {tabAdmin === "moderacion" && (
-                <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-                  {materialesPendientes.length === 0 ? (
-                    <div className="p-12 text-center space-y-2">
-                      <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                      <h3 className="text-base font-bold text-slate-900">No hay archivos pendientes de moderación</h3>
+                <div className="space-y-8">
+                  {/* SECCIÓN 1: MODERACIÓN DE RESEÑAS Y CALIFICACIONES DE DOCENTES */}
+                  <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                    <div className="bg-[#002855] text-white px-5 py-4 flex flex-wrap items-center justify-between gap-2 border-b-2 border-red-700">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                        <h3 className="text-sm font-extrabold">
+                          Moderación de Calificaciones y Reseñas de Docentes ({resenasDocentes.length})
+                        </h3>
+                      </div>
+                      <span className="text-[11px] text-blue-200">
+                        Sincronizado en <code className="text-amber-300 font-bold">portal_config.resenas_docentes</code>
+                      </span>
                     </div>
-                  ) : (
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="bg-[#002855] text-white uppercase text-[11px]">
-                          <th className="py-3.5 px-4">Material</th>
-                          <th className="py-3.5 px-4">Carrera / Curso</th>
-                          <th className="py-3.5 px-4">Docente</th>
-                          <th className="py-3.5 px-4 text-right">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200">
-                        {materialesPendientes.map((m) => {
-                          const curso = malla.find((c) => c.id === m.curso_id);
-                          const carrera = carreras.find((ca) => ca.id === m.carrera_id);
-                          return (
-                            <tr key={m.id}>
-                              <td className="py-4 px-4 font-bold text-[#002855]">{m.titulo}</td>
-                              <td className="py-4 px-4">{carrera?.nombre} • [{curso?.codigo}] {curso?.nombre_curso}</td>
-                              <td className="py-4 px-4">{m.docente}</td>
-                              <td className="py-4 px-4 text-right space-x-2">
-                                <button
-                                  onClick={() => {
-                                    setMateriales((prev) => prev.map((item) => (item.id === m.id ? { ...item, estado: "aprobado" } : item)));
-                                    lanzarToast("✅ Material aprobado.");
-                                  }}
-                                  className="px-3 py-1.5 rounded-lg bg-[#002855] text-white font-bold"
-                                >
-                                  ✅ Aprobar
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setMateriales((prev) => prev.filter((item) => item.id !== m.id));
-                                    lanzarToast("❌ Material rechazado.");
-                                  }}
-                                  className="px-3 py-1.5 rounded-lg bg-red-700 text-white font-bold"
-                                >
-                                  ❌ Rechazar
-                                </button>
-                              </td>
+
+                    {resenasDocentes.length === 0 ? (
+                      <div className="p-10 text-center space-y-2">
+                        <Star className="w-8 h-8 text-slate-300 mx-auto" />
+                        <p className="text-sm font-bold text-slate-700">Aún no se han registrado reseñas de docentes.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-slate-100 text-slate-700 uppercase text-[10px] border-b border-slate-200">
+                              <th className="py-3 px-4">Docente Evaluado</th>
+                              <th className="py-3 px-4">Calificación</th>
+                              <th className="py-3 px-4">Curso / Autor</th>
+                              <th className="py-3 px-4">Comentario de la Reseña</th>
+                              <th className="py-3 px-4">Estado</th>
+                              <th className="py-3 px-4 text-right">Acciones</th>
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
+                          </thead>
+                          <tbody className="divide-y divide-slate-200">
+                            {resenasDocentes.map((resena) => {
+                              const docInfo = docentes.find((d) => d.id === resena.docente_id);
+                              return (
+                                <tr key={resena.id} className="hover:bg-slate-50/80">
+                                  <td className="py-3.5 px-4 font-extrabold text-[#002855]">
+                                    {docInfo ? `${docInfo.grado_academico} ${docInfo.nombre_completo}` : resena.docente_id}
+                                    <div className="text-[10px] font-normal text-slate-400">{resena.fecha}</div>
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 font-extrabold text-amber-800">
+                                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                                      <span>{resena.puntuacion}.0</span>
+                                    </div>
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <div className="font-bold text-slate-800">{resena.curso}</div>
+                                    <div className="text-[11px] text-slate-500">Por: {resena.autor_alias}</div>
+                                  </td>
+                                  <td className="py-3.5 px-4 max-w-md">
+                                    <p className="text-slate-700 leading-relaxed line-clamp-3">{resena.comentario}</p>
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    {resena.estado === "aprobado" ? (
+                                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold uppercase">
+                                        Pública
+                                      </span>
+                                    ) : (
+                                      <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold uppercase">
+                                        Oculta / Pendiente
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="py-3.5 px-4 text-right whitespace-nowrap space-x-1.5">
+                                    {resena.estado === "pendiente" ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleCambiarEstadoResenaAdmin(resena.id, "aprobado")}
+                                        className="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-bold cursor-pointer"
+                                      >
+                                        ✅ Aprobar
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleCambiarEstadoResenaAdmin(resena.id, "pendiente")}
+                                        className="px-2.5 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold cursor-pointer"
+                                      >
+                                        ⏸️ Ocultar
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEliminarResenaDocenteAdmin(resena.id)}
+                                      className="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-700 text-red-700 hover:text-white text-[11px] font-bold transition-colors cursor-pointer"
+                                    >
+                                      🗑️ Eliminar
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SECCIÓN 2: MODERACIÓN DE ARCHIVOS DEL REPOSITORIO ESTUDIANTIL */}
+                  <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                    <div className="bg-slate-100 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+                      <h3 className="text-sm font-extrabold text-[#002855]">
+                        Archivos del Repositorio Pendientes de Aprobación ({materialesPendientes.length})
+                      </h3>
+                    </div>
+                    {materialesPendientes.length === 0 ? (
+                      <div className="p-10 text-center space-y-2">
+                        <CheckCircle2 className="w-9 h-9 text-emerald-600 mx-auto" />
+                        <h3 className="text-sm font-bold text-slate-900">No hay archivos pendientes de moderación</h3>
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="bg-[#002855] text-white uppercase text-[11px]">
+                            <th className="py-3.5 px-4">Material</th>
+                            <th className="py-3.5 px-4">Carrera / Curso</th>
+                            <th className="py-3.5 px-4">Docente</th>
+                            <th className="py-3.5 px-4 text-right">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {materialesPendientes.map((m) => {
+                            const curso = malla.find((c) => c.id === m.curso_id);
+                            const carrera = carreras.find((ca) => ca.id === m.carrera_id);
+                            return (
+                              <tr key={m.id}>
+                                <td className="py-4 px-4 font-bold text-[#002855]">{m.titulo}</td>
+                                <td className="py-4 px-4">{carrera?.nombre} • [{curso?.codigo}] {curso?.nombre_curso}</td>
+                                <td className="py-4 px-4">{m.docente}</td>
+                                <td className="py-4 px-4 text-right space-x-2">
+                                  <button
+                                    onClick={() => {
+                                      setMateriales((prev) => prev.map((item) => (item.id === m.id ? { ...item, estado: "aprobado" } : item)));
+                                      lanzarToast("✅ Material aprobado.");
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg bg-[#002855] text-white font-bold"
+                                  >
+                                    ✅ Aprobar
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setMateriales((prev) => prev.filter((item) => item.id !== m.id));
+                                      lanzarToast("❌ Material rechazado.");
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg bg-red-700 text-white font-bold"
+                                  >
+                                    ❌ Rechazar
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -4248,159 +4575,444 @@ export default function PortalFacultadCienciasMatematicas() {
         </div>
       )}
 
-      {/* MODAL INFORMATIVO DE FICHA COMPLETA DEL DOCENTE */}
-      {docenteModalActivo && (
-        <div
-          onClick={() => setDocenteModalActivo(null)}
-          className="fixed inset-0 z-50 bg-slate-900/75 flex items-center justify-center p-4 overflow-y-auto"
-        >
+      {/* MODAL INFORMATIVO DE FICHA COMPLETA DEL DOCENTE + SISTEMA DE CALIFICACIÓN Y RESEÑAS */}
+      {docenteModalActivo && (() => {
+        const statsModal = obtenerEstadisticasDocente(docenteModalActivo.id);
+        const estrellaActiva = hoverEstrellaDocente || formResenaDocente.puntuacion;
+        const etiquetasEstrellas: Record<number, string> = {
+          1: "1★ • Necesita mejorar metodología",
+          2: "2★ • Regular / Poco claro",
+          3: "3★ • Buen docente / Cumple el sílabo",
+          4: "4★ • Muy buen docente / Recomendado",
+          5: "5★ • Excelente cátedra y dominio académico",
+        };
+
+        return (
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="max-w-2xl w-full rounded-3xl border-2 border-[#002855] bg-white overflow-hidden shadow-2xl"
+            onClick={() => setDocenteModalActivo(null)}
+            className="fixed inset-0 z-50 bg-slate-900/75 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
           >
-            <div className={`${TEMA_CARRERA[docenteModalActivo.carrera_id].headerBg} text-white p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 ${TEMA_CARRERA[docenteModalActivo.carrera_id].borderAccent}`}>
-              <div className="flex items-center gap-4">
-                {docenteModalActivo.foto_url ? (
-                  <img
-                    src={docenteModalActivo.foto_url}
-                    alt={docenteModalActivo.nombre_completo}
-                    className="w-20 h-20 rounded-2xl object-cover border-2 border-white/80 shadow-md shrink-0"
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-2xl bg-black/30 border-2 border-white/60 flex items-center justify-center text-2xl font-extrabold text-white shrink-0">
-                    {obtenerInicialesDocente(docenteModalActivo.nombre_completo)}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-3xl w-full max-h-[92vh] overflow-y-auto rounded-3xl border-2 border-[#002855] bg-white shadow-2xl"
+            >
+              <div className={`${TEMA_CARRERA[docenteModalActivo.carrera_id].headerBg} text-white p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 ${TEMA_CARRERA[docenteModalActivo.carrera_id].borderAccent} sticky top-0 z-10`}>
+                <div className="flex items-center gap-4">
+                  {docenteModalActivo.foto_url ? (
+                    <img
+                      src={docenteModalActivo.foto_url}
+                      alt={docenteModalActivo.nombre_completo}
+                      className="w-20 h-20 rounded-2xl object-cover border-2 border-white/80 shadow-md shrink-0"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-2xl bg-black/30 border-2 border-white/60 flex items-center justify-center text-2xl font-extrabold text-white shrink-0">
+                      {obtenerInicialesDocente(docenteModalActivo.nombre_completo)}
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded bg-black/30 text-[10px] font-extrabold uppercase tracking-wider text-white border border-white/20">
+                        Escuela de {carreras.find((c) => c.id === docenteModalActivo.carrera_id)?.nombre}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded bg-white/20 text-[10px] font-bold text-white">
+                        Docente {docenteModalActivo.categoria_docente} • {docenteModalActivo.condicion}
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/60 text-[11px] font-extrabold text-amber-200">
+                        <Star className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                        <span>
+                          {statsModal.total > 0
+                            ? `${statsModal.promedio.toFixed(1)} / 5.0 (${statsModal.total})`
+                            : "Sin calificaciones aún"}
+                        </span>
+                      </span>
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-extrabold text-white leading-snug">
+                      {docenteModalActivo.grado_academico} {docenteModalActivo.nombre_completo}
+                    </h3>
+                    <p className="text-xs text-white/90 font-mono">{docenteModalActivo.correo}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDocenteModalActivo(null)}
+                  className="self-start sm:self-center px-3.5 py-1.5 rounded-xl bg-black/25 hover:bg-black/40 text-xs font-bold text-white cursor-pointer shrink-0"
+                >
+                  ✕ Cerrar
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6 text-xs sm:text-sm">
+                <div className="space-y-1.5">
+                  <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
+                    Área de Especialidad Académica
+                  </h4>
+                  <p className="text-slate-800 font-semibold leading-relaxed">{docenteModalActivo.especialidad}</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
+                    Líneas de Investigación Activas
+                  </h4>
+                  <p className="text-slate-600 leading-relaxed">{docenteModalActivo.lineas_investigacion}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
+                    Asignaturas a su Cargo
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {docenteModalActivo.cursos_dictados.map((cursoStr, i) => (
+                      <span
+                        key={i}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold border ${TEMA_CARRERA[docenteModalActivo.carrera_id].badgeSoft}`}
+                      >
+                        {cursoStr}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-2xl bg-slate-50 border border-slate-200 p-4 text-xs">
+                  <div className="flex items-start gap-2.5">
+                    <Mail className={`w-4 h-4 shrink-0 mt-0.5 ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`} />
+                    <div>
+                      <p className="font-bold text-slate-500 uppercase text-[10px]">Correo Institucional</p>
+                      <p className="font-mono font-bold text-slate-900 break-all">{docenteModalActivo.correo}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Clock className={`w-4 h-4 shrink-0 mt-0.5 ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`} />
+                    <div>
+                      <p className="font-bold text-slate-500 uppercase text-[10px]">Horario de Asesoría</p>
+                      <p className="font-semibold text-slate-800">{docenteModalActivo.horario_asesoria}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {(docenteModalActivo.cti_vitae_url ||
+                  docenteModalActivo.orcid_url ||
+                  docenteModalActivo.google_scholar_url ||
+                  docenteModalActivo.linkedin_url) && (
+                  <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-xs font-bold text-slate-500">Perfiles Científicos e Investigación:</span>
+                    <div className="flex flex-wrap gap-2">
+                      {docenteModalActivo.cti_vitae_url && (
+                        <a
+                          href={docenteModalActivo.cti_vitae_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-1.5"
+                        >
+                          <span>CTI Vitae</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                      {docenteModalActivo.orcid_url && (
+                        <a
+                          href={docenteModalActivo.orcid_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5"
+                        >
+                          <span>ORCID</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                      {docenteModalActivo.google_scholar_url && (
+                        <a
+                          href={docenteModalActivo.google_scholar_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold flex items-center gap-1.5"
+                        >
+                          <span>Google Scholar</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                      {docenteModalActivo.linkedin_url && (
+                        <a
+                          href={docenteModalActivo.linkedin_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5"
+                        >
+                          <span>LinkedIn</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded bg-black/30 text-[10px] font-extrabold uppercase tracking-wider text-white border border-white/20">
-                      Escuela de {carreras.find((c) => c.id === docenteModalActivo.carrera_id)?.nombre}
+
+                {/* ====================================================================
+                    SECCIÓN DESTACADA: ⭐ CALIFICACIONES Y OPINIONES ESTUDIANTILES
+                   ==================================================================== */}
+                <div className="pt-6 border-t-2 border-slate-200 space-y-6">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                      <h4 className="text-base font-extrabold text-[#002855]">
+                        ⭐ Calificaciones y Opiniones Estudiantiles
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-500">
+                      Comunidad Estudiantil FCM - UNMSM
                     </span>
-                    <span className="px-2.5 py-0.5 rounded bg-white/20 text-[10px] font-bold text-white">
-                      Docente {docenteModalActivo.categoria_docente} • {docenteModalActivo.condicion}
-                    </span>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-extrabold text-white leading-snug">
-                    {docenteModalActivo.grado_academico} {docenteModalActivo.nombre_completo}
-                  </h3>
-                  <p className="text-xs text-white/90 font-mono">{docenteModalActivo.correo}</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDocenteModalActivo(null)}
-                className="self-start sm:self-center px-3 py-1.5 rounded-xl bg-black/25 hover:bg-black/40 text-xs font-bold text-white cursor-pointer"
-              >
-                ✕ Cerrar
-              </button>
-            </div>
 
-            <div className="p-6 space-y-5 text-xs sm:text-sm">
-              <div className="space-y-1.5">
-                <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
-                  Área de Especialidad Académica
-                </h4>
-                <p className="text-slate-800 font-semibold leading-relaxed">{docenteModalActivo.especialidad}</p>
-              </div>
+                  {/* 1. RESUMEN GENERAL + DISTRIBUCIÓN DE ESTRELLAS */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center rounded-2xl bg-slate-50 border border-slate-200 p-5">
+                    <div className="sm:col-span-5 text-center sm:border-r border-slate-200 sm:pr-4 space-y-1.5">
+                      <div className="text-3xl sm:text-4xl font-extrabold text-[#002855]">
+                        {statsModal.total > 0 ? statsModal.promedio.toFixed(1) : "—"}
+                        <span className="text-lg font-bold text-slate-400"> / 5.0</span>
+                      </div>
+                      <div className="flex items-center justify-center gap-1">
+                        {[1, 2, 3, 4, 5].map((starIndex) => {
+                          const rellena = statsModal.total > 0 && starIndex <= Math.round(statsModal.promedio);
+                          return (
+                            <Star
+                              key={starIndex}
+                              className={`w-5 h-5 ${
+                                rellena ? "text-amber-400 fill-amber-400" : "text-slate-300"
+                              }`}
+                            />
+                          );
+                        })}
+                      </div>
+                      <p className="text-[11px] font-bold text-slate-600">
+                        {statsModal.total > 0
+                          ? `Basado en ${statsModal.total} ${statsModal.total === 1 ? "reseña" : "reseñas"} de estudiantes`
+                          : "Aún sin calificaciones registradas"}
+                      </p>
+                    </div>
 
-              <div className="space-y-1.5">
-                <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
-                  Líneas de Investigación Activas
-                </h4>
-                <p className="text-slate-600 leading-relaxed">{docenteModalActivo.lineas_investigacion}</p>
-              </div>
+                    <div className="sm:col-span-7 space-y-2">
+                      {statsModal.distribucion.map((fila) => (
+                        <div key={fila.estrellas} className="flex items-center gap-2.5 text-xs">
+                          <span className="w-8 font-extrabold text-slate-700 flex items-center gap-0.5 shrink-0">
+                            {fila.estrellas} <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                          </span>
+                          <div className="flex-1 h-2.5 rounded-full bg-slate-200 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-amber-400 transition-all duration-300"
+                              style={{ width: `${fila.porcentaje}%` }}
+                            />
+                          </div>
+                          <span className="w-12 text-right font-mono text-[11px] font-bold text-slate-600">
+                            {fila.porcentaje}% ({fila.cantidad})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
-                  Asignaturas a su Cargo
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {docenteModalActivo.cursos_dictados.map((cursoStr, i) => (
-                    <span
-                      key={i}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold border ${TEMA_CARRERA[docenteModalActivo.carrera_id].badgeSoft}`}
-                    >
-                      {cursoStr}
-                    </span>
-                  ))}
-                </div>
-              </div>
+                  {/* 2. FORMULARIO DE ENVÍO DE RESEÑA (1 A 5 ESTRELLAS + COMENTARIO) */}
+                  <form
+                    onSubmit={handleEnviarResenaDocente}
+                    className="rounded-2xl border-2 border-blue-900/15 bg-blue-50/35 p-5 space-y-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h5 className="text-xs sm:text-sm font-extrabold text-[#002855]">
+                        Califica al docente y comparte tu experiencia académica
+                      </h5>
+                      <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                        {etiquetasEstrellas[estrellaActiva]}
+                      </span>
+                    </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-2xl bg-slate-50 border border-slate-200 p-4 text-xs">
-                <div className="flex items-start gap-2.5">
-                  <Mail className={`w-4 h-4 shrink-0 mt-0.5 ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`} />
-                  <div>
-                    <p className="font-bold text-slate-500 uppercase text-[10px]">Correo Institucional</p>
-                    <p className="font-mono font-bold text-slate-900 break-all">{docenteModalActivo.correo}</p>
+                    {/* Selector interactivo de 1 a 5 estrellas con hover animado */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600">
+                        Selecciona tu calificación (1 a 5 estrellas) *
+                      </label>
+                      <div className="flex items-center gap-2">
+                        {[1, 2, 3, 4, 5].map((valor) => {
+                          const iluminada = valor <= estrellaActiva;
+                          return (
+                            <button
+                              key={valor}
+                              type="button"
+                              onMouseEnter={() => setHoverEstrellaDocente(valor)}
+                              onMouseLeave={() => setHoverEstrellaDocente(0)}
+                              onClick={() => setFormResenaDocente((prev) => ({ ...prev, puntuacion: valor }))}
+                              aria-label={`Calificar con ${valor} estrellas`}
+                              className="p-1.5 rounded-xl bg-white border border-slate-200 hover:border-amber-400 hover:scale-110 transition-all cursor-pointer shadow-2xs"
+                            >
+                              <Star
+                                className={`w-6 h-6 transition-colors ${
+                                  iluminada ? "text-amber-400 fill-amber-400" : "text-slate-300"
+                                }`}
+                              />
+                            </button>
+                          );
+                        })}
+                        <span className="ml-2 text-xs font-extrabold text-[#002855]">
+                          {formResenaDocente.puntuacion}.0 / 5.0
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Selector de curso llevado + Alias del estudiante */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-bold text-slate-700">
+                          Asignatura cursada con el docente *
+                        </label>
+                        <select
+                          value={formResenaDocente.curso}
+                          onChange={(e) => setFormResenaDocente((prev) => ({ ...prev, curso: e.target.value }))}
+                          className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-800"
+                        >
+                          {docenteModalActivo.cursos_dictados.map((c, idx) => (
+                            <option key={idx} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                          <option value="Otro curso de la Escuela">Otro curso de la Escuela</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-bold text-slate-700">Tu Nombre o Alias</label>
+                          <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#002855] cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formResenaDocente.esAnonimo}
+                              onChange={(e) =>
+                                setFormResenaDocente((prev) => ({ ...prev, esAnonimo: e.target.checked }))
+                              }
+                              className="rounded border-slate-300"
+                            />
+                            <span>Publicar como Anónimo</span>
+                          </label>
+                        </div>
+                        <input
+                          type="text"
+                          disabled={formResenaDocente.esAnonimo}
+                          value={
+                            formResenaDocente.esAnonimo
+                              ? "Estudiante Anónimo FCM"
+                              : formResenaDocente.autor_alias
+                          }
+                          onChange={(e) =>
+                            setFormResenaDocente((prev) => ({ ...prev, autor_alias: e.target.value }))
+                          }
+                          placeholder="Ej. Alumno de 5to Ciclo / Estudiante FCM"
+                          className="w-full rounded-xl bg-white disabled:bg-slate-100 border border-slate-300 px-3 py-2 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Comentario del porqué de la calificación */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-bold text-slate-700">
+                        ¿Por qué das esta calificación? (Metodología, exigencia, puntualidad, consejos) *
+                      </label>
+                      <textarea
+                        rows={3}
+                        required
+                        value={formResenaDocente.comentario}
+                        onChange={(e) =>
+                          setFormResenaDocente((prev) => ({ ...prev, comentario: e.target.value }))
+                        }
+                        placeholder="¿Por qué das esta calificación? Describe la metodología, nivel de exigencia, puntualidad o recomendaciones para futuros alumnos..."
+                        className="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2.5 text-xs leading-relaxed"
+                      />
+                    </div>
+
+                    {errorResenaDocente && (
+                      <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{errorResenaDocente}</span>
+                      </div>
+                    )}
+
+                    {exitoResenaDocente && (
+                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                        <span>
+                          ¡Reseña publicada con éxito! Tu valoración ya forma parte del promedio del docente.
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold flex items-center gap-2 shadow-sm cursor-pointer"
+                      >
+                        <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                        <span>Enviar Reseña del Docente</span>
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* 3. MURO DE RESEÑAS PÚBLICAS DEL DOCENTE */}
+                  <div className="space-y-3">
+                    <h5 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                      Opiniones de Estudiantes ({statsModal.total})
+                    </h5>
+
+                    {statsModal.aprobadas.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center space-y-1.5">
+                        <Star className="w-7 h-7 text-amber-400 mx-auto" />
+                        <p className="text-xs font-extrabold text-[#002855]">
+                          Este docente aún no tiene reseñas registradas
+                        </p>
+                        <p className="text-[11px] text-slate-500">
+                          ¡Sé el primer estudiante de la FCM en calificar y dejar una recomendación!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {statsModal.aprobadas.map((resena) => (
+                          <div
+                            key={resena.id}
+                            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-0.5">
+                                  {[1, 2, 3, 4, 5].map((s) => (
+                                    <Star
+                                      key={s}
+                                      className={`w-3.5 h-3.5 ${
+                                        s <= resena.puntuacion
+                                          ? "text-amber-400 fill-amber-400"
+                                          : "text-slate-200"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-xs font-extrabold text-[#002855]">
+                                  {resena.autor_alias}
+                                </span>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                    TEMA_CARRERA[docenteModalActivo.carrera_id].badgeSoft
+                                  }`}
+                                >
+                                  {resena.curso}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-slate-400 font-medium">
+                                {formatearFechaEspanol(resena.fecha)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-700 leading-relaxed">{resena.comentario}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-start gap-2.5">
-                  <Clock className={`w-4 h-4 shrink-0 mt-0.5 ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`} />
-                  <div>
-                    <p className="font-bold text-slate-500 uppercase text-[10px]">Horario de Asesoría</p>
-                    <p className="font-semibold text-slate-800">{docenteModalActivo.horario_asesoria}</p>
-                  </div>
-                </div>
               </div>
-
-              {(docenteModalActivo.cti_vitae_url ||
-                docenteModalActivo.orcid_url ||
-                docenteModalActivo.google_scholar_url ||
-                docenteModalActivo.linkedin_url) && (
-                <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-xs font-bold text-slate-500">Perfiles Científicos e Investigación:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {docenteModalActivo.cti_vitae_url && (
-                      <a
-                        href={docenteModalActivo.cti_vitae_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-1.5"
-                      >
-                        <span>CTI Vitae</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                    {docenteModalActivo.orcid_url && (
-                      <a
-                        href={docenteModalActivo.orcid_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5"
-                      >
-                        <span>ORCID</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                    {docenteModalActivo.google_scholar_url && (
-                      <a
-                        href={docenteModalActivo.google_scholar_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold flex items-center gap-1.5"
-                      >
-                        <span>Google Scholar</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                    {docenteModalActivo.linkedin_url && (
-                      <a
-                        href={docenteModalActivo.linkedin_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5"
-                      >
-                        <span>LinkedIn</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* COMPONENTE GLOBAL <Footer /> */}
       <Footer
