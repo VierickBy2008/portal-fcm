@@ -1666,6 +1666,12 @@ export default function PortalFacultadCienciasMatematicas() {
       return;
     }
 
+    if (carreraActiva.id === "computacion-cientifica") {
+      window.open("/tripticos/triptico-computacion-cientifica.html", "_blank");
+      lanzarToast("💻 Abriendo Tríptico Oficial de Computación Científica (2 caras listas para imprimir/PDF)...");
+      return;
+    }
+
     const win = window.open("", "_blank", "width=1050,height=800");
     if (!win) {
       window.print();

@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tríptico Oficial — Computación Científica | FCM UNMSM</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    @page {
+      size: 297mm 210mm;
+      margin: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b1320;
+      color: #0f172a;
+      margin: 0;
+      padding: 64px 0 40px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .toolbar-no-print {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      background: rgba(7, 25, 51, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid #00b4d8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 9999;
+      color: #ffffff;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    }
+
+    .toolbar-title {
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toolbar-badge {
+      background: #0096c7;
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .toolbar-btn {
+      background: linear-gradient(90deg, #00b4d8, #0077b6);
+      color: #ffffff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0, 180, 216, 0.35);
+    }
+
+    .toolbar-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .sheet {
+      width: 297mm;
+      height: 210mm;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 99mm 99mm 99mm;
+      background: #ffffff;
+      page-break-after: always;
+      break-after: page;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      border-radius: 4px;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+        display: block;
+      }
+      .toolbar-no-print {
+        display: none !important;
+      }
+      .sheet {
+        box-shadow: none;
+        border-radius: 0;
+        margin: 0;
+      }
+    }
+
+    /* Líneas de pliegue sutiles */
+    .fold-line-1, .fold-line-2 {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      border-right: 1px dashed rgba(148, 163, 184, 0.28);
+      z-index: 50;
+      pointer-events: none;
+    }
+    .fold-line-1 { left: 99mm; }
+    .fold-line-2 { left: 198mm; }
+
+    /* ==========================================================================
+       PÁGINA 1: CARA EXTERNA (SOLAPA + CONTRAPORTADA + PORTADA)
+       ========================================================================== */
+
+    /* COLUMNA 1 EXTERNA: LÍNEAS DE INVESTIGACIÓN + POR QUÉ ESTUDIAR */
+    .ext-col-1 {
+      background:
+        radial-gradient(#cbd5e1 0.8px, transparent 0.8px) 0 0 / 14px 14px,
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      padding: 9mm 7.5mm 8mm 8.5mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .ext-col-1::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3.5mm;
+      background: linear-gradient(90deg, #0077b6, #00b4d8);
+    }
+
+    .sec-question {
+      font-size: 13.5pt;
+      font-weight: 500;
+      color: #0b2545;
+      line-height: 1.15;
+      margin-bottom: 3.5mm;
+      letter-spacing: -0.2px;
+    }
+
+    .sec-question strong {
+      display: block;
+      font-size: 15pt;
+      font-weight: 900;
+      color: #03396c;
+      letter-spacing: -0.3px;
+      margin-top: 0.5mm;
+    }
+
+    .arrow-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3mm;
+    }
+
+    .arrow-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 2.8mm;
+    }
+
+    .arrow-icon {
+      width: 5.2mm;
+      height: 5.2mm;
+      flex-shrink: 0;
+      margin-top: 0.4mm;
+      color: #0077b6;
+    }
+
+    .arrow-text {
+      font-size: 8.6pt;
+      line-height: 1.38;
+      color: #1e293b;
+    }
+
+    .arrow-text strong {
+      display: block;
+      font-size: 9.2pt;
+      font-weight: 800;
+      color: #071e3d;
+      margin-bottom: 0.3mm;
+    }
+
+    .code-tag-inline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7pt;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 0.4mm 1.5mm;
+      border-radius: 3px;
+      font-weight: 700;
+      border: 1px solid #bae6fd;
+    }
+
+    .check-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2.8mm;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 2.8mm;
+    }
+
+    .check-badge {
+      width: 5.2mm;
+      height: 5.2mm;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0096c7, #023e8a);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.4mm;
+      box-shadow: 0 2px 5px rgba(0, 150, 199, 0.3);
+    }
+
+    .check-text {
+      font-size: 8.5pt;
+      line-height: 1.36;
+      color: #1e293b;
+    }
+
+    .check-text strong {
+      color: #071e3d;
+      font-weight: 700;
+    }
+
+    /* COLUMNA 2 EXTERNA: SABÍAS QUE + CONTACTO + QR */
+    .ext-col-2 {
+      background: linear-gradient(180deg, #072244 0%, #051933 100%);
+      color: #ffffff;
+      padding: 9mm 7.5mm 8mm 7.5mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Fondo decorativo de red neuronal sutil */
+    .bg-grid-tech {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 180, 216, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 180, 216, 0.05) 1px, transparent 1px);
+      background-size: 18px 18px;
+      pointer-events: none;
+    }
+
+    .sabias-card {
+      position: relative;
+      background: linear-gradient(145deg, #0d5c9e 0%, #063d70 100%);
+      border-radius: 6mm;
+      padding: 9mm 5mm 5mm 5mm;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      margin-top: 2mm;
+    }
+
+    .sabias-ribbon {
+      position: absolute;
+      top: -3.5mm;
+      left: 4mm;
+      background: linear-gradient(90deg, #00b4d8, #0096c7);
+      color: #ffffff;
+      padding: 1.6mm 4.5mm;
+      border-radius: 2mm;
+      font-weight: 800;
+      font-size: 9.5pt;
+      display: flex;
+      align-items: center;
+      gap: 2mm;
+      box-shadow: -3px 3px 0 #ffffff, 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .sabias-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5mm;
+    }
+
+    .sabias-top-row {
+      display: flex;
+      align-items: center;
+      gap: 3.5mm;
+    }
+
+    .lorenz-circle {
+      width: 24mm;
+      height: 24mm;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, #081c38 0%, #000814 100%);
+      border: 2px solid #38bdf8;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sabias-p {
+      font-size: 8.3pt;
+      line-height: 1.4;
+      color: #f0f9ff;
+    }
+
+    .sabias-p strong {
+      color: #7dd3fc;
+      font-weight: 800;
+    }
+
+    .sabias-code-bar {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.8pt;
+      background: rgba(2, 6, 23, 0.65);
+      color: #38bdf8;
+      padding: 1.5mm 2.5mm;
+      border-radius: 2mm;
+      border-left: 2.5px solid #00b4d8;
+    }
+
+    .contacto-block {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.4mm;
+    }
+
+    .contacto-header {
+      width: 100%;
+      background: linear-gradient(90deg, #1b88b8 0%, #2ca5d6 100%);
+      color: #ffffff;
+      font-size: 13pt;
+      font-weight: 900;
+      padding: 2mm 4mm;
+      letter-spacing: 0.8px;
+      text-align: left;
+      border-radius: 1.5mm;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .contacto-mail-box {
+      width: 100%;
+      text-align: left;
+      margin-top: 0.5mm;
+    }
+
+    .contacto-label {
+      font-size: 8.5pt;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.4px;
+    }
+
+    .contacto-mail {
+      font-size: 8.5pt;
+      font-style: italic;
+      color: #7dd3fc;
+      word-break: break-all;
+    }
+
+    .contacto-facultad {
+      font-size: 9.5pt;
+      font-weight: 800;
+      color: #67e8f9;
+      line-height: 1.25;
+      margin-top: 1mm;
+    }
+
+    .contacto-phone {
+      font-size: 8.8pt;
+      color: #ffffff;
+    }
+
+    .contacto-address {
+      font-size: 8.2pt;
+      color: #cbd5e1;
+      line-height: 1.3;
+    }
+
+    .qr-wrapper {
+      background: #ffffff;
+      padding: 2.5mm;
+      border-radius: 3mm;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1mm;
+      margin-top: 1mm;
+    }
+
+    .qr-caption {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.2pt;
+      font-weight: 700;
+      color: #072244;
+      text-transform: uppercase;
+    }
+
+    /* COLUMNA 3 EXTERNA: PORTADA PRINCIPAL */
+    .ext-col-3 {
+      background: #072244;
+      color: #ffffff;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+    }
+
+    .cover-photo-container {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 92mm;
+      height: 128mm;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .cover-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      filter: contrast(1.06) saturate(1.08);
+    }
+
+    /* Tarjeta flotante de código sobre la foto para darle el toque informático */
+    .floating-terminal {
+      position: absolute;
+      top: 6mm;
+      right: 4mm;
+      z-index: 10;
+      background: rgba(9, 18, 36, 0.88);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      border-radius: 2.5mm;
+      padding: 2mm 3mm;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.4pt;
+      color: #e2e8f0;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+      max-width: 58mm;
+    }
+
+    .term-dots {
+      display: flex;
+      gap: 1.2mm;
+      margin-bottom: 1.2mm;
+    }
+
+    .term-dot {
+      width: 2mm;
+      height: 2mm;
+      border-radius: 50%;
+    }
+
+    .cover-waves-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .cover-text-block {
+      position: relative;
+      z-index: 5;
+      padding: 0 6mm 7mm 6.5mm;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5mm;
+    }
+
+    .cover-pregrado-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.8mm;
+      font-size: 11pt;
+      font-weight: 800;
+      color: #7dd3fc;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .cover-main-title {
+      font-size: 23pt;
+      font-weight: 900;
+      line-height: 1.02;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      text-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+    }
+
+    .cover-sub-tech {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.2pt;
+      color: #38bdf8;
+      letter-spacing: 0.3px;
+    }
+
+    .cover-unmsm-info {
+      text-align: center;
+      margin-top: 2mm;
+      padding-top: 2.5mm;
+      border-top: 1px solid rgba(125, 211, 252, 0.25);
+    }
+
+    .cover-unmsm-name {
+      font-size: 8.2pt;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.2px;
+    }
+
+    .cover-unmsm-decana {
+      font-size: 7.5pt;
+      color: #cbd5e1;
+      margin-top: 0.4mm;
+    }
+
+    .cover-fcm-box {
+      background: linear-gradient(90deg, #005b96 0%, #03396c 100%);
+      border-left: 3.5px solid #00b4d8;
+      padding: 2.5mm 3mm;
+      border-radius: 1.5mm;
+      text-align: center;
+      margin-top: 1mm;
+    }
+
+    .cover-fcm-title {
+      font-size: 9pt;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 0.3px;
+    }
+
+    .cover-fcm-sub {
+      font-size: 7.6pt;
+      color: #bae6fd;
+      margin-top: 0.4mm;
+    }
+
+    /* ==========================================================================
+       PÁGINA 2: CARA INTERNA (QUÉ ES + GRADO Y QUÉ HACE + ÁMBITO LABORAL)
+       ========================================================================== */
+
+    /* COLUMNA 1 INTERNA */
+    .int-col-1 {
+      background: #ffffff;
+      padding: 9mm 7.5mm 0 8.5mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .int-intro-p {
+      font-size: 8.6pt;
+      line-height: 1.42;
+      color: #334155;
+      text-align: justify;
+      margin-bottom: 2.8mm;
+    }
+
+    .int-intro-lead {
+      font-size: 8.8pt;
+      font-weight: 700;
+      color: #072244;
+      margin-bottom: 2.5mm;
+    }
+
+    .int-Check-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2.4mm;
+    }
+
+    /* Ilustración inferior de código + matemática en Columna 1 Interna */
+    .int-bottom-visual {
+      margin: 2mm -7.5mm 0 -8.5mm;
+      height: 54mm;
+      position: relative;
+      background: linear-gradient(135deg, #071e3d 0%, #0f172a 100%);
+      clip-path: polygon(0 18%, 35% 0, 100% 24%, 100% 100%, 0 100%);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 5mm 6mm 4.5mm 6mm;
+      color: #ffffff;
+    }
+
+    .int-bottom-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.32;
+      mix-blend-mode: luminosity;
+    }
+
+    .math-code-overlay {
+      position: relative;
+      z-index: 3;
+      background: rgba(7, 30, 61, 0.86);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 3mm;
+      padding: 2.8mm 3.5mm;
+      backdrop-filter: blur(4px);
+    }
+
+    .math-formula-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+      padding-bottom: 1.5mm;
+      margin-bottom: 1.5mm;
+    }
+
+    .formula-tex {
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      font-size: 9.5pt;
+      color: #38bdf8;
+      font-weight: bold;
+    }
+
+    .code-lines {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.5pt;
+      line-height: 1.4;
+      color: #cbd5e1;
+    }
+
+    /* BANNER FOTOGRÁFICO DIAGONAL QUE CRUZA COLUMNAS 2 Y 3 INTERNAS */
+    .int-top-banner-photo {
+      position: absolute;
+      top: 0;
+      left: 99mm;
+      width: 198mm;
+      height: 76mm;
+      z-index: 2;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 48%);
+      overflow: hidden;
+      background: #0f172a;
+    }
+
+    .int-top-banner-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 25%;
+    }
+
+    .int-top-banner-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(7, 34, 68, 0.45) 0%, rgba(0, 150, 199, 0.2) 100%);
+    }
+
+    /* COLUMNA 2 INTERNA: AZUL PROFUNDO (GRADO Y QUÉ PUEDE HACER) */
+    .int-col-2 {
+      background: linear-gradient(180deg, #07284f 0%, #051b38 100%);
+      color: #ffffff;
+      padding: 46mm 7mm 8mm 7.5mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+
+    .grado-box-title {
+      font-size: 13pt;
+      font-weight: 800;
+      color: #ffffff;
+      text-align: center;
+      margin-bottom: 3.5mm;
+      letter-spacing: -0.2px;
+    }
+
+    .grado-items {
+      display: flex;
+      flex-direction: column;
+      gap: 2.8mm;
+      margin-bottom: 4mm;
+    }
+
+    .grado-row {
+      display: flex;
+      align-items: center;
+      gap: 3.2mm;
+    }
+
+    .grado-icon-wrap {
+      width: 9mm;
+      height: 9mm;
+      border-radius: 2mm;
+      background: rgba(0, 180, 216, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #38bdf8;
+      flex-shrink: 0;
+    }
+
+    .grado-label {
+      font-size: 8pt;
+      color: #bae6fd;
+    }
+
+    .grado-val {
+      font-size: 8.8pt;
+      font-weight: 800;
+      font-style: italic;
+      color: #ffffff;
+    }
+
+    .que-hace-title {
+      font-size: 12pt;
+      font-weight: 500;
+      color: #e0f2fe;
+      line-height: 1.18;
+      margin-bottom: 3mm;
+    }
+
+    .que-hace-title strong {
+      display: block;
+      font-size: 13pt;
+      font-weight: 900;
+      color: #ffffff;
+      margin-top: 0.4mm;
+    }
+
+    .dark-arrow-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3.2mm;
+    }
+
+    .dark-arrow-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 2.5mm;
+      font-size: 8.3pt;
+      line-height: 1.38;
+      color: #e2e8f0;
+    }
+
+    .dark-arrow-item strong {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    /* COLUMNA 3 INTERNA: ÁMBITO LABORAL + STACK INFORMÁTICO */
+    .int-col-3 {
+      background: linear-gradient(180deg, #f1f5f9 0%, #ffffff 45%, #f8fafc 100%);
+      padding: 74mm 8mm 7mm 7.5mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+      border-bottom: 4mm solid #07284f;
+    }
+
+    .ambito-title {
+      font-size: 13.5pt;
+      font-weight: 900;
+      color: #0b4f8a;
+      margin: 2.5mm 0 2.5mm 0;
+      letter-spacing: -0.2px;
+    }
+
+    .stack-card {
+      background: #072244;
+      color: #ffffff;
+      border-radius: 3mm;
+      padding: 3mm 3.5mm;
+      border-left: 3.5px solid #00b4d8;
+      margin-top: 2mm;
+    }
+
+    .stack-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.2pt;
+      font-weight: 800;
+      color: #38bdf8;
+      text-transform: uppercase;
+      margin-bottom: 1.8mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stack-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2mm;
+    }
+
+    .stack-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.5pt;
+      font-weight: 700;
+      padding: 0.8mm 2mm;
+      border-radius: 1.2mm;
+      background: rgba(255, 255, 255, 0.1);
+      color: #f8fafc;
+      border: 1px solid rgba(125, 211, 252, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar-no-print">
+    <div class="toolbar-title">
+      <span>💻 Tríptico Oficial • Escuela Profesional de Computación Científica (UNMSM)</span>
+      <span class="toolbar-badge">2 Caras • A4 Horizontal</span>
+    </div>
+    <button class="toolbar-btn" onclick="window.print()">
+      <span>🖨️ Imprimir / Guardar como PDF</span>
+    </button>
+  </div>
+
+  <!-- ========================================================================
+       HOJA 1: CARA EXTERNA (SOLAPA IZQUIERDA | CONTRAPORTADA | PORTADA)
+       ======================================================================== -->
+  <section class="sheet" id="cara-externa">
+    <div class="fold-line-1"></div>
+    <div class="fold-line-2"></div>
+
+    <!-- PANEL IZQUIERDO (SOLAPA INTERNA): LÍNEAS DE INVESTIGACIÓN + POR QUÉ ESTUDIAR -->
+    <div class="ext-col-1">
+      <div>
+        <h2 class="sec-question">
+          ¿Qué líneas de investigación hay en
+          <strong>COMPUTACIÓN CIENTÍFICA?</strong>
+        </h2>
+
+        <ul class="arrow-list">
+          <li class="arrow-item">
+            <svg class="arrow-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4l16 8-16 8 4-8-4-8z"/></svg>
+            <div class="arrow-text">
+              <strong>Inteligencia Computacional y Deep Learning <span class="code-tag-inline">AI / ML</span></strong>
+              Redes neuronales profundas, visión computacional, procesamiento de lenguaje natural (NLP) y soluciones con IA.
+            </div>
+          </li>
+
+          <li class="arrow-item">
+            <svg class="arrow-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4l16 8-16 8 4-8-4-8z"/></svg>
+            <div class="arrow-text">
+              <strong>Optimización y Algoritmos de Alto Rendimiento <span class="code-tag-inline">HPC</span></strong>
+              Diseño de modelos, algoritmos paralelos y computación distribuida para optimizar procesos y recursos complejos.
+            </div>
+          </li>
+
+          <li class="arrow-item">
+            <svg class="arrow-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4l16 8-16 8 4-8-4-8z"/></svg>
+            <div class="arrow-text">
+              <strong>Modelamiento Matemático y Simulación Computacional</strong>
+              Simulación numérica y predicción de fenómenos físicos, biológicos, climáticos y financieros en tiempo real.
+            </div>
+          </li>
+
+          <li class="arrow-item">
+            <svg class="arrow-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4l16 8-16 8 4-8-4-8z"/></svg>
+            <div class="arrow-text">
+              <strong>Modelamiento Matemático potenciado con IA <span class="code-tag-inline">PINNs</span></strong>
+              Integración de ecuaciones diferenciales y leyes físicas con redes neuronales para optimizar resultados científicos.
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div style="margin-top: 3mm;">
+        <h2 class="sec-question">
+          ¿Por qué estudiar
+          <strong>COMPUTACIÓN CIENTÍFICA?</strong>
+        </h2>
+
+        <ul class="check-list">
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              Porque fusiona el <strong>poder de la programación avanzada y el desarrollo de software</strong> con la rigurosidad matemática para trabajar en tecnología, banca, salud, ingeniería y más.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              Aprenderás a construir <strong>algoritmos, simuladores e inteligencia artificial</strong> capaces de analizar y predecir fenómenos de alta complejidad.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              Es una carrera <strong>interdisciplinaria y con altísima demanda global</strong> en la era de la Ciencia de Datos, el Big Data y la Inteligencia Artificial.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              Desarrollarás habilidades tecnológicas de élite para crear <strong>innovación que impacte positivamente en la sociedad</strong>.
+            </p>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PANEL CENTRAL (CONTRAPORTADA): SABÍAS QUE + CONTACTO + QR -->
+    <div class="ext-col-2">
+      <div class="bg-grid-tech"></div>
+
+      <div class="sabias-card">
+        <div class="sabias-ribbon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Sabías que...</span>
+        </div>
+
+        <div class="sabias-content">
+          <div class="sabias-top-row">
+            <p class="sabias-p">
+              ¿Sabías que hay una figura matemática que parece tener alas de mariposa y muestra cómo un pequeño cambio en un algoritmo puede alterar por completo un sistema?
+            </p>
+            <!-- Atractor de Lorenz Vectorial -->
+            <div class="lorenz-circle">
+              <svg viewBox="0 0 100 100" width="84" height="84">
+                <defs>
+                  <linearGradient id="lorenzGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#38bdf8" />
+                    <stop offset="50%" stop-color="#e0f2fe" />
+                    <stop offset="100%" stop-color="#0284c7" />
+                  </linearGradient>
+                </defs>
+                <path d="M50,52 C35,20 8,22 14,48 C20,74 44,68 50,52 C56,36 80,22 86,48 C92,74 65,80 50,52 Z" fill="none" stroke="url(#lorenzGrad)" stroke-width="1.6" opacity="0.95"/>
+                <path d="M50,52 C32,14 4,18 11,48 C18,78 46,72 50,52 C54,32 82,18 89,48 C96,78 68,84 50,52 Z" fill="none" stroke="url(#lorenzGrad)" stroke-width="1.2" opacity="0.75"/>
+                <path d="M50,52 C38,26 14,28 19,48 C24,68 43,64 50,52 C57,40 76,28 81,48 C86,68 62,74 50,52 Z" fill="none" stroke="url(#lorenzGrad)" stroke-width="1.1" opacity="0.8"/>
+                <path d="M50,52 C41,32 20,33 24,48 C28,63 42,60 50,52 C58,44 72,33 76,48 C80,63 59,68 50,52 Z" fill="none" stroke="#7dd3fc" stroke-width="0.9" opacity="0.65"/>
+              </svg>
+            </div>
+          </div>
+
+          <p class="sabias-p">
+            Es el <strong>Atractor de Lorenz</strong>, descubierto en 1963 mediante simulación por computadora, y es el ícono del famoso <em><strong>Efecto Mariposa</strong></em>.
+          </p>
+
+          <div class="sabias-code-bar">
+            dx/dt = σ(y - x) • dy/dt = x(ρ - z) - y • dz/dt = xy - βz
+          </div>
+        </div>
+      </div>
+
+      <div class="contacto-block">
+        <div class="contacto-header">CONTACTO</div>
+
+        <div class="contacto-mail-box">
+          <div class="contacto-label">CORREO:</div>
+          <div class="contacto-mail">epcomputacion.matematica@unmsm.edu.pe</div>
+        </div>
+
+        <div class="contacto-facultad">
+          CIUDAD UNIVERSITARIA • FACULTAD DE CIENCIAS MATEMÁTICAS
+        </div>
+
+        <div class="contacto-phone">
+          <strong>TELÉFONO:</strong> (01) 619-7000 • ANEXO: 1619
+        </div>
+
+        <div class="contacto-address">
+          Av. Carlos Germán Amézaga N° 375 - Cercado de Lima<br />LIMA - PERÚ
+        </div>
+
+        <!-- Código QR Oficial hacia el Portal FCM Computación Científica -->
+        <div class="qr-wrapper">
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=0&data=https%3A%2F%2Fportal-fcm.vercel.app%2F%23%2Fcarreras%2Fcomputacion-cientifica"
+            alt="QR Computación Científica UNMSM"
+            width="92"
+            height="92"
+            style="display:block;"
+          />
+          <span class="qr-caption">portal-fcm.vercel.app</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL DERECHO (PORTADA PRINCIPAL) -->
+    <div class="ext-col-3">
+      <div class="cover-photo-container">
+        <img
+          class="cover-photo"
+          src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=85"
+          alt="Estudiantes de Computación Científica UNMSM"
+        />
+      </div>
+
+      <!-- Toque informático: Terminal flotante sobre la imagen -->
+      <div class="floating-terminal">
+        <div class="term-dots">
+          <span class="term-dot" style="background:#ef4444"></span>
+          <span class="term-dot" style="background:#f59e0b"></span>
+          <span class="term-dot" style="background:#10b981"></span>
+          <span style="margin-left:auto;color:#38bdf8;font-weight:700;">epcc@unmsm:~</span>
+        </div>
+        <div><span style="color:#4ade80;">$</span> python3 simulate_ai.py --hpc</div>
+        <div style="color:#94a3b8;">&gt; Compiling CUDA kernels... [OK]</div>
+        <div style="color:#38bdf8;">&gt; Model R² = 0.9984 | Loss: 1.2e-5</div>
+      </div>
+
+      <!-- Ondas curvas características del diseño original + estética tech -->
+      <svg class="cover-waves-svg" viewBox="0 0 374 794" preserveAspectRatio="none">
+        <!-- Fondo sólido izquierdo/inferior que recorta la foto en curva -->
+        <path d="M0,0 L70,0 C45,230 150,430 374,515 L374,794 L0,794 Z" fill="#072244" />
+        <!-- Banda curva celeste brillante -->
+        <path d="M70,0 C45,230 150,430 374,515 L374,470 C175,390 72,210 92,0 Z" fill="#0096c7" />
+        <!-- Segunda banda azul intermedia -->
+        <path d="M52,0 C30,245 135,455 374,548 L374,512 C150,430 45,230 70,0 Z" fill="#0353a4" />
+      </svg>
+
+      <div class="cover-text-block">
+        <div class="cover-pregrado-tag">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <span>PREGRADO • E.P. 14.4</span>
+        </div>
+
+        <h1 class="cover-main-title">
+          COMPUTACIÓN<br />CIENTÍFICA
+        </h1>
+
+        <div class="cover-sub-tech">
+          &lt;Ciencia_de_la_Computación • IA • Modelado_Matemático /&gt;
+        </div>
+
+        <div class="cover-unmsm-info">
+          <div class="cover-unmsm-name">UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS</div>
+          <div class="cover-unmsm-decana">Universidad del Perú, Decana de América</div>
+        </div>
+
+        <div class="cover-fcm-box">
+          <div class="cover-fcm-title">FACULTAD DE CIENCIAS MATEMÁTICAS</div>
+          <div class="cover-fcm-sub">Escuela Profesional de Computación Científica</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       HOJA 2: CARA INTERNA (QUÉ ES | GRADOS Y QUÉ HACE | ÁMBITO LABORAL)
+       ======================================================================== -->
+  <section class="sheet" id="cara-interna">
+    <div class="fold-line-1"></div>
+    <div class="fold-line-2"></div>
+
+    <!-- Banner fotográfico superior en diagonal sobre las columnas 2 y 3 -->
+    <div class="int-top-banner-photo">
+      <img
+        src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1400&q=85"
+        alt="Laboratorio de Computación Científica e Inteligencia Artificial"
+      />
+      <div class="int-top-banner-overlay"></div>
+    </div>
+
+    <!-- COLUMNA 1 INTERNA: ¿QUÉ ES LA COMPUTACIÓN CIENTÍFICA? -->
+    <div class="int-col-1">
+      <div>
+        <h2 class="sec-question">
+          ¿Qué es la
+          <strong>COMPUTACIÓN CIENTÍFICA?</strong>
+        </h2>
+
+        <p class="int-intro-p">
+          La <strong>Computación Científica</strong> es una disciplina tecnológica y científica que integra <strong>ciencias de la computación, programación avanzada, inteligencia artificial, matemática y estadística</strong>, con el fin de modelar, simular y resolver problemas complejos presentes en la ciencia, la ingeniería, la industria y la sociedad.
+        </p>
+
+        <p class="int-intro-lead">
+          La <span style="color:#0077b6;">Computación Científica</span> te permite:
+        </p>
+
+        <ul class="int-Check-list">
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              Desarrollar <strong>software científico, modelos matemáticos y simulaciones</strong> para comprender y optimizar sistemas reales.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              Utilizar <strong>métodos numéricos, algoritmos paralelos y supercomputación (HPC)</strong> para resolver problemas de alta escala.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              Diseñar arquitecturas de <strong>Machine Learning, Deep Learning y Visión Computacional</strong> con fundamento matemático sólido.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              Transformar grandes volúmenes de datos e hipótesis en <strong>resultados verificables mediante ciencia y tecnología</strong>.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              Tomar <strong>decisiones basadas en evidencia algorítmica</strong> para liderar proyectos de investigación, desarrollo e innovación (I+D+i).
+            </p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Bloque visual inferior con ecuación + curva + código -->
+      <div class="int-bottom-visual">
+        <img
+          class="int-bottom-photo"
+          src="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=800&q=80"
+          alt="Código y Matemática"
+        />
+        <div class="math-code-overlay">
+          <div class="math-formula-row">
+            <span class="formula-tex">f = ∫<sub>a</sub><sup>b</sup> f(x, t) dx ≈ ∑ w<sub>i</sub> NN<sub>θ</sub>(x<sub>i</sub>)</span>
+            <svg width="56" height="24" viewBox="0 0 80 32">
+              <path d="M2,28 Q20,28 28,14 T42,4 T56,14 T78,28" fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="2"/>
+              <line x1="42" y1="4" x2="42" y2="28" stroke="#f8fafc" stroke-dasharray="2,2" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="code-lines">
+            <div><span style="color:#38bdf8;">def</span> <span style="color:#fde047;">solve_pde_neural</span>(mesh, model):</div>
+            <div>&nbsp;&nbsp;u_pred = model.forward(mesh.tensorGPU())</div>
+            <div>&nbsp;&nbsp;<span style="color:#4ade80;">return</span> optimize.adam(u_pred, tol=1e-6)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA 2 INTERNA: GRADO Y TÍTULO + QUÉ PUEDE HACER UN LICENCIADO -->
+    <div class="int-col-2">
+      <div>
+        <h3 class="grado-box-title">Grado y Título Académico</h3>
+
+        <div class="grado-items">
+          <div class="grado-row">
+            <div class="grado-icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <div class="grado-label">Duración de los estudios:</div>
+              <div class="grado-val">Diez Semestres Académicos (5 años)</div>
+            </div>
+          </div>
+
+          <div class="grado-row">
+            <div class="grado-icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            </div>
+            <div>
+              <div class="grado-label">Grado Académico:</div>
+              <div class="grado-val">Bachiller en Computación Científica</div>
+            </div>
+          </div>
+
+          <div class="grado-row">
+            <div class="grado-icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div>
+              <div class="grado-label">Título Profesional:</div>
+              <div class="grado-val">Licenciado en Computación Científica</div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="que-hace-title">
+          ¿Qué puede hacer un licenciado(a) en
+          <strong>COMPUTACIÓN CIENTÍFICA?</strong>
+        </h3>
+
+        <ul class="dark-arrow-list">
+          <li class="dark-arrow-item">
+            <svg class="arrow-icon" style="color:#00b4d8;" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4l16 8-16 8 4-8-4-8z"/></svg>
+            <div>
+              Simular fenómenos físicos, biológicos o económicos —como la propagación de una epidemia, el comportamiento de un ecosistema, mercados financieros o el flujo de fluidos— utilizando <strong>modelos matemáticos</strong> y <strong>herramientas computacionales de alto rendimiento</strong>.
+            </div>
+          </li>
+
+          <li class="dark-arrow-item">
+            <svg class="arrow-icon" style="color:#00b4d8;" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4l16 8-16 8 4-8-4-8z"/></svg>
+            <div>
+              Analizar y procesar grandes volúmenes de datos (<strong>Big Data</strong>) provenientes de satélites, banca digital, redes sociales, estaciones climáticas, telescopios, historiales médicos y experimentos científicos para extraer conocimiento útil y apoyar la <strong>toma de decisiones estratégicas</strong>.
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- COLUMNA 3 INTERNA: IA + ÁMBITO LABORAL + STACK TECNOLÓGICO -->
+    <div class="int-col-3">
+      <div>
+        <div class="arrow-item" style="margin-bottom: 3mm;">
+          <svg class="arrow-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4l16 8-16 8 4-8-4-8z"/></svg>
+          <p class="arrow-text">
+            Trabajar con <strong style="display:inline;color:#0077b6;">Inteligencia Artificial</strong> y <strong style="display:inline;color:#0077b6;">Machine Learning</strong> para reconocer patrones complejos, automatizar diagnósticos, procesar lenguaje natural y realizar predicciones científicas en salud, medio ambiente, física, ciberseguridad o finanzas.
+          </p>
+        </div>
+
+        <h3 class="ambito-title">Ámbito Laboral</h3>
+
+        <ul class="check-list">
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              <strong>Empresas de software, Big Tech, banca y finanzas:</strong> como <em>Data Scientist</em>, <em>AI / ML Engineer</em>, <em>Quantitative Analyst</em> o <em> Arquitecto de Software Científico</em>.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              <strong>Centros de investigación científica y desarrollo tecnológico (I+D)</strong> nacionales e internacionales.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              <strong>Instituciones de salud y biotecnología:</strong> aplicando visión computacional médica, bioinformática y modelos epidemiológicos.
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              <strong>Organismos de meteorología, energía, minería, telecomunicaciones y observatorios astronómicos.</strong>
+            </p>
+          </li>
+
+          <li class="check-item">
+            <div class="check-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p class="check-text">
+              <strong>Agencias espaciales, universidades y centros de supercomputación y procesamiento de datos.</strong>
+            </p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Toque informático adicional: Ecosistema Tecnológico de la Carrera -->
+      <div class="stack-card">
+        <div class="stack-title">
+          <span>💻 Ecosistema Informático y Científico</span>
+          <span>PLAN 2026</span>
+        </div>
+        <div class="stack-pills">
+          <span class="stack-pill">Python</span>
+          <span class="stack-pill">C / C++</span>
+          <span class="stack-pill">PyTorch &amp; TensorFlow</span>
+          <span class="stack-pill">CUDA / GPU</span>
+          <span class="stack-pill">SQL &amp; Big Data</span>
+          <span class="stack-pill">Computer Vision</span>
+          <span class="stack-pill">NLP</span>
+          <span class="stack-pill">Linux &amp; Git</span>
+          <span class="stack-pill">Computación Cuántica</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
