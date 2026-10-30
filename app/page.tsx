@@ -47,6 +47,8 @@ interface Noticia {
   imagen_url: string;
   fecha_publicacion: string;
   destacado: boolean;
+  en_carrusel_principal?: boolean;
+  color_fondo?: string;
   fecha_evento?: string;
   lugar?: string;
   modalidad?: string;
@@ -797,6 +799,8 @@ const NOTICIAS_INICIALES: Noticia[] = [
     imagen_url: "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1000&q=80",
     fecha_publicacion: "2026-10-28",
     destacado: true,
+    en_carrusel_principal: true,
+    color_fondo: "#4d0713",
     fecha_evento: "Semestre 2026-I / 2026-II",
     lugar: "Ciudad Universitaria UNMSM - Bienestar FCM",
     modalidad: "Atención Presencial y Virtual",
@@ -814,6 +818,8 @@ const NOTICIAS_INICIALES: Noticia[] = [
     imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80",
     fecha_publicacion: "2026-10-15",
     destacado: true,
+    en_carrusel_principal: true,
+    color_fondo: "#002855",
     fecha_evento: "Semestre Académico 2026-I / 2026-II",
     lugar: "Ciudad Universitaria UNMSM - Pabellón FCM",
     modalidad: "Presencial",
@@ -831,6 +837,8 @@ const NOTICIAS_INICIALES: Noticia[] = [
     imagen_url: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=900&q=80",
     fecha_publicacion: "2026-10-20",
     destacado: true,
+    en_carrusel_principal: true,
+    color_fondo: "#0f172a",
     fecha_evento: "Cierre de postulaciones: 30 de noviembre de 2026",
     lugar: "Vicedecanato de Investigación y Posgrado FCM",
     modalidad: "Híbrida (Evaluación virtual / Pasantía presencial)",
@@ -848,6 +856,8 @@ const NOTICIAS_INICIALES: Noticia[] = [
     imagen_url: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80",
     fecha_publicacion: "2026-10-25",
     destacado: true,
+    en_carrusel_principal: true,
+    color_fondo: "#064e3b",
     fecha_evento: "Habilitado de Lunes a Sábado (Acceso SSH 24/7)",
     lugar: "Laboratorios SECOMAT - 2.º Piso FCM",
     modalidad: "Presencial y Acceso Remoto SSH",
@@ -912,6 +922,8 @@ export default function PortalFacultadCienciasMatematicas() {
   // Carrusel Institucional Superior de Noticias y Comunicados (Slider tipo San Marcos)
   const [slideActivoHero, setSlideActivoHero] = useState<number>(0);
   const [pausarSliderHero, setPausarSliderHero] = useState<boolean>(false);
+  const [direccionSlide, setDireccionSlide] = useState<"next" | "prev">("next");
+  const [animandoSlide, setAnimandoSlide] = useState<boolean>(false);
   const touchStartXRef = useRef<number | null>(null);
 
   // Buscador Compacto en Navbar Superior con atajo de teclado (Ctrl+K / Cmd+K)
@@ -990,6 +1002,8 @@ export default function PortalFacultadCienciasMatematicas() {
     contenido: "",
     imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
     destacado: true,
+    en_carrusel_principal: true,
+    color_fondo: "#4d0713",
     fecha_evento: "",
     lugar: "",
     modalidad: "",
@@ -2027,6 +2041,8 @@ export default function PortalFacultadCienciasMatematicas() {
         "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
       fecha_publicacion: formNoticia.fecha_publicacion || new Date().toISOString().split("T")[0],
       destacado: formNoticia.destacado,
+      en_carrusel_principal: formNoticia.en_carrusel_principal ?? true,
+      color_fondo: formNoticia.color_fondo || "#4d0713",
       fecha_evento: formNoticia.fecha_evento.trim(),
       lugar: formNoticia.lugar.trim(),
       modalidad: formNoticia.modalidad.trim(),
@@ -2053,12 +2069,23 @@ export default function PortalFacultadCienciasMatematicas() {
       contenido: "",
       imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
       destacado: true,
+      en_carrusel_principal: true,
+      color_fondo: "#4d0713",
       fecha_evento: "",
       lugar: "",
       modalidad: "",
       dirigido_a: "",
       enlace_inscripcion: "",
     });
+  };
+
+  const handleToggleCarruselPrincipal = async (idNoticia: string) => {
+    const actualizadas = noticias.map((n) =>
+      n.id === idNoticia ? { ...n, en_carrusel_principal: !(n.en_carrusel_principal ?? true) } : n
+    );
+    setNoticias(actualizadas);
+    await sincronizarPortalConfigSupabase({ noticias_data: actualizadas });
+    lanzarToast("🔄 Estado de noticia en carrusel principal actualizado.");
   };
 
   const handleSubirFotoDocenteStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2281,17 +2308,36 @@ export default function PortalFacultadCienciasMatematicas() {
   // CARRUSEL INSTITUCIONAL HERO (NOTICIAS Y COMUNICADOS DESTACADOS)
   // ==========================================================================
   const noticiasDestacadas = useMemo(() => {
+    const explicitas = noticias.filter((n) => n.en_carrusel_principal);
+    if (explicitas.length > 0) return explicitas;
     const destacadas = noticias.filter((n) => n.destacado);
     return destacadas.length > 0 ? destacadas : noticias.slice(0, 4);
   }, [noticias]);
 
+  const cambiarSlideHero = useCallback((nuevoIndice: number, dir: "next" | "prev") => {
+    setDireccionSlide(dir);
+    setAnimandoSlide(true);
+    setSlideActivoHero(nuevoIndice);
+    setTimeout(() => setAnimandoSlide(false), 450);
+  }, []);
+
+  const siguienteSlideHero = useCallback(() => {
+    if (noticiasDestacadas.length <= 1) return;
+    cambiarSlideHero((slideActivoHero + 1) % noticiasDestacadas.length, "next");
+  }, [slideActivoHero, noticiasDestacadas.length, cambiarSlideHero]);
+
+  const anteriorSlideHero = useCallback(() => {
+    if (noticiasDestacadas.length <= 1) return;
+    cambiarSlideHero((slideActivoHero - 1 + noticiasDestacadas.length) % noticiasDestacadas.length, "prev");
+  }, [slideActivoHero, noticiasDestacadas.length, cambiarSlideHero]);
+
   useEffect(() => {
     if (pausarSliderHero || noticiasDestacadas.length <= 1) return;
     const timer = setInterval(() => {
-      setSlideActivoHero((prev) => (prev + 1) % noticiasDestacadas.length);
+      siguienteSlideHero();
     }, 6000);
     return () => clearInterval(timer);
-  }, [pausarSliderHero, noticiasDestacadas.length]);
+  }, [pausarSliderHero, noticiasDestacadas.length, siguienteSlideHero]);
 
   // ==========================================================================
   // BUSCADOR COMPACTO NAVBAR CON ACCESO RÁPIDO CTRL + K / CMD + K
@@ -3134,60 +3180,7 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* VISTA A: INICIO / HOME (/) */}
       {vistaActual === "/" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-hidden">
-          {/* BARRA SUPERIOR DE ACCESOS DIRECTOS INSTITUCIONALES (SAN MARCOS) */}
-          <div className="bg-[#460610] text-white py-2 px-4 rounded-t-3xl border-b border-red-950/70 shadow-md">
-            <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-                <span className="font-extrabold tracking-wide text-red-200 uppercase text-[10px] sm:text-[11px]">
-                  Accesos Directos Institucionales • San Marcos
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-3 sm:gap-5 font-semibold text-[11px] sm:text-xs text-red-100">
-                <a
-                  href="https://smartcampus.unmsm.edu.pe"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white flex items-center gap-1.5 transition-colors"
-                >
-                  <Globe className="w-3.5 h-3.5 text-red-300" />
-                  <span>Smart-Campus</span>
-                </a>
-                <span className="text-red-900">•</span>
-                <a
-                  href="https://aulavirtual.unmsm.edu.pe"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white flex items-center gap-1.5 transition-colors"
-                >
-                  <GraduationCap className="w-3.5 h-3.5 text-red-300" />
-                  <span>Aula Virtual Pregrado</span>
-                </a>
-                <span className="text-red-900">•</span>
-                <a
-                  href="https://cerseu.unmsm.edu.pe"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white flex items-center gap-1.5 transition-colors"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-red-300" />
-                  <span>Aula Virtual CERSEU</span>
-                </a>
-                <span className="text-red-900">•</span>
-                <a
-                  href="https://tramiteonline.unmsm.edu.pe/sgdfd/mat/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white flex items-center gap-1.5 transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5 text-red-300" />
-                  <span>Mesa de Partes Virtual</span>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* CARRUSEL INSTITUCIONAL DE NOTICIAS Y COMUNICADOS (SLIDER ROJO GUINDA OFICIAL) */}
+          {/* SECCIÓN PRINCIPAL INTEGRADA: CARRUSEL DE NOTICIAS + BUSCADOR GENERAL HERO */}
           <section
             onMouseEnter={() => setPausarSliderHero(true)}
             onMouseLeave={() => setPausarSliderHero(false)}
@@ -3199,41 +3192,51 @@ export default function PortalFacultadCienciasMatematicas() {
               if (touchStartXRef.current !== null) {
                 const diffX = e.changedTouches[0].clientX - touchStartXRef.current;
                 if (diffX > 50) {
-                  setSlideActivoHero((prev) => (prev - 1 + noticiasDestacadas.length) % noticiasDestacadas.length);
+                  anteriorSlideHero();
                 } else if (diffX < -50) {
-                  setSlideActivoHero((prev) => (prev + 1) % noticiasDestacadas.length);
+                  siguienteSlideHero();
                 }
                 touchStartXRef.current = null;
               }
               setPausarSliderHero(false);
             }}
-            className="relative bg-gradient-to-r from-[#4d0713] via-[#5c0817] to-[#40050f] text-white rounded-b-3xl shadow-2xl border-b-4 border-red-900 overflow-hidden"
+            style={{
+              backgroundColor: noticiasDestacadas[slideActivoHero]?.color_fondo || "#4d0713",
+            }}
+            className="relative text-white rounded-3xl shadow-2xl border-b-4 border-red-900/70 overflow-hidden transition-colors duration-700 ease-in-out"
           >
-            {/* Botones de navegación lateral */}
+            {/* Botones de navegación lateral con micro-efecto táctil */}
             <button
               type="button"
-              onClick={() =>
-                setSlideActivoHero((prev) => (prev - 1 + noticiasDestacadas.length) % noticiasDestacadas.length)
-              }
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-xs cursor-pointer border border-white/20"
+              onClick={anteriorSlideHero}
+              className="absolute left-2.5 sm:left-4 top-[35%] sm:top-[38%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-xs cursor-pointer border border-white/20 shadow-lg"
               aria-label="Comunicado anterior"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               type="button"
-              onClick={() => setSlideActivoHero((prev) => (prev + 1) % noticiasDestacadas.length)}
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-xs cursor-pointer border border-white/20"
+              onClick={siguienteSlideHero}
+              className="absolute right-2.5 sm:right-4 top-[35%] sm:top-[38%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-xs cursor-pointer border border-white/20 shadow-lg"
               aria-label="Siguiente comunicado"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
 
-            {/* Contenido activo del slide */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center p-6 sm:p-12 min-h-[380px] sm:min-h-[430px]">
+            {/* A. ZONA SUPERIOR: CARRUSEL DE NOTICIAS Y COMUNICADOS DESTACADOS CON ANIMACIÓN */}
+            <div
+              key={slideActivoHero}
+              className={`grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center p-6 sm:p-12 min-h-[360px] sm:min-h-[400px] transition-all duration-500 ease-out ${
+                animandoSlide
+                  ? direccionSlide === "next"
+                    ? "opacity-30 translate-x-4 scale-[0.99]"
+                    : "opacity-30 -translate-x-4 scale-[0.99]"
+                  : "opacity-100 translate-x-0 scale-100"
+              }`}
+            >
               {/* Columna izquierda: Información */}
-              <div className="md:col-span-7 space-y-4 sm:space-y-6 text-left">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-red-950/80 text-red-200 border border-red-700/60 shadow-sm">
+              <div className="md:col-span-7 space-y-4 sm:space-y-5 text-left">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-black/40 text-red-200 border border-white/20 shadow-sm backdrop-blur-xs">
                   <Sparkles className="w-3.5 h-3.5 text-red-400" />
                   {noticiasDestacadas[slideActivoHero]?.categoria || "Comunicado Oficial"}
                 </span>
@@ -3242,17 +3245,17 @@ export default function PortalFacultadCienciasMatematicas() {
                   {noticiasDestacadas[slideActivoHero]?.titulo}
                 </h2>
 
-                <p className="text-xs sm:text-sm md:text-base text-red-100/90 line-clamp-3 leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-sm md:text-base text-white/90 line-clamp-3 leading-relaxed max-w-xl drop-shadow-xs">
                   {noticiasDestacadas[slideActivoHero]?.resumen}
                 </p>
 
-                <div className="pt-1 sm:pt-2">
+                <div className="pt-1">
                   <button
                     type="button"
                     onClick={() =>
                       navegar("/noticias/[id]", { noticiaId: noticiasDestacadas[slideActivoHero]?.id })
                     }
-                    className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-black/45 hover:bg-black/70 text-white font-bold text-xs sm:text-sm border border-white/25 transition-all shadow-lg group cursor-pointer backdrop-blur-xs"
+                    className="inline-flex items-center gap-2.5 px-5 py-2.5 sm:py-3 rounded-xl bg-black/45 hover:bg-black/70 text-white font-bold text-xs sm:text-sm border border-white/25 transition-all shadow-lg group cursor-pointer backdrop-blur-xs"
                   >
                     <span>Se informa... / Leer comunicado oficial</span>
                     <ChevronRight className="w-4 h-4 text-red-300 group-hover:translate-x-1 transition-transform" />
@@ -3260,7 +3263,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 </div>
               </div>
 
-              {/* Columna derecha: Imagen o Afiche Oficial */}
+              {/* Columna derecha: Afiche o Imagen Destacada */}
               <div className="md:col-span-5 flex justify-center items-center">
                 {noticiasDestacadas[slideActivoHero]?.id === "not-pronabec-2026" ? (
                   <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-between p-4 group">
@@ -3309,72 +3312,37 @@ export default function PortalFacultadCienciasMatematicas() {
             </div>
 
             {/* Indicadores horizontales (Dash Pills) */}
-            <div className="pb-5 sm:pb-6 flex items-center justify-center gap-2 sm:gap-2.5 z-20 relative">
+            <div className="pb-4 flex items-center justify-center gap-2 sm:gap-2.5 z-20 relative">
               {noticiasDestacadas.map((item, idx) => (
                 <button
                   key={item.id || idx}
                   type="button"
-                  onClick={() => setSlideActivoHero(idx)}
+                  onClick={() => cambiarSlideHero(idx, idx > slideActivoHero ? "next" : "prev")}
                   className={`cursor-pointer transition-all duration-300 ${
                     idx === slideActivoHero
-                      ? "w-10 sm:w-14 h-1.5 sm:h-2 rounded-full bg-red-500 shadow-md"
+                      ? "w-10 sm:w-14 h-1.5 sm:h-2 rounded-full bg-white shadow-md"
                       : "w-6 sm:w-8 h-1.5 sm:h-2 rounded-full bg-white/40 hover:bg-white/70"
                   }`}
                   aria-label={`Ir al comunicado ${idx + 1}`}
                 />
               ))}
             </div>
-          </section>
 
-          {/* HERO BANNER EXISTENTE (CON DIFUMINADO, COLOR, OPACIDAD Y BUSCADOR PRINCIPAL) */}
-          <section
-            className="relative rounded-3xl text-white p-6 sm:p-12 text-center shadow-2xl border-b-4 border-red-700 transition-colors duration-300"
-            style={{ backgroundColor: heroOverlayColor || "#0f172a" }}
-          >
-            {/* Capa de imagen de fondo con difuminado, color y opacidad configurables */}
-            <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
-              <img
-                src={heroBgUrl || HERO_BG_DEFAULT}
-                alt="Fondo Institucional FCM UNMSM"
-                className="w-full h-full object-cover object-center scale-102 transition-all duration-500"
-                style={{ filter: `blur(${heroBlur}px)` }}
-              />
-              <div
-                className="absolute inset-0 transition-all duration-300"
-                style={{
-                  backgroundColor: heroOverlayColor || "#0f172a",
-                  opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/15" />
-            </div>
-
-            {adminAutenticado && (
-              <button
-                type="button"
-                onClick={() => {
-                  setTabAdmin("storage");
-                  navegar("/admin");
-                }}
-                className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-black/55 hover:bg-black/80 border border-white/30 text-[11px] font-bold text-white flex items-center gap-1.5 backdrop-blur-xs cursor-pointer"
-              >
-                <ImageIcon className="w-3.5 h-3.5 text-red-400" />
-                <span>Personalizar Fondo Hero ({heroOverlayOpacity}% • {heroBlur}px)</span>
-              </button>
-            )}
-
-            <div className="relative z-10 max-w-3xl mx-auto space-y-5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-700 text-white text-xs font-bold uppercase tracking-wide shadow-lg">
+            {/* B. ZONA INFERIOR ACOPLADA: BUSCADOR GENERAL Y ENCABEZADO HERO ACADÉMICO */}
+            <div className="bg-black/30 backdrop-blur-md border-t border-white/15 px-6 py-8 sm:px-12 sm:py-10 text-center space-y-4 relative z-10">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-700/90 text-white text-[11px] font-bold uppercase tracking-wider shadow-sm border border-red-500/30">
                 <Building2 className="w-3.5 h-3.5" />
                 <span>Facultad de Ciencias Matemáticas • UNMSM</span>
               </div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)]">
+
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-tight drop-shadow-md">
                 Portal Académico e Investigación en{" "}
                 <span className="underline decoration-red-500 decoration-4 underline-offset-4">
                   Ciencias Exactas y Computación Científica
                 </span>
               </h1>
-              <p className="text-blue-50 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed drop-shadow-[0_1px_6px_rgba(0,0,0,0.65)]">
+
+              <p className="text-blue-100 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed drop-shadow-xs">
                 Explora los planes de estudio completos de los 10 ciclos para{" "}
                 <strong className="text-white">Computación Científica</strong>,{" "}
                 <strong className="text-white">Matemática</strong>,{" "}
@@ -3390,12 +3358,12 @@ export default function PortalFacultadCienciasMatematicas() {
                     value={busquedaGlobal}
                     onChange={(e) => setBusquedaGlobal(e.target.value)}
                     placeholder="Buscar curso (ej. CS113, AI264, MAT312), docente o material del repositorio..."
-                    className="w-full pl-12 pr-24 py-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-red-500/40 shadow-xl"
+                    className="w-full pl-12 pr-24 py-3.5 sm:py-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:ring-4 focus:ring-red-500/40 shadow-xl"
                   />
                   {busquedaGlobal && (
                     <button
                       onClick={() => setBusquedaGlobal("")}
-                      className="absolute right-3 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg"
+                      className="absolute right-3 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
                     >
                       Limpiar
                     </button>
@@ -3417,7 +3385,7 @@ export default function PortalFacultadCienciasMatematicas() {
                               setBusquedaGlobal("");
                               navegarACarrera(c.carrera_id);
                             }}
-                            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left"
+                            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left transition-colors cursor-pointer"
                           >
                             <div>
                               <span className="font-mono text-xs font-bold text-red-700">[{c.codigo}]</span>{" "}
@@ -3922,6 +3890,8 @@ export default function PortalFacultadCienciasMatematicas() {
                       contenido: noticiaActiva.contenido,
                       imagen_url: noticiaActiva.imagen_url,
                       destacado: noticiaActiva.destacado,
+                      en_carrusel_principal: noticiaActiva.en_carrusel_principal ?? true,
+                      color_fondo: noticiaActiva.color_fondo || "#4d0713",
                       fecha_evento: noticiaActiva.fecha_evento || "",
                       lugar: noticiaActiva.lugar || "",
                       modalidad: noticiaActiva.modalidad || "",
@@ -4868,6 +4838,8 @@ export default function PortalFacultadCienciasMatematicas() {
                                 contenido: "",
                                 imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
                                 destacado: true,
+                                en_carrusel_principal: true,
+                                color_fondo: "#4d0713",
                                 fecha_evento: "",
                                 lugar: "",
                                 modalidad: "",
@@ -5065,6 +5037,83 @@ export default function PortalFacultadCienciasMatematicas() {
                         />
                       </div>
 
+                      {/* Opciones de Publicación en Portada y Color de Fondo */}
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <p className="text-xs font-extrabold text-[#002855]">
+                              ⭐ Proyección en Sección Principal (Carrusel de Portada)
+                            </p>
+                            <p className="text-[11px] text-slate-500">
+                              Determina si este comunicado se proyectará en el slider principal del Home.
+                            </p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formNoticia.en_carrusel_principal ?? true}
+                              onChange={(e) =>
+                                setFormNoticia({ ...formNoticia, en_carrusel_principal: e.target.checked })
+                              }
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-700"></div>
+                          </label>
+                        </div>
+
+                        {/* Selector de Color de Fondo para la Noticia */}
+                        <div className="space-y-2 pt-2 border-t border-slate-200">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-700">
+                              🎨 Color de Fondo del Banner para esta Noticia
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-4 h-4 rounded-full border border-slate-300 shadow-xs inline-block"
+                                style={{ backgroundColor: formNoticia.color_fondo || "#4d0713" }}
+                              />
+                              <span className="font-mono text-[11px] text-slate-600 font-bold">
+                                {formNoticia.color_fondo || "#4d0713"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            {[
+                              { label: "Guinda San Marcos", hex: "#4d0713" },
+                              { label: "Azul UNMSM", hex: "#002855" },
+                              { label: "Carbón Elegante", hex: "#0f172a" },
+                              { label: "Verde Esmeralda", hex: "#064e3b" },
+                            ].map((paleta) => (
+                              <button
+                                key={paleta.hex}
+                                type="button"
+                                onClick={() => setFormNoticia({ ...formNoticia, color_fondo: paleta.hex })}
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold text-white transition-all flex items-center gap-1.5 cursor-pointer ${
+                                  formNoticia.color_fondo === paleta.hex
+                                    ? "ring-2 ring-offset-2 ring-red-600 scale-102 shadow-md"
+                                    : "opacity-85 hover:opacity-100"
+                                }`}
+                                style={{ backgroundColor: paleta.hex }}
+                              >
+                                <span>{paleta.label}</span>
+                              </button>
+                            ))}
+
+                            <div className="flex items-center gap-1.5 pl-1">
+                              <input
+                                type="color"
+                                value={formNoticia.color_fondo || "#4d0713"}
+                                onChange={(e) => setFormNoticia({ ...formNoticia, color_fondo: e.target.value })}
+                                className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0.5 bg-white"
+                                title="Selector de color personalizado"
+                              />
+                              <span className="text-[11px] text-slate-500 font-medium">Personalizado</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                       <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
                         <input
                           type="checkbox"
@@ -5120,16 +5169,40 @@ export default function PortalFacultadCienciasMatematicas() {
                           <div className="flex items-center gap-3.5">
                             <img src={n.imagen_url} alt={n.titulo} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0" />
                             <div>
-                              <span className="text-[11px] font-bold text-red-700">{n.categoria} • {n.fecha_publicacion}</span>
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="text-[11px] font-bold text-red-700">{n.categoria} • {n.fecha_publicacion}</span>
+                                <span
+                                  className="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block shrink-0 shadow-xs"
+                                  style={{ backgroundColor: n.color_fondo || "#4d0713" }}
+                                  title={`Color en carrusel: ${n.color_fondo || "#4d0713"}`}
+                                />
+                                {n.en_carrusel_principal !== false && (
+                                  <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full border border-amber-300">
+                                    ⭐ Portada
+                                  </span>
+                                )}
+                              </div>
                               <h4 className="font-extrabold text-xs sm:text-sm text-[#002855] line-clamp-2">{n.titulo}</h4>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleCarruselPrincipal(n.id)}
+                              title={n.en_carrusel_principal !== false ? "Desactivar de carrusel de portada" : "Activar en carrusel de portada"}
+                              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${
+                                n.en_carrusel_principal !== false
+                                  ? "bg-amber-500 text-white hover:bg-amber-600 shadow-xs"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                            >
+                              {n.en_carrusel_principal !== false ? "⭐ Portada" : "⚪ Off"}
+                            </button>
                             <button
                               type="button"
                               onClick={() => abrirNoticiaDetalle(n.id)}
                               title="Ver noticia"
-                              className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-[#002855] text-[11px] font-bold cursor-pointer"
+                              className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-[#002855] text-[11px] font-bold cursor-pointer hover:bg-blue-100"
                             >
                               Ver
                             </button>
@@ -5145,6 +5218,8 @@ export default function PortalFacultadCienciasMatematicas() {
                                   contenido: n.contenido,
                                   imagen_url: n.imagen_url,
                                   destacado: n.destacado,
+                                  en_carrusel_principal: n.en_carrusel_principal ?? true,
+                                  color_fondo: n.color_fondo || "#4d0713",
                                   fecha_evento: n.fecha_evento || "",
                                   lugar: n.lugar || "",
                                   modalidad: n.modalidad || "",
@@ -5152,7 +5227,8 @@ export default function PortalFacultadCienciasMatematicas() {
                                   enlace_inscripcion: n.enlace_inscripcion || "",
                                 })
                               }
-                              className="p-2 rounded-lg bg-slate-100 text-[#002855] cursor-pointer"
+                              className="p-2 rounded-lg bg-slate-100 text-[#002855] hover:bg-slate-200 cursor-pointer"
+                              title="Editar noticia"
                             >
                               <Edit3 className="w-4 h-4" />
                             </button>
