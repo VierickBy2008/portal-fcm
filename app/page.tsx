@@ -2374,15 +2374,14 @@ export default function PortalFacultadCienciasMatematicas() {
       {vistaActual === "/" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-14">
           <section className="relative rounded-3xl bg-[#002855] text-white p-6 sm:p-12 text-center shadow-2xl border-b-4 border-red-700">
-            {/* Capa de imagen de fondo difuminada y elegante */}
+            {/* Capa de imagen de fondo visible con difuminado mínimo y velo institucional transparente */}
             <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
               <img
                 src={heroBgUrl || HERO_BG_DEFAULT}
                 alt="Fondo Institucional FCM UNMSM"
-                className="w-full h-full object-cover object-center scale-105 blur-[2px] opacity-40 transition-all duration-700"
+                className="w-full h-full object-cover object-center scale-102 blur-[0.8px] opacity-90 transition-all duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-br from-[#002855]/92 via-[#002855]/85 to-[#001833]/94 backdrop-blur-[1px]" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.22),transparent_70%)]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#002855]/55 via-[#002855]/45 to-[#001833]/70" />
             </div>
 
             {adminAutenticado && (
@@ -2392,7 +2391,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   setTabAdmin("storage");
                   navegar("/admin");
                 }}
-                className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-black/40 hover:bg-black/65 border border-white/25 text-[11px] font-bold text-white flex items-center gap-1.5 backdrop-blur-xs cursor-pointer"
+                className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-black/45 hover:bg-black/70 border border-white/30 text-[11px] font-bold text-white flex items-center gap-1.5 backdrop-blur-xs cursor-pointer"
               >
                 <ImageIcon className="w-3.5 h-3.5 text-red-400" />
                 <span>Cambiar Fondo Hero</span>
@@ -2400,17 +2399,17 @@ export default function PortalFacultadCienciasMatematicas() {
             )}
 
             <div className="relative z-10 max-w-3xl mx-auto space-y-5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-700 text-white text-xs font-bold uppercase tracking-wide shadow">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-700 text-white text-xs font-bold uppercase tracking-wide shadow-lg">
                 <Building2 className="w-3.5 h-3.5" />
                 <span>Facultad de Ciencias Matemáticas • UNMSM</span>
               </div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-xs">
+              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)]">
                 Portal Académico e Investigación en{" "}
                 <span className="underline decoration-red-500 decoration-4 underline-offset-4">
                   Ciencias Exactas y Computación Científica
                 </span>
               </h1>
-              <p className="text-blue-100 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+              <p className="text-blue-50 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed drop-shadow-[0_1px_6px_rgba(0,0,0,0.65)]">
                 Explora los planes de estudio completos de los 10 ciclos para{" "}
                 <strong className="text-white">Computación Científica</strong>,{" "}
                 <strong className="text-white">Matemática</strong>,{" "}
@@ -4316,10 +4315,10 @@ export default function PortalFacultadCienciasMatematicas() {
                         <img
                           src={heroBgUrl || HERO_BG_DEFAULT}
                           alt="Vista previa Hero"
-                          className="w-full h-full object-cover blur-[1.5px] opacity-45"
+                          className="w-full h-full object-cover blur-[0.8px] opacity-90"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#002855]/90 via-[#002855]/80 to-[#001833]/90 flex items-center justify-center p-3 text-center">
-                          <span className="text-xs font-extrabold text-white">
+                        <div className="absolute inset-0 bg-gradient-to-b from-[#002855]/55 via-[#002855]/45 to-[#001833]/70 flex items-center justify-center p-3 text-center">
+                          <span className="text-xs font-extrabold text-white drop-shadow-md">
                             Vista Previa • Portal Académico e Investigación FCM
                           </span>
                         </div>
