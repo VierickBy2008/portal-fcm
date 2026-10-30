@@ -9,7 +9,7 @@ import {
   Image as ImageIcon, Copy, ExternalLink, Phone, UserCheck, ShoppingBag,
   FileSpreadsheet, Check, MapPin, Briefcase, Target, Lightbulb, Edit3,
   ArrowLeft, Share2, Users, Clock, Globe, Bold, Italic, List, ListOrdered,
-  Quote, Minus, Link2, Heading2, Menu, X, ShieldCheck, createLucideIcon,
+  Quote, Minus, Link2, Heading2, Menu, X, ShieldCheck, Sliders, createLucideIcon,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -924,6 +924,7 @@ export default function PortalFacultadCienciasMatematicas() {
   const [pausarSliderHero, setPausarSliderHero] = useState<boolean>(false);
   const [direccionSlide, setDireccionSlide] = useState<"next" | "prev">("next");
   const [animandoSlide, setAnimandoSlide] = useState<boolean>(false);
+  const [modalHeroFondoAbierto, setModalHeroFondoAbierto] = useState<boolean>(false);
   const touchStartXRef = useRef<number | null>(null);
 
   // Buscador Compacto en Navbar Superior con atajo de teclado (Ctrl+K / Cmd+K)
@@ -2314,30 +2315,29 @@ export default function PortalFacultadCienciasMatematicas() {
     return destacadas.length > 0 ? destacadas : noticias.slice(0, 4);
   }, [noticias]);
 
-  const cambiarSlideHero = useCallback((nuevoIndice: number, dir: "next" | "prev") => {
-    setDireccionSlide(dir);
-    setAnimandoSlide(true);
+  const totalSlidesHero = useMemo(() => 1 + noticiasDestacadas.length, [noticiasDestacadas.length]);
+
+  const cambiarSlideHero = useCallback((nuevoIndice: number) => {
     setSlideActivoHero(nuevoIndice);
-    setTimeout(() => setAnimandoSlide(false), 450);
   }, []);
 
   const siguienteSlideHero = useCallback(() => {
-    if (noticiasDestacadas.length <= 1) return;
-    cambiarSlideHero((slideActivoHero + 1) % noticiasDestacadas.length, "next");
-  }, [slideActivoHero, noticiasDestacadas.length, cambiarSlideHero]);
+    if (totalSlidesHero <= 1) return;
+    setSlideActivoHero((prev) => (prev + 1) % totalSlidesHero);
+  }, [totalSlidesHero]);
 
   const anteriorSlideHero = useCallback(() => {
-    if (noticiasDestacadas.length <= 1) return;
-    cambiarSlideHero((slideActivoHero - 1 + noticiasDestacadas.length) % noticiasDestacadas.length, "prev");
-  }, [slideActivoHero, noticiasDestacadas.length, cambiarSlideHero]);
+    if (totalSlidesHero <= 1) return;
+    setSlideActivoHero((prev) => (prev - 1 + totalSlidesHero) % totalSlidesHero);
+  }, [totalSlidesHero]);
 
   useEffect(() => {
-    if (pausarSliderHero || noticiasDestacadas.length <= 1) return;
+    if (pausarSliderHero || totalSlidesHero <= 1) return;
     const timer = setInterval(() => {
       siguienteSlideHero();
-    }, 6000);
+    }, 7000);
     return () => clearInterval(timer);
-  }, [pausarSliderHero, noticiasDestacadas.length, siguienteSlideHero]);
+  }, [pausarSliderHero, totalSlidesHero, siguienteSlideHero]);
 
   // ==========================================================================
   // BUSCADOR COMPACTO NAVBAR CON ACCESO RÁPIDO CTRL + K / CMD + K
@@ -3180,7 +3180,7 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* VISTA A: INICIO / HOME (/) */}
       {vistaActual === "/" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-hidden">
-          {/* SECCIÓN PRINCIPAL INTEGRADA: CARRUSEL DE NOTICIAS + BUSCADOR GENERAL HERO */}
+          {/* SECCIÓN PRINCIPAL: MASTER SLIDER CON HERO ACADÉMICO PERMANENTE + NOTICIAS */}
           <section
             onMouseEnter={() => setPausarSliderHero(true)}
             onMouseLeave={() => setPausarSliderHero(false)}
@@ -3201,207 +3201,268 @@ export default function PortalFacultadCienciasMatematicas() {
               setPausarSliderHero(false);
             }}
             style={{
-              backgroundColor: noticiasDestacadas[slideActivoHero]?.color_fondo || "#4d0713",
+              backgroundColor:
+                slideActivoHero === 0
+                  ? heroOverlayColor || "#0f172a"
+                  : noticiasDestacadas[slideActivoHero - 1]?.color_fondo || "#4d0713",
             }}
             className="relative text-white rounded-3xl shadow-2xl border-b-4 border-red-900/70 overflow-hidden transition-colors duration-700 ease-in-out"
           >
-            {/* Botones de navegación lateral con micro-efecto táctil */}
-            <button
-              type="button"
-              onClick={anteriorSlideHero}
-              className="absolute left-2.5 sm:left-4 top-[35%] sm:top-[38%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-xs cursor-pointer border border-white/20 shadow-lg"
-              aria-label="Comunicado anterior"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              type="button"
-              onClick={siguienteSlideHero}
-              className="absolute right-2.5 sm:right-4 top-[35%] sm:top-[38%] -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-xs cursor-pointer border border-white/20 shadow-lg"
-              aria-label="Siguiente comunicado"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            {/* Botones de navegación lateral con micro-efecto táctil (visibles si hay más de 1 slide) */}
+            {totalSlidesHero > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={anteriorSlideHero}
+                  className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-md cursor-pointer border border-white/25 shadow-xl"
+                  aria-label="Diapositiva anterior"
+                >
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={siguienteSlideHero}
+                  className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-md cursor-pointer border border-white/25 shadow-xl"
+                  aria-label="Siguiente diapositiva"
+                >
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              </>
+            )}
 
-            {/* A. ZONA SUPERIOR: CARRUSEL DE NOTICIAS Y COMUNICADOS DESTACADOS CON ANIMACIÓN */}
+            {/* Pista deslizante ultra-fluida acelerada por hardware GPU (60 FPS sin tic de retraso) */}
             <div
-              key={slideActivoHero}
-              className={`grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center p-6 sm:p-12 min-h-[360px] sm:min-h-[400px] transition-all duration-500 ease-out ${
-                animandoSlide
-                  ? direccionSlide === "next"
-                    ? "opacity-30 translate-x-4 scale-[0.99]"
-                    : "opacity-30 -translate-x-4 scale-[0.99]"
-                  : "opacity-100 translate-x-0 scale-100"
-              }`}
+              className="flex w-full transition-transform duration-500 ease-out will-change-transform"
+              style={{ transform: `translateX(-${slideActivoHero * 100}%)` }}
             >
-              {/* Columna izquierda: Información */}
-              <div className="md:col-span-7 space-y-4 sm:space-y-5 text-left">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-black/40 text-red-200 border border-white/20 shadow-sm backdrop-blur-xs">
-                  <Sparkles className="w-3.5 h-3.5 text-red-400" />
-                  {noticiasDestacadas[slideActivoHero]?.categoria || "Comunicado Oficial"}
-                </span>
+              {/* SLIDE 0: HERO ACADÉMICO PERMANENTE CON BUSCADOR (IMAGEN 2) */}
+              <div className="w-full shrink-0 relative min-h-[460px] sm:min-h-[520px] flex flex-col justify-center items-center text-center p-6 sm:p-12 overflow-hidden">
+                {/* Fotografía oficial de la fachada de la Facultad */}
+                <img
+                  src={heroBgUrl || HERO_BG_DEFAULT}
+                  alt="Facultad de Ciencias Matemáticas UNMSM"
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none transition-all duration-500"
+                  style={{ filter: `blur(${heroBlur}px)` }}
+                />
+                {/* Capa de color y opacidad configurable del Hero */}
+                <div
+                  className="absolute inset-0 pointer-events-none transition-all duration-300"
+                  style={{
+                    backgroundColor: heroOverlayColor || "#0f172a",
+                    opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/30 pointer-events-none" />
 
-                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-tight drop-shadow-md">
-                  {noticiasDestacadas[slideActivoHero]?.titulo}
-                </h2>
-
-                <p className="text-xs sm:text-sm md:text-base text-white/90 line-clamp-3 leading-relaxed max-w-xl drop-shadow-xs">
-                  {noticiasDestacadas[slideActivoHero]?.resumen}
-                </p>
-
-                <div className="pt-1">
+                {/* Botón flotante para el Administrador para personalizar el Hero */}
+                {adminAutenticado && (
                   <button
                     type="button"
-                    onClick={() =>
-                      navegar("/noticias/[id]", { noticiaId: noticiasDestacadas[slideActivoHero]?.id })
-                    }
-                    className="inline-flex items-center gap-2.5 px-5 py-2.5 sm:py-3 rounded-xl bg-black/45 hover:bg-black/70 text-white font-bold text-xs sm:text-sm border border-white/25 transition-all shadow-lg group cursor-pointer backdrop-blur-xs"
+                    onClick={() => setModalHeroFondoAbierto(true)}
+                    className="absolute top-4 right-4 z-20 px-3.5 py-2 rounded-xl bg-black/65 hover:bg-black/90 text-white text-xs font-bold border border-white/25 backdrop-blur-md shadow-xl flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                    title="Personalizar Fondo, Blur y Opacidad del Hero"
                   >
-                    <span>Se informa... / Leer comunicado oficial</span>
-                    <ChevronRight className="w-4 h-4 text-red-300 group-hover:translate-x-1 transition-transform" />
+                    <Sliders className="w-4 h-4 text-amber-300" />
+                    <span>Personalizar Fondo Hero ({heroOverlayOpacity}% • {heroBlur}px)</span>
                   </button>
+                )}
+
+                {/* Contenido Hero */}
+                <div className="relative z-10 max-w-4xl mx-auto space-y-4 sm:space-y-6">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-700/90 text-white text-[11px] font-bold uppercase tracking-wider shadow-lg border border-red-500/30 backdrop-blur-xs">
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span>Facultad de Ciencias Matemáticas • UNMSM</span>
+                  </div>
+
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white leading-tight drop-shadow-lg">
+                    Portal Académico e Investigación en{" "}
+                    <span className="underline decoration-red-500 decoration-4 underline-offset-4">
+                      Ciencias Exactas y Computación Científica
+                    </span>
+                  </h1>
+
+                  <p className="text-blue-100 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed drop-shadow font-normal">
+                    Explora los planes de estudio completos de los 10 ciclos para{" "}
+                    <strong className="text-white">Computación Científica</strong>,{" "}
+                    <strong className="text-white">Matemática</strong>,{" "}
+                    <strong className="text-white">Estadística</strong> e{" "}
+                    <strong className="text-white">Investigación Operativa</strong>.
+                  </p>
+
+                  {/* Buscador Global en el Hero */}
+                  <div className="relative max-w-2xl mx-auto w-full pt-1 text-left">
+                    <div className="relative flex items-center shadow-2xl rounded-2xl">
+                      <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={busquedaGlobal}
+                        onChange={(e) => setBusquedaGlobal(e.target.value)}
+                        placeholder="Buscar curso (ej. CS113, AI264, MAT312), docente o material del repositorio..."
+                        className="w-full pl-12 pr-24 py-3.5 sm:py-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:ring-4 focus:ring-red-500/40 border border-slate-200"
+                      />
+                      {busquedaGlobal && (
+                        <button
+                          onClick={() => setBusquedaGlobal("")}
+                          className="absolute right-3 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+                        >
+                          Limpiar
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Desplegable de Resultados del Buscador */}
+                    {busquedaGlobal.trim() !== "" && (
+                      <div className="absolute left-0 right-0 mt-2 rounded-2xl bg-white text-slate-900 border-2 border-blue-900 shadow-2xl p-4 z-40 space-y-4 max-h-96 overflow-y-auto">
+                        {resultadosBusquedaHero.cursos.length === 0 && resultadosBusquedaHero.materiales.length === 0 ? (
+                          <p className="text-xs text-slate-500 text-center py-4">
+                            No se encontraron resultados para &ldquo;{busquedaGlobal}&rdquo;.
+                          </p>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {resultadosBusquedaHero.cursos.map((c) => (
+                              <button
+                                key={c.id}
+                                onClick={() => {
+                                  setBusquedaGlobal("");
+                                  navegarACarrera(c.carrera_id);
+                                }}
+                                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left transition-colors cursor-pointer"
+                              >
+                                <div>
+                                  <span className="font-mono text-xs font-bold text-red-700">[{c.codigo}]</span>{" "}
+                                  <span className="text-xs font-bold text-slate-900">{c.nombre_curso}</span>
+                                  <p className="text-[11px] text-slate-600">
+                                    Ciclo {c.ciclo} • {c.creditos} créditos • {carreras.find((ca) => ca.id === c.carrera_id)?.nombre}
+                                  </p>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-blue-900" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Columna derecha: Afiche o Imagen Destacada */}
-              <div className="md:col-span-5 flex justify-center items-center">
-                {noticiasDestacadas[slideActivoHero]?.id === "not-pronabec-2026" ? (
-                  <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-between p-4 group">
-                    <img
-                      src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=800&q=80"
-                      alt="Ministerio de Educación"
-                      className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80" />
-                    <div className="relative z-10 w-full flex items-center justify-between gap-3">
-                      <div className="bg-white/95 rounded-xl p-3 shadow-lg border border-slate-200 text-slate-900 text-left max-w-[130px]">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <div className="w-2.5 h-2.5 rounded-full bg-red-600" />
-                          <span className="text-[9px] font-extrabold uppercase tracking-tight text-slate-800">PERÚ</span>
-                        </div>
-                        <p className="text-[10px] font-bold text-slate-900 leading-tight">Ministerio de Educación</p>
-                      </div>
+              {/* SLIDES SIGUIENTES (1..N): NOTICIAS Y COMUNICADOS (IMAGEN 1) */}
+              {noticiasDestacadas.map((noticia) => (
+                <div
+                  key={noticia.id}
+                  className="w-full shrink-0 relative min-h-[460px] sm:min-h-[520px] flex items-center p-6 sm:p-12"
+                >
+                  <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center">
+                    {/* Lado izquierdo: Información */}
+                    <div className="md:col-span-7 space-y-4 sm:space-y-5 text-left">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-black/40 text-red-200 border border-white/20 shadow-sm backdrop-blur-xs">
+                        <Sparkles className="w-3.5 h-3.5 text-red-400" />
+                        {noticia.categoria || "Comunicado Oficial"}
+                      </span>
 
-                      <div className="bg-white rounded-xl p-3.5 shadow-xl border-2 border-blue-900/20 text-slate-900 text-center flex-1 max-w-[200px]">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="text-base sm:text-lg font-black tracking-tighter text-[#002855]">PRONABEC</span>
-                        </div>
-                        <div className="h-1 w-full bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600 rounded-full my-1" />
-                        <div className="mt-1 bg-blue-50/80 rounded-lg py-1 px-1.5 border border-blue-200">
-                          <span className="text-[9px] font-extrabold text-blue-950 uppercase block leading-tight">
-                            DECRETO SUPREMO
-                          </span>
-                          <span className="text-[10px] font-black text-red-700 block leading-tight">
-                            Nº 017-2026-MINEDU
-                          </span>
-                        </div>
+                      <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-tight drop-shadow-md">
+                        {noticia.titulo}
+                      </h2>
+
+                      <p className="text-xs sm:text-sm md:text-base text-white/90 line-clamp-3 leading-relaxed max-w-xl drop-shadow-xs">
+                        {noticia.resumen}
+                      </p>
+
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={() => navegar("/noticias/[id]", { noticiaId: noticia.id })}
+                          className="inline-flex items-center gap-2.5 px-5 py-2.5 sm:py-3 rounded-xl bg-black/45 hover:bg-black/70 text-white font-bold text-xs sm:text-sm border border-white/25 transition-all shadow-lg group cursor-pointer backdrop-blur-xs"
+                        >
+                          <span>Se informa... / Leer comunicado oficial</span>
+                          <ChevronRight className="w-4 h-4 text-red-300 group-hover:translate-x-1 transition-transform" />
+                        </button>
                       </div>
                     </div>
+
+                    {/* Lado derecho: Afiche o Imagen Destacada */}
+                    <div className="md:col-span-5 flex justify-center items-center">
+                      {noticia.id === "not-pronabec-2026" ? (
+                        <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-between p-4 group">
+                          <img
+                            src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=800&q=80"
+                            alt="Ministerio de Educación"
+                            className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80" />
+                          <div className="relative z-10 w-full flex items-center justify-between gap-3">
+                            <div className="bg-white/95 rounded-xl p-3 shadow-lg border border-slate-200 text-slate-900 text-left max-w-[130px]">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <div className="w-2.5 h-2.5 rounded-full bg-red-600" />
+                                <span className="text-[9px] font-extrabold uppercase tracking-tight text-slate-800">PERÚ</span>
+                              </div>
+                              <p className="text-[10px] font-bold text-slate-900 leading-tight">Ministerio de Educación</p>
+                            </div>
+
+                            <div className="bg-white rounded-xl p-3.5 shadow-xl border-2 border-blue-900/20 text-slate-900 text-center flex-1 max-w-[200px]">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <span className="text-base sm:text-lg font-black tracking-tighter text-[#002855]">PRONABEC</span>
+                              </div>
+                              <div className="h-1 w-full bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600 rounded-full my-1" />
+                              <div className="mt-1 bg-blue-50/80 rounded-lg py-1 px-1.5 border border-blue-200">
+                                <span className="text-[9px] font-extrabold text-blue-950 uppercase block leading-tight">
+                                  DECRETO SUPREMO
+                                </span>
+                                <span className="text-[10px] font-black text-red-700 block leading-tight">
+                                  Nº 017-2026-MINEDU
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-slate-900 group">
+                          <img
+                            src={noticia.imagen_url}
+                            alt={noticia.titulo}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-slate-900 group">
-                    <img
-                      src={noticiasDestacadas[slideActivoHero]?.imagen_url}
-                      alt={noticiasDestacadas[slideActivoHero]?.titulo}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-                  </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
 
             {/* Indicadores horizontales (Dash Pills) */}
             <div className="pb-4 flex items-center justify-center gap-2 sm:gap-2.5 z-20 relative">
-              {noticiasDestacadas.map((item, idx) => (
-                <button
-                  key={item.id || idx}
-                  type="button"
-                  onClick={() => cambiarSlideHero(idx, idx > slideActivoHero ? "next" : "prev")}
-                  className={`cursor-pointer transition-all duration-300 ${
-                    idx === slideActivoHero
-                      ? "w-10 sm:w-14 h-1.5 sm:h-2 rounded-full bg-white shadow-md"
-                      : "w-6 sm:w-8 h-1.5 sm:h-2 rounded-full bg-white/40 hover:bg-white/70"
-                  }`}
-                  aria-label={`Ir al comunicado ${idx + 1}`}
-                />
-              ))}
-            </div>
-
-            {/* B. ZONA INFERIOR ACOPLADA: BUSCADOR GENERAL Y ENCABEZADO HERO ACADÉMICO */}
-            <div className="bg-black/30 backdrop-blur-md border-t border-white/15 px-6 py-8 sm:px-12 sm:py-10 text-center space-y-4 relative z-10">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-700/90 text-white text-[11px] font-bold uppercase tracking-wider shadow-sm border border-red-500/30">
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Facultad de Ciencias Matemáticas • UNMSM</span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-tight drop-shadow-md">
-                Portal Académico e Investigación en{" "}
-                <span className="underline decoration-red-500 decoration-4 underline-offset-4">
-                  Ciencias Exactas y Computación Científica
-                </span>
-              </h1>
-
-              <p className="text-blue-100 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed drop-shadow-xs">
-                Explora los planes de estudio completos de los 10 ciclos para{" "}
-                <strong className="text-white">Computación Científica</strong>,{" "}
-                <strong className="text-white">Matemática</strong>,{" "}
-                <strong className="text-white">Estadística</strong> e{" "}
-                <strong className="text-white">Investigación Operativa</strong>.
-              </p>
-
-              <div className="relative max-w-2xl mx-auto pt-2 text-left">
-                <div className="relative flex items-center">
-                  <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={busquedaGlobal}
-                    onChange={(e) => setBusquedaGlobal(e.target.value)}
-                    placeholder="Buscar curso (ej. CS113, AI264, MAT312), docente o material del repositorio..."
-                    className="w-full pl-12 pr-24 py-3.5 sm:py-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:ring-4 focus:ring-red-500/40 shadow-xl"
+              {/* Pill 0: Hero Académico */}
+              <button
+                type="button"
+                onClick={() => cambiarSlideHero(0)}
+                className={`cursor-pointer transition-all duration-300 flex items-center justify-center ${
+                  slideActivoHero === 0
+                    ? "w-10 sm:w-14 h-2 rounded-full bg-white shadow-md"
+                    : "w-6 sm:w-8 h-2 rounded-full bg-white/40 hover:bg-white/70"
+                }`}
+                title="Slide Principal: Portal Académico"
+                aria-label="Ir al Slide Principal"
+              />
+              {/* Pills 1..N: Noticias */}
+              {noticiasDestacadas.map((item, idx) => {
+                const indiceSlide = idx + 1;
+                return (
+                  <button
+                    key={item.id || idx}
+                    type="button"
+                    onClick={() => cambiarSlideHero(indiceSlide)}
+                    className={`cursor-pointer transition-all duration-300 ${
+                      slideActivoHero === indiceSlide
+                        ? "w-10 sm:w-14 h-2 rounded-full bg-white shadow-md"
+                        : "w-6 sm:w-8 h-2 rounded-full bg-white/40 hover:bg-white/70"
+                    }`}
+                    title={item.titulo}
+                    aria-label={`Ir al comunicado ${idx + 1}`}
                   />
-                  {busquedaGlobal && (
-                    <button
-                      onClick={() => setBusquedaGlobal("")}
-                      className="absolute right-3 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
-                    >
-                      Limpiar
-                    </button>
-                  )}
-                </div>
-
-                {busquedaGlobal.trim() !== "" && (
-                  <div className="absolute left-0 right-0 mt-2 rounded-2xl bg-white text-slate-900 border-2 border-blue-900 shadow-2xl p-4 z-30 space-y-4 max-h-96 overflow-y-auto">
-                    {resultadosBusquedaHero.cursos.length === 0 && resultadosBusquedaHero.materiales.length === 0 ? (
-                      <p className="text-xs text-slate-500 text-center py-4">
-                        No se encontraron resultados para &ldquo;{busquedaGlobal}&rdquo;.
-                      </p>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {resultadosBusquedaHero.cursos.map((c) => (
-                          <button
-                            key={c.id}
-                            onClick={() => {
-                              setBusquedaGlobal("");
-                              navegarACarrera(c.carrera_id);
-                            }}
-                            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left transition-colors cursor-pointer"
-                          >
-                            <div>
-                              <span className="font-mono text-xs font-bold text-red-700">[{c.codigo}]</span>{" "}
-                              <span className="text-xs font-bold text-slate-900">{c.nombre_curso}</span>
-                              <p className="text-[11px] text-slate-600">
-                                Ciclo {c.ciclo} • {c.creditos} créditos • {carreras.find((ca) => ca.id === c.carrera_id)?.nombre}
-                              </p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-blue-900" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                );
+              })}
             </div>
           </section>
 
@@ -6145,6 +6206,188 @@ export default function PortalFacultadCienciasMatematicas() {
               <div className="flex justify-end gap-2">
                 <button onClick={() => setServicioModalInfo(null)} className="px-4 py-2 rounded-xl bg-slate-200 text-slate-800 font-bold">Cerrar</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE PERSONALIZACIÓN DEL FONDO HERO (DIFUMINADO, OPACIDAD Y COLOR) - IMAGEN 3 */}
+      {modalHeroFondoAbierto && (
+        <div
+          onClick={() => setModalHeroFondoAbierto(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl border-2 border-[#002855] max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="font-extrabold text-base text-[#002855]">
+                  🖼️ Personalización del Fondo Hero (Difuminado, Opacidad y Color)
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  Ajusta el nivel de desenfoque, el porcentaje de transparencia y el color de la capa superpuesta.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalHeroFondoAbierto(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Vista Previa en Vivo */}
+            <div
+              className="relative h-36 rounded-2xl overflow-hidden border border-slate-200 transition-colors"
+              style={{ backgroundColor: heroOverlayColor || "#0f172a" }}
+            >
+              <img
+                src={heroBgInputUrl || heroBgUrl || HERO_BG_DEFAULT}
+                alt="Vista previa Hero"
+                className="w-full h-full object-cover transition-all duration-300"
+                style={{ filter: `blur(${heroBlur}px)` }}
+              />
+              <div
+                className="absolute inset-0 transition-all duration-200"
+                style={{
+                  backgroundColor: heroOverlayColor || "#0f172a",
+                  opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 flex flex-col items-center justify-center p-3 text-center">
+                <span className="text-xs font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+                  Vista Previa en Vivo • Portal Académico FCM
+                </span>
+                <span className="mt-1 px-3 py-0.5 rounded-full bg-black/60 text-[10px] font-bold text-white border border-white/20">
+                  Difuminado: {heroBlur}px • Capa: {heroOverlayOpacity}% ({heroOverlayColor})
+                </span>
+              </div>
+            </div>
+
+            {/* URL de la imagen */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-extrabold text-slate-700">URL de la Imagen de Fondo:</label>
+              <input
+                type="url"
+                value={heroBgInputUrl}
+                onChange={(e) => setHeroBgInputUrl(e.target.value)}
+                placeholder="Pega aquí la URL de la imagen de fondo para el Hero..."
+                className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#002855]"
+              />
+            </div>
+
+            {/* 1. Nivel de Difuminado */}
+            <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-extrabold text-[#002855]">1. Nivel de Difuminado (Desenfoque):</span>
+                <span className="px-2.5 py-0.5 rounded-md bg-[#002855] text-white font-mono text-[11px] font-bold">
+                  {heroBlur} px {heroBlur === 0 ? "(Sin blur)" : heroBlur <= 1.5 ? "(Sutil)" : "(Intenso)"}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={8}
+                step={0.5}
+                value={heroBlur}
+                onChange={(e) => setHeroBlur(Number(e.target.value))}
+                className="w-full accent-[#002855] cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
+                <span>0px (Sin blur)</span>
+                <span>1px (Recomendado)</span>
+                <span>4px (Medio)</span>
+                <span>8px (Máximo)</span>
+              </div>
+            </div>
+
+            {/* 2. Opacidad / Oscuridad */}
+            <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-extrabold text-[#002855]">2. Opacidad / Oscuridad del Fondo:</span>
+                <span className="px-2.5 py-0.5 rounded-md bg-red-700 text-white font-mono text-[11px] font-bold">
+                  {heroOverlayOpacity}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={90}
+                step={5}
+                value={heroOverlayOpacity}
+                onChange={(e) => setHeroOverlayOpacity(Number(e.target.value))}
+                className="w-full accent-red-700 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
+                <span>0% (Imagen 100% libre)</span>
+                <span>45% (Equilibrado)</span>
+                <span>90% (Muy oscuro)</span>
+              </div>
+            </div>
+
+            {/* 3. Color del Filtro / Capa */}
+            <div className="space-y-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-extrabold text-[#002855]">3. Color del Filtro / Capa:</span>
+                <span className="font-mono text-[11px] font-bold text-slate-600">{heroOverlayColor}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "Neutro Carbón (Normal)", hex: "#0f172a" },
+                  { label: "Negro Cinematográfico", hex: "#000000" },
+                  { label: "Gris Grafito Suave", hex: "#27272a" },
+                  { label: "Azul Institucional", hex: "#002855" },
+                ].map((preset) => (
+                  <button
+                    key={preset.hex}
+                    type="button"
+                    onClick={() => setHeroOverlayColor(preset.hex)}
+                    className={`px-3 py-2 rounded-xl text-[11px] font-bold flex items-center gap-2 border transition-all cursor-pointer ${
+                      heroOverlayColor.toLowerCase() === preset.hex.toLowerCase()
+                        ? "border-[#002855] bg-blue-50 text-[#002855] ring-2 ring-[#002855]/20"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    <span
+                      className="w-3.5 h-3.5 rounded-full border border-white shadow-xs shrink-0"
+                      style={{ backgroundColor: preset.hex }}
+                    />
+                    <span className="truncate">{preset.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] font-semibold text-slate-600">O elige un color personalizado:</span>
+                <input
+                  type="color"
+                  value={heroOverlayColor}
+                  onChange={(e) => setHeroOverlayColor(e.target.value)}
+                  className="w-9 h-7 rounded cursor-pointer border border-slate-300 bg-white p-0.5"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  await handleUsarComoFondoHero(heroBgInputUrl, heroBlur, heroOverlayOpacity, heroOverlayColor);
+                  setModalHeroFondoAbierto(false);
+                }}
+                className="flex-1 py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer shadow-md transition-colors"
+              >
+                Guardar Personalización del Banner
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUsarComoFondoHero(HERO_BG_DEFAULT, 1, 45, "#0f172a")}
+                className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors"
+              >
+                Restaurar
+              </button>
             </div>
           </div>
         </div>
