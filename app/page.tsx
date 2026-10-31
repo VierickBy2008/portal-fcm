@@ -954,6 +954,7 @@ export default function PortalFacultadCienciasMatematicas() {
   const [repoFiltroCurso, setRepoFiltroCurso] = useState<string>("TODOS");
   const [repoFiltroTipo, setRepoFiltroTipo] = useState<"TODOS" | TipoArchivo>("TODOS");
   const [repoBusquedaTexto, setRepoBusquedaTexto] = useState("");
+  const [repoPaginaActual, setRepoPaginaActual] = useState(1);
 
   const [modalSubirAbierto, setModalSubirAbierto] = useState(false);
   const [formSubidaAnon, setFormSubidaAnon] = useState({
@@ -1659,6 +1660,45 @@ export default function PortalFacultadCienciasMatematicas() {
       }),
     [materialesAprobados, malla, repoFiltroCarrera, repoFiltroCiclo, repoFiltroCurso, repoFiltroTipo, repoBusquedaTexto]
   );
+
+  useEffect(() => {
+    setRepoPaginaActual(1);
+  }, [repoFiltroCarrera, repoFiltroCiclo, repoFiltroCurso, repoFiltroTipo, repoBusquedaTexto]);
+
+  const ITEMS_POR_PAGINA_REPO = 6;
+  const totalPaginasRepo = Math.max(1, Math.ceil(materialesFiltradosRepo.length / ITEMS_POR_PAGINA_REPO));
+  const inicioIndiceRepo = (repoPaginaActual - 1) * ITEMS_POR_PAGINA_REPO;
+  const finIndiceRepo = Math.min(inicioIndiceRepo + ITEMS_POR_PAGINA_REPO, materialesFiltradosRepo.length);
+  const materialesPaginadosRepo = useMemo(() => {
+    return materialesFiltradosRepo.slice(inicioIndiceRepo, inicioIndiceRepo + ITEMS_POR_PAGINA_REPO);
+  }, [materialesFiltradosRepo, inicioIndiceRepo]);
+
+  const obtenerNumerosPaginaRepo = () => {
+    const paginas: (number | "...")[] = [];
+    if (totalPaginasRepo <= 7) {
+      for (let i = 1; i <= totalPaginasRepo; i++) paginas.push(i);
+    } else {
+      paginas.push(1);
+      if (repoPaginaActual > 3) paginas.push("...");
+      const inicio = Math.max(2, repoPaginaActual - 1);
+      const fin = Math.min(totalPaginasRepo - 1, repoPaginaActual + 1);
+      for (let i = inicio; i <= fin; i++) {
+        if (!paginas.includes(i)) paginas.push(i);
+      }
+      if (repoPaginaActual < totalPaginasRepo - 2) paginas.push("...");
+      paginas.push(totalPaginasRepo);
+    }
+    return paginas;
+  };
+
+  const cambiarPaginaRepo = (nuevaPagina: number) => {
+    if (nuevaPagina < 1 || nuevaPagina > totalPaginasRepo) return;
+    setRepoPaginaActual(nuevaPagina);
+    const contenedor = document.getElementById("seccion-recursos-repo");
+    if (contenedor) {
+      contenedor.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   const subirArchivoASupabaseStorage = async (file: File, carpeta: string): Promise<string> => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -4572,7 +4612,7 @@ export default function PortalFacultadCienciasMatematicas() {
               </div>
             </aside>
 
-            <section className="lg:col-span-9 space-y-4">
+            <section id="seccion-recursos-repo" className="lg:col-span-9 space-y-4 scroll-mt-28">
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
@@ -4590,43 +4630,101 @@ export default function PortalFacultadCienciasMatematicas() {
                   <h3 className="text-sm font-bold text-slate-800">No hay materiales aprobados para esta selección</h3>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {materialesFiltradosRepo.map((mat) => {
-                    const curso = malla.find((c) => c.id === mat.curso_id);
-                    const carrera = carreras.find((ca) => ca.id === mat.carrera_id);
-                    return (
-                      <article key={mat.id} className="rounded-2xl border border-slate-200 bg-white hover:border-[#002855] p-5 flex flex-col justify-between gap-4 shadow-sm">
-                        <div className="space-y-3">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <span className="px-2.5 py-1 rounded-md text-xs font-mono font-extrabold bg-red-50 text-red-700 border border-red-200">
-                              [{curso?.codigo || "CURSO"}] • Ciclo {mat.ciclo || curso?.ciclo || 1}
-                            </span>
-                            <span className={`px-2.5 py-1 rounded-md text-[11px] font-extrabold border ${TEMA_CARRERA[mat.carrera_id].badgeSoft}`}>
-                              {carrera?.nombre}
-                            </span>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 shrink-0 mt-0.5">{renderIconoArchivo(mat.tipo_archivo)}</div>
-                            <div className="space-y-1">
-                              <h3 className="font-extrabold text-sm text-[#002855] leading-snug">{mat.titulo}</h3>
-                              <p className="text-xs text-red-700 font-bold">Curso: {curso?.nombre_curso}</p>
-                              <p className="text-xs text-slate-700 flex items-center gap-1.5 pt-0.5">
-                                <UserCheck className="w-3.5 h-3.5 text-[#002855]" />
-                                <span>Docente: <strong>{mat.docente}</strong></span>
-                              </p>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {materialesPaginadosRepo.map((mat) => {
+                      const curso = malla.find((c) => c.id === mat.curso_id);
+                      const carrera = carreras.find((ca) => ca.id === mat.carrera_id);
+                      return (
+                        <article key={mat.id} className="rounded-2xl border border-slate-200 bg-white hover:border-[#002855] p-5 flex flex-col justify-between gap-4 shadow-sm">
+                          <div className="space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="px-2.5 py-1 rounded-md text-xs font-mono font-extrabold bg-red-50 text-red-700 border border-red-200">
+                                [{curso?.codigo || "CURSO"}] • Ciclo {mat.ciclo || curso?.ciclo || 1}
+                              </span>
+                              <span className={`px-2.5 py-1 rounded-md text-[11px] font-extrabold border ${TEMA_CARRERA[mat.carrera_id].badgeSoft}`}>
+                                {carrera?.nombre}
+                              </span>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 shrink-0 mt-0.5">{renderIconoArchivo(mat.tipo_archivo)}</div>
+                              <div className="space-y-1">
+                                <h3 className="font-extrabold text-sm text-[#002855] leading-snug">{mat.titulo}</h3>
+                                <p className="text-xs text-red-700 font-bold">Curso: {curso?.nombre_curso}</p>
+                                <p className="text-xs text-slate-700 flex items-center gap-1.5 pt-0.5">
+                                  <UserCheck className="w-3.5 h-3.5 text-[#002855]" />
+                                  <span>Docente: <strong>{mat.docente}</strong></span>
+                                </p>
+                              </div>
                             </div>
                           </div>
+                          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <span className="text-slate-500">Subido por: <strong className="text-slate-800">{mat.autor_alias}</strong></span>
+                            <a href={mat.url_archivo} target="_blank" rel="noreferrer" className="px-3.5 py-1.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-bold flex items-center gap-1.5">
+                              <Download className="w-3.5 h-3.5" /> Descargar
+                            </a>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+
+                  {/* BARRA DE PAGINACIÓN INSTITUCIONAL FCM */}
+                  <div className="pt-6 border-t border-slate-200 flex flex-col items-center gap-3">
+                    <p className="text-xs font-semibold text-slate-500">
+                      Mostrando <strong className="text-[#002855]">{materialesFiltradosRepo.length === 0 ? 0 : inicioIndiceRepo + 1}</strong> - <strong className="text-[#002855]">{finIndiceRepo}</strong> de <strong className="text-[#002855]">{materialesFiltradosRepo.length}</strong> materiales académicos
+                    </p>
+
+                    {totalPaginasRepo > 1 && (
+                      <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                        <button
+                          type="button"
+                          onClick={() => cambiarPaginaRepo(repoPaginaActual - 1)}
+                          disabled={repoPaginaActual <= 1}
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border border-slate-200 bg-white text-slate-700 hover:bg-blue-50 hover:text-[#002855] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-700 cursor-pointer shadow-xs"
+                        >
+                          ← Anterior
+                        </button>
+
+                        <div className="flex items-center gap-1 sm:gap-1.5">
+                          {obtenerNumerosPaginaRepo().map((p, idx) => {
+                            if (p === "...") {
+                              return (
+                                <span key={`p-dots-${idx}`} className="w-8 h-8 flex items-center justify-center text-xs font-bold text-slate-400">
+                                  ...
+                                </span>
+                              );
+                            }
+                            const esActiva = p === repoPaginaActual;
+                            return (
+                              <button
+                                key={`p-num-${p}`}
+                                type="button"
+                                onClick={() => cambiarPaginaRepo(p)}
+                                className={`min-w-[34px] sm:min-w-[38px] h-[34px] sm:h-[38px] px-2 rounded-xl text-xs sm:text-sm transition-all duration-150 flex items-center justify-center cursor-pointer ${
+                                  esActiva
+                                    ? "bg-[#002855] text-white font-extrabold shadow-md scale-105 border border-[#002855]"
+                                    : "bg-white text-slate-700 hover:bg-blue-50 hover:text-[#002855] font-bold border border-slate-200 shadow-xs"
+                                }`}
+                              >
+                                {p}
+                              </button>
+                            );
+                          })}
                         </div>
-                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                          <span className="text-slate-500">Subido por: <strong className="text-slate-800">{mat.autor_alias}</strong></span>
-                          <a href={mat.url_archivo} target="_blank" rel="noreferrer" className="px-3.5 py-1.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-bold flex items-center gap-1.5">
-                            <Download className="w-3.5 h-3.5" /> Descargar
-                          </a>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
+
+                        <button
+                          type="button"
+                          onClick={() => cambiarPaginaRepo(repoPaginaActual + 1)}
+                          disabled={repoPaginaActual >= totalPaginasRepo}
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border border-slate-200 bg-white text-slate-700 hover:bg-blue-50 hover:text-[#002855] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-700 cursor-pointer shadow-xs"
+                        >
+                          Siguiente →
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </section>
           </div>
@@ -6174,16 +6272,63 @@ export default function PortalFacultadCienciasMatematicas() {
                 <select required value={formSubidaAnon.curso_id} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, curso_id: e.target.value })} className="w-full rounded-xl bg-blue-50/60 border border-blue-300 px-3 py-2.5 text-xs font-bold text-[#002855]">
                   {cursosDependientesSubida.map((cur) => <option key={cur.id} value={cur.id}>[{cur.codigo}] {cur.nombre_curso}</option>)}
                 </select>
-                <select required value={formSubidaAnon.docenteSeleccionado} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, docenteSeleccionado: e.target.value })} className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold">
-                  {docentes.map((doc) => {
-                    const etiqueta = `${doc.grado_academico} ${doc.nombre_completo}`;
-                    return (
-                      <option key={doc.id} value={etiqueta}>
-                        {etiqueta} ({carreras.find((c) => c.id === doc.carrera_id)?.nombre})
-                      </option>
-                    );
-                  })}
-                </select>
+                {/* SELECTOR DE MODO DOCENTE (REGISTRADO O CONTRATADO/MANUAL) */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 block">
+                    Docente de la Cátedra *
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setFormSubidaAnon({ ...formSubidaAnon, modoDocente: "lista" })}
+                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        formSubidaAnon.modoDocente === "lista"
+                          ? "bg-[#002855] text-white shadow-sm"
+                          : "text-slate-600 hover:text-[#002855] hover:bg-white/60"
+                      }`}
+                    >
+                      <span>👨‍🏫</span> Docente Registrado
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormSubidaAnon({ ...formSubidaAnon, modoDocente: "manual" })}
+                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        formSubidaAnon.modoDocente === "manual"
+                          ? "bg-[#002855] text-white shadow-sm"
+                          : "text-slate-600 hover:text-[#002855] hover:bg-white/60"
+                      }`}
+                    >
+                      <span>✍️</span> Docente Contratado / Invitado
+                    </button>
+                  </div>
+
+                  {formSubidaAnon.modoDocente === "lista" ? (
+                    <select
+                      required
+                      value={formSubidaAnon.docenteSeleccionado}
+                      onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, docenteSeleccionado: e.target.value })}
+                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#002855]/20 focus:border-[#002855]"
+                    >
+                      {docentes.map((doc) => {
+                        const etiqueta = `${doc.grado_academico} ${doc.nombre_completo}`;
+                        return (
+                          <option key={doc.id} value={etiqueta}>
+                            {etiqueta} ({carreras.find((c) => c.id === doc.carrera_id)?.nombre})
+                          </option>
+                        );
+                      })}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      value={formSubidaAnon.docenteManual}
+                      onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, docenteManual: e.target.value })}
+                      placeholder="Ej. Mg. Carlos Ramírez Flores (Docente contratado / invitado)"
+                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#002855]/20 focus:border-[#002855]"
+                    />
+                  )}
+                </div>
                 <div className="grid grid-cols-3 gap-3">
                   <select value={formSubidaAnon.tipo_archivo} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, tipo_archivo: e.target.value as TipoArchivo })} className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold">
                     <option value="Examen">Examen</option>
