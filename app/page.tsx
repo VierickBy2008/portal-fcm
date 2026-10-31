@@ -1556,7 +1556,7 @@ export default function PortalFacultadCienciasMatematicas() {
       return;
     }
 
-    const comentarioLimpio = formResenaDocente.comentario.trim();
+    const comentarioLimpio = formResenaDocente.comentario.trim().replace(/<[^>]*>?/gm, "");
     if (formResenaDocente.puntuacion < 1 || formResenaDocente.puntuacion > 5) {
       setErrorResenaDocente("Por favor selecciona una calificación entre 1 y 5 estrellas.");
       return;
@@ -1568,7 +1568,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
     const aliasFinal = formResenaDocente.esAnonimo
       ? "Estudiante Anónimo FCM"
-      : formResenaDocente.autor_alias.trim() || "Estudiante Anónimo FCM";
+      : formResenaDocente.autor_alias.trim().replace(/<[^>]*>?/gm, "") || "Estudiante Anónimo FCM";
 
     const nuevaResena: ResenaDocente = {
       id: `res-${Date.now()}`,
@@ -1822,16 +1822,36 @@ export default function PortalFacultadCienciasMatematicas() {
       lanzarToast("Por favor completa todos los campos obligatorios.");
       return;
     }
+
+    // Validación de Seguridad Anti-Phishing y Protocolos Seguros para URLs
+    const urlLimpia = formSubidaAnon.url_archivo.trim();
+    const esUrlSegura = (() => {
+      try {
+        const parsed = new URL(urlLimpia);
+        if (parsed.protocol !== "https:") return false;
+        const extensionesPeligrosas = /\.(exe|bat|cmd|sh|vbs|msi|scr|ps1|jar|apk)$/i;
+        if (extensionesPeligrosas.test(parsed.pathname)) return false;
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+
+    if (!esUrlSegura) {
+      lanzarToast("⚠️ Enlace no permitido. Por seguridad, la URL debe comenzar con https:// y no puede contener archivos ejecutables.");
+      return;
+    }
+
     const nuevoMat: MaterialRepositorio = {
       id: `mat-${Date.now()}`,
-      titulo: formSubidaAnon.titulo.trim(),
+      titulo: formSubidaAnon.titulo.trim().replace(/<[^>]*>?/gm, ""),
       tipo_archivo: formSubidaAnon.tipo_archivo,
-      url_archivo: formSubidaAnon.url_archivo.trim(),
+      url_archivo: urlLimpia,
       carrera_id: formSubidaAnon.carrera_id,
       ciclo: Number(formSubidaAnon.ciclo),
       curso_id: formSubidaAnon.curso_id,
-      docente: docenteFinal,
-      autor_alias: formSubidaAnon.autor_alias.trim() || "Estudiante Anónimo FCM",
+      docente: docenteFinal.replace(/<[^>]*>?/gm, ""),
+      autor_alias: formSubidaAnon.autor_alias.trim().replace(/<[^>]*>?/gm, "") || "Estudiante Anónimo FCM",
       fecha_subida: new Date().toISOString().split("T")[0],
       estado: "pendiente",
     };
