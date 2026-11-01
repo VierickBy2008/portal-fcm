@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import {
   Search, GraduationCap, BookOpen, Newspaper, FolderGit2, LifeBuoy, Sparkles,
-  ChevronRight, ChevronDown, ChevronLeft, Upload, FileText, Code2, Video, FileCheck2, Award,
+  ChevronRight, ChevronDown, ChevronLeft, Upload, FileText, Code2, Video, FileCheck2, Award, Trophy, Plus,
   CheckCircle2, Trash2, Lock, Unlock, Mail, Building2, Calendar, Filter, Layers,
   Download, AlertCircle, Star, Cpu, Sigma, BarChart3, Network, Printer,
   Image as ImageIcon, Copy, ExternalLink, Phone, UserCheck, ShoppingBag,
@@ -77,6 +77,22 @@ interface Docente {
   orcid_url?: string;
   google_scholar_url?: string;
   linkedin_url?: string;
+}
+
+
+export interface OrgulloItem {
+  id: string;
+  titulo: string;
+  subtitulo_categoria: string;
+  estudiante: string;
+  carrera_id: CarreraId | "fcm";
+  carrera_nombre?: string;
+  descripcion: string;
+  foto_url: string;
+  tipo_tarjeta: "afiche" | "estudiante" | "delegacion";
+  enlace_nota?: string;
+  anio: string;
+  destacado?: boolean;
 }
 
 interface ResenaDocente {
@@ -156,7 +172,7 @@ function renderTextoEnriquecidoLinea(texto: string, keyPrefix: string): React.Re
     }
     if (parte.startsWith("**") && parte.endsWith("**") && parte.length > 4) {
       return (
-        <strong key={key} className="font-extrabold text-slate-900">
+        <strong key={key} className="font-bold text-slate-900">
           {parte.slice(2, -2)}
         </strong>
       );
@@ -231,7 +247,7 @@ function renderizarContenidoNoticia(contenido: string): React.ReactNode {
     if (linea.startsWith("### ")) {
       vaciarListas(key);
       elementos.push(
-        <h4 key={key} className="text-base sm:text-lg font-extrabold text-[#002855] mt-5 mb-2">
+        <h4 key={key} className="text-base sm:text-lg font-bold text-[#002855] dark:text-white mt-5 mb-2">
           {renderTextoEnriquecidoLinea(linea.slice(4), key)}
         </h4>
       );
@@ -240,7 +256,7 @@ function renderizarContenidoNoticia(contenido: string): React.ReactNode {
     if (linea.startsWith("## ")) {
       vaciarListas(key);
       elementos.push(
-        <h3 key={key} className="text-lg sm:text-xl font-extrabold text-[#002855] mt-6 mb-2.5 border-l-4 border-red-600 pl-3">
+        <h3 key={key} className="text-lg sm:text-xl font-bold text-[#002855] dark:text-white mt-6 mb-2.5 border-l-4 border-red-600 pl-3">
           {renderTextoEnriquecidoLinea(linea.slice(3), key)}
         </h3>
       );
@@ -892,6 +908,70 @@ const IMAGENES_STORAGE_INICIALES: ImagenStorage[] = [
   { id: "img-2", nombre_archivo: "cluster-computacion-cientifica.jpg", categoria: "Banner Noticia", url_publica: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80", tamano_kb: "412 KB", fecha_subida: "2026-10-24" },
 ];
 
+
+const ORGULLO_INICIAL: OrgulloItem[] = [
+  {
+    id: "org-ibro-2026",
+    titulo: "Translational Neuroscience School — IBRO 2026",
+    subtitulo_categoria: "SELECCIONADO POR IBRO 2026",
+    estudiante: "Alumno Destacado FCM",
+    carrera_id: "computacion-cientifica",
+    carrera_nombre: "Computación Científica",
+    descripcion:
+      "Estudiante de la Escuela Profesional de Computación Científica seleccionado con beca completa para participar en la Escuela Internacional de Neurociencia Traslacional de la International Brain Research Organization (IBRO).",
+    foto_url: "/orgullo/card1.png",
+    tipo_tarjeta: "afiche",
+    enlace_nota: "https://ibro.org",
+    anio: "2026",
+    destacado: true,
+  },
+  {
+    id: "org-alumno-ibro",
+    titulo: "Representante Sanmarquino en Neurociencias Computacionales",
+    subtitulo_categoria: "EXCELENCIA ACADÉMICA FCM",
+    estudiante: "Diego Quispe Huamán",
+    carrera_id: "computacion-cientifica",
+    carrera_nombre: "Computación Científica",
+    descripcion:
+      "Reconocimiento al mérito académico y de investigación por el desarrollo de algoritmos de procesamiento de señales neuronales y modelos de aprendizaje profundo para el diagnóstico temprano.",
+    foto_url: "/orgullo/card2.png",
+    tipo_tarjeta: "estudiante",
+    enlace_nota: "",
+    anio: "2026",
+    destacado: true,
+  },
+  {
+    id: "org-hackathon-2026",
+    titulo: "3er Puesto Nacional: I Hackatón de Educación Financiera 2026",
+    subtitulo_categoria: "1ER PUESTO HACKATHON NACIONAL",
+    estudiante: "Delegación Multidisciplinaria FCM",
+    carrera_id: "investigacion-operativa",
+    carrera_nombre: "Investigación Operativa y Matemática",
+    descripcion:
+      "Nuestros estudiantes alcanzaron el podio nacional compitiendo contra más de 40 universidades, implementando soluciones de optimización de carteras de inversión y modelos estocásticos en tiempo real.",
+    foto_url: "/orgullo/card3.png",
+    tipo_tarjeta: "delegacion",
+    enlace_nota: "",
+    anio: "2026",
+    destacado: true,
+  },
+  {
+    id: "org-pronabec-2026",
+    titulo: "Comunidad de Becarios de Excelencia PRONABEC 2026",
+    subtitulo_categoria: "BECA PRONABEC EXCELENCIA",
+    estudiante: "Estudiantes Becarios FCM",
+    carrera_id: "fcm",
+    carrera_nombre: "Facultad de Ciencias Matemáticas",
+    descripcion:
+      "Más de 85 alumnos de Computación Científica, Matemática, Estadística e Investigación Operativa acreditados con Beca Permanencia y Beca Continuidad por su alto desempeño y rendimiento académico.",
+    foto_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+    tipo_tarjeta: "delegacion",
+    enlace_nota: "https://www.gob.pe/pronabec",
+    anio: "2026",
+    destacado: true,
+  },
+];
+
 const TICKETS_INICIALES: TicketSoporte[] = [
   { id: "tck-1", nombre: "Carlos Mendoza Quispe", email: "carlos.mendoza@unmsm.edu.pe", asunto: "Consulta sobre convalidación al Plan de Estudios 2026 (Computación Científica)", mensaje: "Solicito información sobre la tabla de equivalencias automáticas en el SUM para los cursos de tercer ciclo del Plan 2026 de Computación Científica.", fecha: "2026-10-27 10:15", estado_atencion: "pendiente" },
 ];
@@ -909,6 +989,26 @@ export default function PortalFacultadCienciasMatematicas() {
   const [materiales, setMateriales] = useState<MaterialRepositorio[]>(MATERIALES_INICIALES);
   const [tickets, setTickets] = useState<TicketSoporte[]>(TICKETS_INICIALES);
   const [imagenesStorage, setImagenesStorage] = useState<ImagenStorage[]>(IMAGENES_STORAGE_INICIALES);
+
+  const [orgulloItems, setOrgulloItems] = useState<OrgulloItem[]>(ORGULLO_INICIAL);
+  const [modalDetalleOrgullo, setModalDetalleOrgullo] = useState<OrgulloItem | null>(null);
+  const [modalOrgulloFormAbierto, setModalOrgulloFormAbierto] = useState<boolean>(false);
+  const [editandoOrgulloId, setEditandoOrgulloId] = useState<string | null>(null);
+  const [formOrgullo, setFormOrgullo] = useState<Omit<OrgulloItem, "carrera_nombre">>({
+    id: "",
+    titulo: "",
+    subtitulo_categoria: "SELECCIONADO POR IBRO 2026",
+    estudiante: "",
+    carrera_id: "computacion-cientifica",
+    descripcion: "",
+    foto_url: "",
+    tipo_tarjeta: "afiche",
+    enlace_nota: "",
+    anio: "2026",
+    destacado: true,
+  });
+  const [subiendoFotoOrgullo, setSubiendoFotoOrgullo] = useState<boolean>(false);
+
   const [logoUrl, setLogoUrl] = useState<string>(LOGO_UNMSM_TRANSPARENTE_DEFAULT);
   const [heroBgUrl, setHeroBgUrl] = useState<string>(HERO_BG_DEFAULT);
   const [heroBgInputUrl, setHeroBgInputUrl] = useState<string>(HERO_BG_DEFAULT);
@@ -1002,7 +1102,7 @@ export default function PortalFacultadCienciasMatematicas() {
   const [pinAdmin, setPinAdmin] = useState("");
   const [errorPin, setErrorPin] = useState("");
   const [tabAdmin, setTabAdmin] = useState<
-    "dashboard" | "carreras_cms" | "noticias" | "docentes_cms" | "malla" | "moderacion" | "storage" | "soporte"
+    "dashboard" | "carreras_cms" | "noticias" | "docentes_cms" | "malla" | "moderacion" | "storage" | "soporte" | "orgullo"
   >("dashboard");
 
   const [adminCarreraEditId, setAdminCarreraEditId] = useState<CarreraId>("computacion-cientifica");
@@ -1269,6 +1369,15 @@ export default function PortalFacultadCienciasMatematicas() {
           const localDocentes = window.localStorage.getItem("fcm_docentes_data");
           const localResenas = window.localStorage.getItem("fcm_resenas_docentes");
           const localMateriales = window.localStorage.getItem("fcm_materiales_data");
+
+          const localOrgullo = window.localStorage.getItem("fcm_orgullo_data");
+          if (localOrgullo && activo) {
+            try {
+              const parsedOrg = JSON.parse(localOrgullo);
+              if (Array.isArray(parsedOrg) && parsedOrg.length > 0) setOrgulloItems(parsedOrg);
+            } catch {}
+          }
+
           if (localLogo && activo) setLogoUrl(localLogo);
           if (localHeroBg && activo) {
             aplicarHeroCfgDesdeString(localHeroBg);
@@ -1366,6 +1475,18 @@ export default function PortalFacultadCienciasMatematicas() {
             setResenasDocentes(data.resenas_docentes);
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(data.resenas_docentes));
           }
+          
+          if (Array.isArray(data.orgullo_data) && data.orgullo_data.length > 0) {
+            setOrgulloItems(data.orgullo_data);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(data.orgullo_data));
+          } else if (Array.isArray(data.storage_data)) {
+            const metaOrg = data.storage_data.find((x: any) => x && x.id === "__fcm_orgullo_config__");
+            if (metaOrg && Array.isArray(metaOrg.orgullo_items) && metaOrg.orgullo_items.length > 0) {
+              setOrgulloItems(metaOrg.orgullo_items);
+              if (typeof window !== "undefined") window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(metaOrg.orgullo_items));
+            }
+          }
+
           if (Array.isArray(data.materiales_data) && data.materiales_data.length > 0) {
             const limpios = data.materiales_data.filter((m: MaterialRepositorio) => m.id !== "mat-pend-1" && m.id !== "mat-pend-2");
             setMateriales(limpios);
@@ -1403,6 +1524,7 @@ export default function PortalFacultadCienciasMatematicas() {
     docentes_data?: Docente[];
     resenas_docentes?: ResenaDocente[];
     materiales_data?: MaterialRepositorio[];
+    orgullo_data?: OrgulloItem[];
   }): Promise<boolean> => {
     if (typeof window !== "undefined") {
       if (cambios.logo_url) window.localStorage.setItem("fcm_logo_url", cambios.logo_url);
@@ -1441,7 +1563,11 @@ export default function PortalFacultadCienciasMatematicas() {
       );
       if (error) {
         // Fallback seguro si alguna columna nueva aún no existe en el esquema SQL de portal_config
-        const { hero_blur, hero_overlay_opacity, hero_overlay_color, ...resto } = cambios;
+        const { hero_blur, hero_overlay_opacity, hero_overlay_color, orgullo_data, ...resto } = cambios;
+        void hero_blur;
+        void hero_overlay_opacity;
+        void hero_overlay_color;
+        void orgullo_data;
         void hero_blur;
         void hero_overlay_opacity;
         void hero_overlay_color;
@@ -2674,9 +2800,9 @@ export default function PortalFacultadCienciasMatematicas() {
     if (pausarSliderHero || totalSlidesHero <= 1) return;
     const timer = setInterval(() => {
       siguienteSlideHero();
-    }, 7000);
+    }, 6000);
     return () => clearInterval(timer);
-  }, [pausarSliderHero, totalSlidesHero, siguienteSlideHero]);
+  }, [pausarSliderHero, totalSlidesHero, siguienteSlideHero, slideActivoHero]);
 
   // ==========================================================================
   // BUSCADOR COMPACTO NAVBAR CON ACCESO RÁPIDO CTRL + K / CMD + K
@@ -2861,7 +2987,7 @@ export default function PortalFacultadCienciasMatematicas() {
             />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold tracking-tight text-base sm:text-lg text-white">
+                <span className="font-bold tracking-tight text-base sm:text-lg text-white">
                   FCM <span className="text-red-400">UNMSM</span>
                 </span>
                 <span className="hidden xl:inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-red-700 text-white">
@@ -2904,7 +3030,7 @@ export default function PortalFacultadCienciasMatematicas() {
             {navbarResultadosAbiertos && busquedaNavbar.trim().length >= 2 && resultadosBusquedaNavbar && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white text-slate-900 rounded-2xl shadow-2xl border-2 border-[#002855] overflow-hidden z-50 divide-y divide-slate-100 max-h-[75vh] overflow-y-auto">
                 <div className="bg-[#002855] text-white px-4 py-2.5 flex items-center justify-between text-xs">
-                  <span className="font-extrabold flex items-center gap-1.5">
+                  <span className="font-bold flex items-center gap-1.5">
                     <Search className="w-3.5 h-3.5 text-red-400" />
                     {resultadosBusquedaNavbar.total > 0
                       ? `${resultadosBusquedaNavbar.total} resultado(s)`
@@ -2915,7 +3041,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                 {resultadosBusquedaNavbar.cursos.length > 0 && (
                   <div className="p-2 space-y-1">
-                    <p className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Cursos del Plan de Estudios
                     </p>
                     {resultadosBusquedaNavbar.cursos.map((c) => (
@@ -2931,7 +3057,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
                       >
                         <div>
-                          <p className="font-extrabold text-xs text-[#002855] group-hover:text-red-700">
+                          <p className="font-bold text-xs text-[#002855] group-hover:text-red-700">
                             {c.nombre_curso}
                           </p>
                           <p className="text-[10px] text-slate-500">
@@ -2946,7 +3072,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                 {resultadosBusquedaNavbar.docentes.length > 0 && (
                   <div className="p-2 space-y-1">
-                    <p className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Docentes e Investigadores
                     </p>
                     {resultadosBusquedaNavbar.docentes.map((d) => (
@@ -2961,7 +3087,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
                       >
                         <div>
-                          <p className="font-extrabold text-xs text-[#002855] group-hover:text-red-700">
+                          <p className="font-bold text-xs text-[#002855] group-hover:text-red-700">
                             {d.grado_academico} {d.nombre_completo}
                           </p>
                           <p className="text-[10px] text-slate-500">
@@ -2976,7 +3102,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                 {resultadosBusquedaNavbar.noticias.length > 0 && (
                   <div className="p-2 space-y-1">
-                    <p className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Noticias y Comunicados
                     </p>
                     {resultadosBusquedaNavbar.noticias.map((n) => (
@@ -2991,7 +3117,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
                       >
                         <div>
-                          <p className="font-extrabold text-xs text-[#002855] group-hover:text-red-700 line-clamp-1">
+                          <p className="font-bold text-xs text-[#002855] group-hover:text-red-700 line-clamp-1">
                             {n.titulo}
                           </p>
                           <p className="text-[10px] text-slate-500">
@@ -3006,7 +3132,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                 {resultadosBusquedaNavbar.materiales.length > 0 && (
                   <div className="p-2 space-y-1">
-                    <p className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Materiales del Repositorio
                     </p>
                     {resultadosBusquedaNavbar.materiales.map((m) => (
@@ -3022,7 +3148,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
                       >
                         <div>
-                          <p className="font-extrabold text-xs text-[#002855] group-hover:text-red-700 line-clamp-1">
+                          <p className="font-bold text-xs text-[#002855] group-hover:text-red-700 line-clamp-1">
                             [{m.tipo_archivo}] {m.titulo}
                           </p>
                           <p className="text-[10px] text-slate-500">
@@ -3056,7 +3182,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 type="button"
                 aria-expanded={dropdownFormacionAbierto}
                 onClick={() => setDropdownFormacionAbierto((prev) => !prev)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
                   vistaActual === "/carreras/[id]" || vistaActual === "/repositorio" || vistaActual === "/docentes"
                     ? "bg-white text-[#002855] shadow-sm"
                     : "text-blue-100 hover:bg-blue-900"
@@ -3071,7 +3197,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <div className="absolute left-0 top-full pt-2 w-80 sm:w-96 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl border-2 border-[#002855] dark:border-blue-700 overflow-hidden">
                     <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
-                      <span className="text-[11px] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5">
                         <GraduationCap className="w-4 h-4 text-red-400" />
                         Formación Profesional e Investigación
                       </span>
@@ -3082,7 +3208,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       {/* SUBSECCIÓN PREGRADO */}
                       <div className="space-y-1.5">
                         <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950 text-[#002855] dark:text-blue-200 uppercase">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-[#002855] dark:text-blue-200 uppercase">
                             Pregrado
                           </span>
                           <span className="text-[11px] font-bold text-slate-400">4 Escuelas Profesionales</span>
@@ -3101,7 +3227,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <Layers className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs font-extrabold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
+                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
                               Escuelas Profesionales y Planes 2026
                             </div>
                             <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
@@ -3124,7 +3250,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <FolderGit2 className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs font-extrabold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
+                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
                               Repositorio Académico FCM
                             </div>
                             <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
@@ -3140,7 +3266,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       {/* SUBSECCIÓN POSGRADO */}
                       <div className="space-y-1.5">
                         <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-200 uppercase">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-200 uppercase">
                             Posgrado
                           </span>
                           <span className="text-[11px] font-bold text-slate-400">UPG • Especialización</span>
@@ -3157,7 +3283,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <Award className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs font-extrabold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors flex items-center gap-1.5">
+                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors flex items-center gap-1.5">
                               <span>Unidad de Posgrado FCM (UPG)</span>
                               <ExternalLink className="w-3 h-3 text-slate-400" />
                             </div>
@@ -3174,7 +3300,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       {/* SUBSECCIÓN DOCENTES */}
                       <div className="space-y-1.5">
                         <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 uppercase">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 uppercase">
                             Cátedra
                           </span>
                           <span className="text-[11px] font-bold text-slate-400">Plana Docente Oficial</span>
@@ -3192,7 +3318,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <Users className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs font-extrabold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
+                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
                               Docentes e Investigadores FCM
                             </div>
                             <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
@@ -3218,7 +3344,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 type="button"
                 aria-expanded={dropdownServicioAbierto}
                 onClick={() => setDropdownServicioAbierto((prev) => !prev)}
-                className="px-3 py-1.5 rounded-lg text-xs font-extrabold bg-red-700 hover:bg-red-600 text-white shadow-sm flex items-center gap-1.5 whitespace-nowrap transition-all border border-red-500 cursor-pointer"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-700 hover:bg-red-600 text-white shadow-sm flex items-center gap-1.5 whitespace-nowrap transition-all border border-red-500 cursor-pointer"
               >
                 <span>SERVICIO AL ESTUDIANTE</span>
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdownServicioAbierto ? "rotate-180" : ""}`} />
@@ -3226,12 +3352,12 @@ export default function PortalFacultadCienciasMatematicas() {
 
               {dropdownServicioAbierto && (
                 <div className="absolute right-0 sm:left-0 top-full pt-2 w-80 sm:w-96 z-50">
-                  <div className="rounded-2xl bg-white text-slate-900 shadow-2xl border-2 border-[#002855] overflow-hidden">
+                  <div className="rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl border-2 border-[#002855] dark:border-blue-700 overflow-hidden">
                     <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
-                      <span className="text-[11px] font-extrabold uppercase tracking-wider">Unidades y Plataformas al Estudiante</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Unidades y Plataformas al Estudiante</span>
                       <span className="text-[10px] font-mono text-red-300">FCM • UNMSM</span>
                     </div>
-                    <div className="divide-y divide-slate-100 text-xs max-h-[78vh] overflow-y-auto">
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs max-h-[78vh] overflow-y-auto">
                       {[
                         {
                           nombre: "CERSEU",
@@ -3289,22 +3415,22 @@ export default function PortalFacultadCienciasMatematicas() {
                             setDropdownServicioAbierto(false);
                             setServicioModalInfo(u.info);
                           }}
-                          className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center justify-between group cursor-pointer"
+                          className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center justify-between group cursor-pointer transition-colors"
                         >
                           <div>
-                            <p className="font-extrabold text-[#002855] group-hover:text-red-700">{u.nombre}</p>
-                            <p className="text-[11px] text-slate-500">{u.sub}</p>
+                            <p className="font-bold text-[#002855] dark:text-white group-hover:text-red-700 dark:group-hover:text-red-400">{u.nombre}</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">{u.sub}</p>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-red-700" />
+                          <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors" />
                         </button>
                       ))}
 
-                      <div className="px-4 py-3.5 bg-blue-50/60 space-y-2.5">
+                      <div className="px-4 py-3.5 bg-blue-50/60 dark:bg-slate-800/60 space-y-2.5 border-t border-slate-200 dark:border-slate-800">
                         <div className="flex items-start gap-2">
                           <FileSpreadsheet className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                           <div>
-                            <p className="font-extrabold text-[#002855] leading-snug">Matrícula, Registros Académicos, Grados Y Títulos</p>
-                            <p className="text-[11px] text-slate-600">Accesos oficiales de trámite documentario y matrícula:</p>
+                            <p className="font-bold text-[#002855] dark:text-white leading-snug">Matrícula, Registros Académicos, Grados Y Títulos</p>
+                            <p className="text-[11px] text-slate-600 dark:text-slate-300">Accesos oficiales de trámite documentario y matrícula:</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2 pt-1">
@@ -3313,7 +3439,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => setDropdownServicioAbierto(false)}
-                            className="px-3 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5"
+                            className="px-3 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-bold text-[11px] flex items-center justify-center gap-1.5"
                           >
                             <span>Módulo MAT</span>
                             <ExternalLink className="w-3 h-3 text-red-300" />
@@ -3323,7 +3449,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => setDropdownServicioAbierto(false)}
-                            className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5"
+                            className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-[11px] flex items-center justify-center gap-1.5"
                           >
                             <span>Intranet SUM</span>
                             <ExternalLink className="w-3 h-3" />
@@ -3333,7 +3459,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                       <div className="px-4 py-3 bg-red-50/50 flex items-center justify-between gap-3">
                         <div>
-                          <p className="font-extrabold text-[#002855]">UNIDAD DE ECONOMÍA</p>
+                          <p className="font-bold text-[#002855]">UNIDAD DE ECONOMÍA</p>
                           <p className="text-[11px] text-slate-600">Pagos y tasas académicas en línea</p>
                         </div>
                         <a
@@ -3341,7 +3467,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => setDropdownServicioAbierto(false)}
-                          className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-extrabold text-[11px] flex items-center gap-1.5 shrink-0"
+                          className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-[11px] flex items-center gap-1.5 shrink-0"
                         >
                           <ShoppingBag className="w-3.5 h-3.5" />
                           <span>SAN MARKET</span>
@@ -3360,7 +3486,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         <div className="flex items-center gap-2.5">
                           <Phone className="w-4 h-4 text-red-700" />
                           <div>
-                            <p className="font-extrabold text-[#002855] group-hover:text-red-700">Directorio Telefónico</p>
+                            <p className="font-bold text-[#002855] group-hover:text-red-700">Directorio Telefónico</p>
                             <p className="text-[11px] text-slate-500">Central Telefónica (01) 619-7000 y Anexos FCM</p>
                           </div>
                         </div>
@@ -3392,7 +3518,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <Unlock className="w-3.5 h-3.5 text-white" />
                 <span>Panel Admin</span>
                 {materialesPendientes.length > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-red-600 text-white">
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-red-600 text-white">
                     {materialesPendientes.length}
                   </span>
                 )}
@@ -3480,7 +3606,7 @@ export default function PortalFacultadCienciasMatematicas() {
               <div className="mt-2 bg-white text-slate-900 rounded-xl shadow-xl overflow-hidden divide-y divide-slate-100 max-h-[60vh] overflow-y-auto">
                 {resultadosBusquedaNavbar.cursos.length > 0 && (
                   <div className="p-2 space-y-1">
-                    <p className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <p className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Cursos
                     </p>
                     {resultadosBusquedaNavbar.cursos.map((c) => (
@@ -3501,7 +3627,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 )}
                 {resultadosBusquedaNavbar.docentes.length > 0 && (
                   <div className="p-2 space-y-1">
-                    <p className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <p className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Docentes
                     </p>
                     {resultadosBusquedaNavbar.docentes.map((d) => (
@@ -3521,7 +3647,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 )}
                 {resultadosBusquedaNavbar.noticias.length > 0 && (
                   <div className="p-2 space-y-1">
-                    <p className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <p className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Noticias
                     </p>
                     {resultadosBusquedaNavbar.noticias.map((n) => (
@@ -3541,7 +3667,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 )}
                 {resultadosBusquedaNavbar.materiales.length > 0 && (
                   <div className="p-2 space-y-1">
-                    <p className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <p className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Repositorio
                     </p>
                     {resultadosBusquedaNavbar.materiales.map((m) => (
@@ -3600,7 +3726,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <div className="space-y-1">
               {/* Sección FORMACIÓN ACADÉMICA en Móvil */}
               <div className="px-2 pt-1 pb-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-red-300 flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-red-300 flex items-center gap-1.5">
                   <GraduationCap className="w-3.5 h-3.5" />
                   Formación Académica
                 </span>
@@ -3778,7 +3904,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
             {/* Pista deslizante ultra-fluida acelerada por hardware GPU (60 FPS sin tic de retraso) */}
             <div
-              className="flex w-full transition-transform duration-500 ease-out will-change-transform"
+              className="flex w-full transition-transform duration-700 ease-in-out will-change-transform"
               style={{ transform: `translateX(-${slideActivoHero * 100}%)` }}
             >
               {/* SLIDE 0: HERO ACADÉMICO PERMANENTE CON BUSCADOR (IMAGEN 2) */}
@@ -3820,7 +3946,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     <span>Facultad de Ciencias Matemáticas • UNMSM</span>
                   </div>
 
-                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white leading-tight drop-shadow-lg">
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-lg">
                     Portal Académico e Investigación en{" "}
                     <span className="underline decoration-red-500 decoration-4 underline-offset-4">
                       Ciencias Exactas y Computación Científica
@@ -3931,12 +4057,12 @@ export default function PortalFacultadCienciasMatematicas() {
                   <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center relative z-10">
                     {/* Lado izquierdo: Información */}
                     <div className="md:col-span-7 space-y-4 sm:space-y-5 text-left">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-black/40 text-red-200 border border-white/20 shadow-sm backdrop-blur-xs">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-black/40 text-red-200 border border-white/20 shadow-sm backdrop-blur-xs">
                         <Sparkles className="w-3.5 h-3.5 text-red-400" />
                         {noticia.categoria || "Comunicado Oficial"}
                       </span>
 
-                      <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-tight drop-shadow-md">
+                      <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight drop-shadow-md">
                         {noticia.titulo}
                       </h2>
 
@@ -3970,21 +4096,21 @@ export default function PortalFacultadCienciasMatematicas() {
                             <div className="bg-white/95 rounded-xl p-3 shadow-lg border border-slate-200 text-slate-900 text-left max-w-[130px]">
                               <div className="flex items-center gap-1.5 mb-1">
                                 <div className="w-2.5 h-2.5 rounded-full bg-red-600" />
-                                <span className="text-[9px] font-extrabold uppercase tracking-tight text-slate-800">PERÚ</span>
+                                <span className="text-[9px] font-bold uppercase tracking-tight text-slate-800">PERÚ</span>
                               </div>
                               <p className="text-[10px] font-bold text-slate-900 leading-tight">Ministerio de Educación</p>
                             </div>
 
                             <div className="bg-white rounded-xl p-3.5 shadow-xl border-2 border-blue-900/20 text-slate-900 text-center flex-1 max-w-[200px]">
                               <div className="flex items-center justify-center gap-1.5">
-                                <span className="text-base sm:text-lg font-black tracking-tighter text-[#002855]">PRONABEC</span>
+                                <span className="text-base sm:text-lg font-bold tracking-tighter text-[#002855]">PRONABEC</span>
                               </div>
                               <div className="h-1 w-full bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600 rounded-full my-1" />
                               <div className="mt-1 bg-blue-50/80 rounded-lg py-1 px-1.5 border border-blue-200">
-                                <span className="text-[9px] font-extrabold text-blue-950 uppercase block leading-tight">
+                                <span className="text-[9px] font-bold text-blue-950 uppercase block leading-tight">
                                   DECRETO SUPREMO
                                 </span>
-                                <span className="text-[10px] font-black text-red-700 block leading-tight">
+                                <span className="text-[10px] font-bold text-red-700 block leading-tight">
                                   Nº 017-2026-MINEDU
                                 </span>
                               </div>
@@ -4046,7 +4172,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-blue-900 pb-3">
               <div>
                 <span className="text-xs font-bold uppercase text-red-700">Mallas Curriculares Completas (Ciclos 1 al 10)</span>
-                <h2 className="text-2xl font-extrabold text-[#002855]">Escuelas Profesionales de la Facultad</h2>
+                <h2 className="text-2xl font-bold text-[#002855] dark:text-white">Escuelas Profesionales de la Facultad</h2>
               </div>
               <span className="text-xs font-semibold text-slate-600">
                 Haz clic en cualquier escuela para ver su tríptico y malla en PDF
@@ -4072,7 +4198,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className="p-5 space-y-3">
                         <div className="flex items-center gap-3">
                           <div className={`p-2.5 rounded-xl border ${temaCar.iconWrap}`}>{renderIconoCarrera(car.id)}</div>
-                          <h3 className={`text-lg font-extrabold text-[#002855] ${temaCar.groupHoverText} transition-colors`}>{car.nombre}</h3>
+                          <h3 className={`text-lg font-bold text-[#002855] ${temaCar.groupHoverText} transition-colors`}>{car.nombre}</h3>
                         </div>
                         <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">{car.descripcion}</p>
                       </div>
@@ -4097,9 +4223,9 @@ export default function PortalFacultadCienciasMatematicas() {
           <section className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-blue-900 pb-3">
               <div>
-                <span className="text-xs font-bold uppercase text-red-700">Actualidad Universitaria</span>
-                <h2 className="text-2xl font-extrabold text-[#002855] flex items-center gap-2">
-                  <Newspaper className="w-6 h-6 text-red-700" />
+                <span className="text-xs font-bold uppercase text-red-700 dark:text-red-400">Actualidad Universitaria</span>
+                <h2 className="text-2xl font-bold text-[#002855] dark:text-white flex items-center gap-2">
+                  <Newspaper className="w-6 h-6 text-red-700 dark:text-red-400" />
                   Noticias y Comunicados Oficiales
                 </h2>
               </div>
@@ -4110,7 +4236,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <button
                   type="button"
                   onClick={() => navegar("/noticias")}
-                  className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-[#002855] text-[#002855] hover:text-white border border-blue-200 text-xs font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <span>Hemeroteca Completa ({noticias.length})</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -4159,7 +4285,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           <Calendar className="w-3.5 h-3.5 text-red-700" />
                           <span>{formatearFechaEspanol(not.fecha_publicacion)}</span>
                         </div>
-                        <h3 className="text-lg font-extrabold text-[#002855] dark:text-slate-100 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors leading-snug">
+                        <h3 className="text-lg font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors leading-snug">
                           {not.titulo}
                         </h3>
                         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
@@ -4169,7 +4295,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     </div>
 
                     <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-[#002855] dark:text-blue-300 group-hover:text-red-700 flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700 flex items-center gap-1.5">
                         <span>Leer noticia completa</span>
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </span>
@@ -4197,7 +4323,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-xs border border-white/20 flex items-center justify-center text-red-300 shadow-sm">
                       <Newspaper className="w-6 h-6" />
                     </div>
-                    <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-red-700 text-white shadow-sm border border-red-500/30">
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-red-700 text-white shadow-sm border border-red-500/30">
                       +{Math.max(0, noticias.length - 4)} Más
                     </span>
                   </div>
@@ -4206,7 +4332,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-blue-200 block">
                       Hemeroteca FCM UNMSM
                     </span>
-                    <h3 className="text-xl font-extrabold text-white leading-snug group-hover:text-red-300 transition-colors">
+                    <h3 className="text-xl font-bold text-white leading-snug group-hover:text-red-300 transition-colors">
                       Explorar Más Noticias y Comunicados
                     </h3>
                     <p className="text-xs text-blue-100/80 leading-relaxed">
@@ -4216,7 +4342,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 </div>
 
                 <div className="pt-6 relative z-10">
-                  <div className="w-full py-3 px-4 rounded-xl bg-white text-[#002855] font-extrabold text-xs flex items-center justify-center gap-2 group-hover:bg-red-700 group-hover:text-white transition-all shadow-md">
+                  <div className="w-full py-3 px-4 rounded-xl bg-white text-[#002855] font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-red-700 group-hover:text-white transition-all shadow-md">
                     <span>Ver todas las noticias</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
@@ -4226,16 +4352,133 @@ export default function PortalFacultadCienciasMatematicas() {
           </section>
 
           {/* 3. SECCIÓN "PLANA DOCENTE E INVESTIGADORES" EN EL HOME (IMAGEN 2) */}
+          
+          {/* SECCIÓN INSTITUCIONAL: ORGULLO SAN MARQUINO / FCM (IMÁGENES 3, 4 Y 5) */}
+          <section id="orgullo-sanmarquino" className="space-y-6 pt-4">
+            <div className="border-b-2 border-blue-900 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider">
+                  <Award className="w-3.5 h-3.5" />
+                  <span>EXCELENCIA ESTUDIANTIL E IMPACTO INTERNACIONAL • FCM UNMSM</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white flex items-center gap-2 tracking-tight">
+                    <Trophy className="w-7 h-7 text-amber-500" />
+                    Orgullo San Marquino
+                  </h2>
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-slate-950 shadow-sm flex items-center gap-1.5 animate-pulse">
+                    <Sparkles className="w-3 h-3 fill-slate-950" />
+                    SELECCIONADO POR IBRO 2026
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
+                  Celebramos el talento, la dedicación y los logros de nuestros estudiantes e investigadores que llevan el nombre de la Facultad de Ciencias Matemáticas y la Decana de América a los escenarios científicos más prestigiosos del mundo.
+                </p>
+              </div>
+
+              {adminAutenticado && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTabAdmin("orgullo");
+                    navegar("/admin");
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer self-start md:self-end"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Gestionar en CMS</span>
+                </button>
+              )}
+            </div>
+
+            {/* Grid de 3 a 4 Tarjetas Verticales Proporción Póster (aspect-[3/4]) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {orgulloItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-red-500 shadow-md hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between overflow-hidden"
+                >
+                  {/* Imagen del Afiche o Fotografía */}
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-950">
+                    <img
+                      src={item.foto_url}
+                      alt={item.titulo}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none" />
+
+                    {/* Badge superior */}
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[#002855]/90 text-white backdrop-blur-md border border-white/20 shadow-md">
+                        {item.subtitulo_categoria}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-slate-950 shadow-sm">
+                        {item.anio}
+                      </span>
+                    </div>
+
+                    {/* Información superpuesta al pie de la foto */}
+                    <div className="absolute bottom-3 left-3 right-3 space-y-1 text-white pointer-events-none">
+                      <span className="text-[11px] font-semibold text-red-300 block uppercase tracking-wider">
+                        {item.carrera_nombre || "Facultad de Ciencias Matemáticas"}
+                      </span>
+                      <h3 className="text-base font-bold leading-tight line-clamp-2 drop-shadow-md">
+                        {item.titulo}
+                      </h3>
+                      <p className="text-xs text-slate-200 font-medium line-clamp-1">
+                        👤 {item.estudiante}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Pie de Tarjeta con descripción y botón */}
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 space-y-3 flex-1 flex flex-col justify-between">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                      {item.descripcion}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                      <span className="text-[11px] font-bold text-[#002855] dark:text-blue-300">
+                        {item.tipo_tarjeta === "afiche" ? "📜 Afiche Oficial" : item.tipo_tarjeta === "estudiante" ? "⭐ Reconocimiento" : "🏆 Delegación FCM"}
+                      </span>
+                      {item.enlace_nota ? (
+                        <a
+                          href={item.enlace_nota}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
+                        >
+                          <span>Ver Nota</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setModalDetalleOrgullo(item)}
+                          className="text-xs font-bold text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform cursor-pointer"
+                        >
+                          <span>Ver Detalle</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+
           <section id="plana-docente" className="pt-4 space-y-8">
             <div className="text-center max-w-3xl mx-auto space-y-2.5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#002855] text-xs font-extrabold uppercase tracking-wider">
-                <Users className="w-3.5 h-3.5 text-red-700" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 text-[#002855] dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
+                <Users className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
                 <span>Excelencia Académica e Investigación • FCM UNMSM</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#002855] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white tracking-tight">
                 Plana Docente e Investigadores de la Facultad
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                 Selecciona una Escuela Profesional para conocer el perfil académico, especialidad, líneas de investigación y horarios de asesoría de nuestros catedráticos en una vista detallada.
               </p>
             </div>
@@ -4259,7 +4502,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <button
                   type="button"
                   onClick={() => navegar("/docentes")}
-                  className="absolute right-1.5 top-1.5 px-4 py-2 rounded-lg bg-[#002855] hover:bg-blue-900 text-[11px] font-extrabold text-white cursor-pointer transition-colors shadow-xs"
+                  className="absolute right-1.5 top-1.5 px-4 py-2 rounded-lg bg-[#002855] hover:bg-blue-900 text-[11px] font-bold text-white cursor-pointer transition-colors shadow-xs"
                 >
                   Buscar
                 </button>
@@ -4284,7 +4527,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-black/25 text-white/95">
                           {car.codigo_escuela}
                         </div>
-                        <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-white/20 text-white backdrop-blur-xs">
+                        <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-white/20 text-white backdrop-blur-xs">
                           {docentesEscuela.length} {docentesEscuela.length === 1 ? "Docente" : "Docentes"}
                         </div>
 
@@ -4293,7 +4536,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           {docentesEscuela.slice(0, 4).map((doc) => (
                             <div
                               key={doc.id}
-                              className="w-12 h-12 rounded-full border-2 border-white bg-slate-800 overflow-hidden shadow-md flex items-center justify-center text-xs font-extrabold text-white"
+                              className="w-12 h-12 rounded-full border-2 border-white bg-slate-800 overflow-hidden shadow-md flex items-center justify-center text-xs font-bold text-white"
                               title={`${doc.grado_academico} ${doc.nombre_completo}`}
                             >
                               {doc.foto_url ? (
@@ -4308,7 +4551,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             </div>
                           ))}
                           {docentesEscuela.length > 4 && (
-                            <div className="w-12 h-12 rounded-full border-2 border-white bg-black/60 text-white text-xs font-extrabold flex items-center justify-center shadow-md">
+                            <div className="w-12 h-12 rounded-full border-2 border-white bg-black/60 text-white text-xs font-bold flex items-center justify-center shadow-md">
                               +{docentesEscuela.length - 4}
                             </div>
                           )}
@@ -4322,10 +4565,10 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className={`h-1.5 w-full ${temaCar.headerBg} opacity-80`} />
 
                       <div className="p-5 space-y-3">
-                        <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${temaCar.badgeSoft}`}>
+                        <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-bold uppercase border ${temaCar.badgeSoft}`}>
                           Escuela Profesional
                         </span>
-                        <h3 className={`text-base sm:text-lg font-extrabold text-[#002855] dark:text-slate-100 ${temaCar.groupHoverText} transition-colors leading-snug`}>
+                        <h3 className={`text-base sm:text-lg font-bold text-[#002855] dark:text-slate-100 ${temaCar.groupHoverText} transition-colors leading-snug`}>
                           {car.nombre}
                         </h3>
                         <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
@@ -4346,7 +4589,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       </div>
                     </div>
 
-                    <div className="px-4 py-3.5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-xs font-extrabold text-[#002855] dark:text-blue-300 group-hover:text-red-700">
+                    <div className="px-4 py-3.5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700">
                       <span>Ver Docentes de {car.nombre}</span>
                       <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -4358,7 +4601,7 @@ export default function PortalFacultadCienciasMatematicas() {
             {/* Banner Institucional para acceder a todo el directorio */}
             <div className="max-w-4xl mx-auto p-5 rounded-2xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-slate-900 dark:to-[#0f1d38] border border-blue-200 dark:border-blue-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-xs">
               <div className="space-y-0.5">
-                <h4 className="text-sm font-extrabold text-[#002855] dark:text-slate-100">
+                <h4 className="text-sm font-bold text-[#002855] dark:text-slate-100">
                   Directorio Completo de la Plana Docente FCM
                 </h4>
                 <p className="text-xs text-slate-600 dark:text-slate-400">
@@ -4368,7 +4611,7 @@ export default function PortalFacultadCienciasMatematicas() {
               <button
                 type="button"
                 onClick={() => navegar("/docentes", { docenteCarrera: "TODAS" })}
-                className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold flex items-center gap-2 cursor-pointer shadow-sm transition-all shrink-0"
+                className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all shrink-0"
               >
                 <Users className="w-4 h-4 text-red-400" />
                 <span>Explorar Directorio General ({docentes.length}) →</span>
@@ -4386,7 +4629,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <button
               type="button"
               onClick={() => navegar("/")}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-extrabold flex items-center gap-2 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>← Volver al Portal Principal</span>
@@ -4400,11 +4643,11 @@ export default function PortalFacultadCienciasMatematicas() {
 
           {/* Banner Institucional */}
           <div className="rounded-3xl bg-gradient-to-r from-[#002855] via-[#001c3d] to-[#4d0713] p-6 sm:p-8 text-white shadow-md space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 text-xs font-extrabold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 text-xs font-bold uppercase tracking-wider">
               <Newspaper className="w-3.5 h-3.5 text-red-300" />
               <span>Hemeroteca y Comunicados Oficiales FCM</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
               Archivo General de Noticias
             </h1>
             <p className="text-xs sm:text-sm text-white/85 max-w-2xl leading-relaxed">
@@ -4459,7 +4702,7 @@ export default function PortalFacultadCienciasMatematicas() {
               <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
                 <Newspaper className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-extrabold text-[#002855]">No se encontraron comunicados</h3>
+              <h3 className="text-lg font-bold text-[#002855] dark:text-white">No se encontraron comunicados</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 No hay noticias que coincidan con los filtros aplicados.
               </p>
@@ -4469,7 +4712,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   setBusquedaHemeroteca("");
                   setFiltroCategoriaHemeroteca("TODAS");
                 }}
-                className="px-5 py-2.5 rounded-xl bg-[#002855] text-white text-xs font-extrabold cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-[#002855] text-white text-xs font-bold cursor-pointer"
               >
                 Restablecer Filtros
               </button>
@@ -4513,7 +4756,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           <Calendar className="w-3.5 h-3.5 text-red-700" />
                           <span>{formatearFechaEspanol(not.fecha_publicacion)}</span>
                         </div>
-                        <h3 className="text-lg font-extrabold text-[#002855] group-hover:text-red-700 transition-colors leading-snug">
+                        <h3 className="text-lg font-bold text-[#002855] dark:text-white group-hover:text-red-700 transition-colors leading-snug">
                           {not.titulo}
                         </h3>
                         <p className="text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
@@ -4523,7 +4766,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     </div>
 
                     <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-[#002855] group-hover:text-red-700 flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-[#002855] group-hover:text-red-700 flex items-center gap-1.5">
                         <span>Leer noticia completa</span>
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </span>
@@ -4549,7 +4792,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <button
               type="button"
               onClick={() => navegar("/")}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-extrabold flex items-center gap-2 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>← Volver al Portal Principal</span>
@@ -4579,7 +4822,7 @@ export default function PortalFacultadCienciasMatematicas() {
               >
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="space-y-2">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 text-xs font-extrabold uppercase tracking-wider">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 text-xs font-bold uppercase tracking-wider">
                       <Users className="w-3.5 h-3.5 text-red-300" />
                       <span>
                         {esTodas
@@ -4587,7 +4830,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           : `${escuelaObj?.codigo_escuela} • Plana Catedrática Oficial`}
                       </span>
                     </div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
                       {esTodas
                         ? "Plana Docente e Investigadores FCM"
                         : `Docentes de la Escuela Profesional de ${escuelaObj?.nombre}`}
@@ -4601,7 +4844,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                   <div className="flex items-center gap-3">
                     <div className="bg-white/10 backdrop-blur-xs border border-white/20 rounded-2xl p-4 text-center min-w-[120px]">
-                      <span className="text-2xl sm:text-3xl font-black block">
+                      <span className="text-2xl sm:text-3xl font-bold block">
                         {docentesFiltradosHome.length}
                       </span>
                       <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
@@ -4621,7 +4864,7 @@ export default function PortalFacultadCienciasMatematicas() {
               <button
                 type="button"
                 onClick={() => navegar("/docentes", { docenteCarrera: "TODAS" })}
-                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                   filtroDocenteCarrera === "TODAS"
                     ? "bg-[#002855] text-white shadow-md border-b-2 border-red-600"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -4642,7 +4885,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     key={car.id}
                     type="button"
                     onClick={() => navegar("/docentes", { docenteCarrera: car.id })}
-                    className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                       activo ? temaCar.tabActive : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
@@ -4700,7 +4943,7 @@ export default function PortalFacultadCienciasMatematicas() {
               <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
                 <Users className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-extrabold text-[#002855]">No se encontraron docentes con esos filtros</h3>
+              <h3 className="text-lg font-bold text-[#002855] dark:text-white">No se encontraron docentes con esos filtros</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 Intenta seleccionando otra categoría académica, limpiando el texto del buscador o cambiando de escuela profesional.
               </p>
@@ -4711,7 +4954,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   setFiltroCategoriaDocente("TODAS");
                   navegar("/docentes", { docenteCarrera: "TODAS" });
                 }}
-                className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer shadow-sm transition-all"
+                className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer shadow-sm transition-all"
               >
                 Restablecer Filtros
               </button>
@@ -4730,10 +4973,10 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className="flex items-center justify-between border-b-2 border-slate-200 pb-2.5">
                         <div className="flex items-center gap-2.5">
                           <span className={`w-3.5 h-3.5 rounded-full ${temaGrupo.headerBg}`} />
-                          <h2 className="text-lg font-extrabold text-[#002855]">
+                          <h2 className="text-lg font-bold text-[#002855] dark:text-white">
                             E.P. de {escuelaGrupo.nombre}
                           </h2>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${temaGrupo.badgeSoft}`}>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${temaGrupo.badgeSoft}`}>
                             {listaDocentesGrupo.length} {listaDocentesGrupo.length === 1 ? "docente" : "docentes"}
                           </span>
                         </div>
@@ -4768,11 +5011,11 @@ export default function PortalFacultadCienciasMatematicas() {
                                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                                   />
                                 ) : (
-                                  <div className={`w-full h-full ${temaDoc.headerBg} flex items-center justify-center text-white text-3xl font-extrabold tracking-wider`}>
+                                  <div className={`w-full h-full ${temaDoc.headerBg} flex items-center justify-center text-white text-3xl font-bold tracking-wider`}>
                                     {obtenerInicialesDocente(doc.nombre_completo)}
                                   </div>
                                 )}
-                                <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-black/70 text-white backdrop-blur-xs">
+                                <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-black/70 text-white backdrop-blur-xs">
                                   {doc.categoria_docente}
                                 </span>
                               </div>
@@ -4782,17 +5025,17 @@ export default function PortalFacultadCienciasMatematicas() {
 
                               {/* Información Centrada */}
                               <div className="p-5 space-y-2">
-                                <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${temaDoc.badgeSoft}`}>
+                                <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${temaDoc.badgeSoft}`}>
                                   {nombreEscuela}
                                 </span>
-                                <h3 className={`text-sm sm:text-base font-extrabold text-[#002855] ${temaDoc.groupHoverText} transition-colors leading-snug`}>
+                                <h3 className={`text-sm sm:text-base font-bold text-[#002855] ${temaDoc.groupHoverText} transition-colors leading-snug`}>
                                   {doc.grado_academico} {doc.nombre_completo}
                                 </h3>
 
                                 {/* Calificación y Estrellas */}
                                 <div className="flex items-center justify-center">
                                   {statsDoc.total > 0 ? (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-extrabold text-amber-800">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-bold text-amber-800">
                                       <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                                       <span>{statsDoc.promedio.toFixed(1)}</span>
                                       <span className="text-amber-600 font-semibold">({statsDoc.total})</span>
@@ -4811,7 +5054,7 @@ export default function PortalFacultadCienciasMatematicas() {
                               </div>
                             </div>
 
-                            <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] font-extrabold text-[#002855] group-hover:text-red-700">
+                            <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#002855] group-hover:text-red-700">
                               <span>Ver Ficha y Calificar</span>
                               <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                             </div>
@@ -4835,7 +5078,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <button
               type="button"
               onClick={() => navegar("/")}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-extrabold flex items-center gap-2 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>← Volver al Portal</span>
@@ -4879,7 +5122,7 @@ export default function PortalFacultadCienciasMatematicas() {
               <button
                 type="button"
                 onClick={() => handleCompartirNoticia(noticiaActiva)}
-                className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold flex items-center gap-2 shadow-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-2 shadow-xs cursor-pointer"
               >
                 <Share2 className="w-3.5 h-3.5 text-red-400" />
                 <span>Compartir Noticia</span>
@@ -4908,11 +5151,11 @@ export default function PortalFacultadCienciasMatematicas() {
               <div className="max-w-4xl mx-auto space-y-6">
                 <div className="space-y-3 border-b border-slate-200 pb-6">
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="px-3 py-1 rounded-lg text-xs font-extrabold bg-[#002855] text-white">
+                    <span className="px-3 py-1 rounded-lg text-xs font-bold bg-[#002855] text-white">
                       {noticiaActiva.categoria}
                     </span>
                     {noticiaActiva.destacado && (
-                      <span className="px-3 py-1 rounded-lg text-xs font-extrabold bg-red-700 text-white flex items-center gap-1">
+                      <span className="px-3 py-1 rounded-lg text-xs font-bold bg-red-700 text-white flex items-center gap-1">
                         <Star className="w-3.5 h-3.5 fill-white" /> Destacado FCM
                       </span>
                     )}
@@ -4922,7 +5165,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     </span>
                   </div>
 
-                  <h1 className="text-2xl sm:text-4xl font-extrabold text-[#002855] leading-tight">
+                  <h1 className="text-2xl sm:text-4xl font-bold text-[#002855] dark:text-white leading-tight">
                     {noticiaActiva.titulo}
                   </h1>
 
@@ -4956,10 +5199,10 @@ export default function PortalFacultadCienciasMatematicas() {
                     noticiaActiva.enlace_inscripcion) && (
                     <aside className="lg:col-span-4 rounded-2xl bg-slate-50 border-2 border-[#002855]/15 p-5 space-y-4">
                       <div className="border-b border-slate-200 pb-2.5">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-red-700">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-red-700">
                           Ficha Oficial del Evento / Comunicado
                         </span>
-                        <h3 className="text-sm font-extrabold text-[#002855]">Datos Clave</h3>
+                        <h3 className="text-sm font-bold text-[#002855] dark:text-white">Datos Clave</h3>
                       </div>
 
                       <div className="space-y-3 text-xs">
@@ -4968,7 +5211,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <Calendar className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                             <div>
                               <p className="font-bold text-slate-500 uppercase text-[10px]">Fecha / Cronograma</p>
-                              <p className="font-extrabold text-slate-900">{noticiaActiva.fecha_evento}</p>
+                              <p className="font-bold text-slate-900">{noticiaActiva.fecha_evento}</p>
                             </div>
                           </div>
                         )}
@@ -4977,7 +5220,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <MapPin className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                             <div>
                               <p className="font-bold text-slate-500 uppercase text-[10px]">Lugar / Sede</p>
-                              <p className="font-extrabold text-slate-900">{noticiaActiva.lugar}</p>
+                              <p className="font-bold text-slate-900">{noticiaActiva.lugar}</p>
                             </div>
                           </div>
                         )}
@@ -4986,7 +5229,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <Globe className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                             <div>
                               <p className="font-bold text-slate-500 uppercase text-[10px]">Modalidad</p>
-                              <p className="font-extrabold text-slate-900">{noticiaActiva.modalidad}</p>
+                              <p className="font-bold text-slate-900">{noticiaActiva.modalidad}</p>
                             </div>
                           </div>
                         )}
@@ -4995,7 +5238,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <Users className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                             <div>
                               <p className="font-bold text-slate-500 uppercase text-[10px]">Dirigido a</p>
-                              <p className="font-extrabold text-slate-900">{noticiaActiva.dirigido_a}</p>
+                              <p className="font-bold text-slate-900">{noticiaActiva.dirigido_a}</p>
                             </div>
                           </div>
                         )}
@@ -5006,7 +5249,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           href={noticiaActiva.enlace_inscripcion}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full py-3 px-4 rounded-xl bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-colors"
+                          className="w-full py-3 px-4 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-colors"
                         >
                           <span>🚀 Inscribirse / Ver Bases Oficiales</span>
                           <ExternalLink className="w-3.5 h-3.5" />
@@ -5023,7 +5266,7 @@ export default function PortalFacultadCienciasMatematicas() {
           {noticias.filter((n) => n.id !== noticiaActiva.id).length > 0 && (
             <section className="space-y-4 print:hidden">
               <div className="flex items-center justify-between border-b-2 border-blue-900 pb-2.5">
-                <h2 className="text-lg sm:text-xl font-extrabold text-[#002855]">Otras Noticias de la Facultad</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-[#002855] dark:text-white">Otras Noticias de la Facultad</h2>
                 <button
                   type="button"
                   onClick={() => navegar("/")}
@@ -5047,8 +5290,8 @@ export default function PortalFacultadCienciasMatematicas() {
                           <img src={rel.imagen_url} alt={rel.titulo} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform" />
                         </div>
                         <div className="p-4 space-y-1.5">
-                          <span className="text-[10px] font-extrabold uppercase text-red-700">{rel.categoria}</span>
-                          <h3 className="text-xs sm:text-sm font-extrabold text-[#002855] group-hover:text-red-700 line-clamp-2">
+                          <span className="text-[10px] font-bold uppercase text-red-700">{rel.categoria}</span>
+                          <h3 className="text-xs sm:text-sm font-bold text-[#002855] dark:text-white group-hover:text-red-700 line-clamp-2">
                             {rel.titulo}
                           </h3>
                         </div>
@@ -5078,7 +5321,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   <button
                     key={c.id}
                     onClick={() => navegar("/carreras/[id]", { carreraId: c.id, skipScroll: true })}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                       esActiva
                         ? temaTab.tabActive
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -5107,14 +5350,14 @@ export default function PortalFacultadCienciasMatematicas() {
                     10 Ciclos Académicos • {cursosDeCarreraActiva.length} Asignaturas Registradas
                   </span>
                 </div>
-                <h1 className="text-2xl sm:text-4xl font-extrabold text-white">Escuela Profesional de {carreraActiva.nombre}</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold text-white">Escuela Profesional de {carreraActiva.nombre}</h1>
                 <p className="text-xs sm:text-sm text-white/90 leading-relaxed">{carreraActiva.descripcion}</p>
               </div>
 
               <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 print:hidden">
                 <button
                   onClick={handleDescargarMallaPDF}
-                  className="px-5 py-3.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-extrabold text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-5 py-3.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Download className={`w-4 h-4 ${temaActivo.textAccent}`} />
                   <span>📥 Descargar Malla Curricular (PDF)</span>
@@ -5136,11 +5379,11 @@ export default function PortalFacultadCienciasMatematicas() {
 
             <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
               <div className="md:col-span-2 space-y-1.5">
-                <h3 className={`text-xs font-extrabold uppercase tracking-wider ${temaActivo.textAccent}`}>Perfil del Egresado</h3>
+                <h3 className={`text-xs font-bold uppercase tracking-wider ${temaActivo.textAccent}`}>Perfil del Egresado</h3>
                 <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">{carreraActiva.perfil_egreso}</p>
               </div>
               <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-1.5 text-xs">
-                <p className={`font-extrabold uppercase ${temaActivo.textAccent}`}>Grados y Títulos Oficiales</p>
+                <p className={`font-bold uppercase ${temaActivo.textAccent}`}>Grados y Títulos Oficiales</p>
                 <p className="text-slate-600">Grado: <strong className="text-slate-900">{carreraActiva.grado_academico}</strong></p>
                 <p className="text-slate-600">Título: <strong className="text-slate-900">{carreraActiva.titulo_profesional}</strong></p>
               </div>
@@ -5152,10 +5395,10 @@ export default function PortalFacultadCienciasMatematicas() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-7 space-y-5">
                 <div>
-                  <span className={`text-xs font-extrabold uppercase tracking-wider ${temaActivo.textAccent}`}>
+                  <span className={`text-xs font-bold uppercase tracking-wider ${temaActivo.textAccent}`}>
                     Proyección Profesional e Investigación • FCM UNMSM
                   </span>
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#002855] mt-1">
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#002855] dark:text-white mt-1">
                     ¿En qué consiste la carrera de {carreraActiva.nombre}?
                   </h2>
                 </div>
@@ -5164,21 +5407,21 @@ export default function PortalFacultadCienciasMatematicas() {
                   <div className="flex items-start gap-3">
                     <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Target className="w-4 h-4" /></div>
                     <div>
-                      <h4 className="font-extrabold text-[#002855]">Visión y Perfil Académico</h4>
+                      <h4 className="font-bold text-[#002855] dark:text-white">Visión y Perfil Académico</h4>
                       <p>{carreraActiva.vision_carrera}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Briefcase className="w-4 h-4" /></div>
                     <div>
-                      <h4 className="font-extrabold text-[#002855]">Campo Laboral y Desempeño Profesional</h4>
+                      <h4 className="font-bold text-[#002855] dark:text-white">Campo Laboral y Desempeño Profesional</h4>
                       <p>{carreraActiva.campo_laboral}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Lightbulb className="w-4 h-4" /></div>
                     <div>
-                      <h4 className="font-extrabold text-[#002855]">¿Por qué estudiar {carreraActiva.nombre} en San Marcos?</h4>
+                      <h4 className="font-bold text-[#002855] dark:text-white">¿Por qué estudiar {carreraActiva.nombre} en San Marcos?</h4>
                       <p>{carreraActiva.por_que_estudiar}</p>
                     </div>
                   </div>
@@ -5187,7 +5430,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <div className="pt-2 flex flex-wrap items-center gap-3 print:hidden">
                   <button
                     onClick={handleDescargarTripticoCarrera}
-                    className={`px-5 py-3.5 rounded-xl ${temaActivo.badgeSolid} font-extrabold text-xs sm:text-sm shadow-md flex items-center gap-2.5 border transition-transform active:scale-95 cursor-pointer`}
+                    className={`px-5 py-3.5 rounded-xl ${temaActivo.badgeSolid} font-bold text-xs sm:text-sm shadow-md flex items-center gap-2.5 border transition-transform active:scale-95 cursor-pointer`}
                   >
                     <Download className="w-4 h-4 text-white" />
                     <span>📥 Descargar Tríptico de la Carrera (PDF)</span>
@@ -5195,7 +5438,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                   <button
                     onClick={handleDescargarPosterEstudios}
-                    className="px-5 py-3.5 rounded-xl bg-[#002855] hover:bg-[#001c3d] text-white font-extrabold text-xs sm:text-sm shadow-md flex items-center gap-2.5 border border-[#002855] transition-transform active:scale-95 cursor-pointer"
+                    className="px-5 py-3.5 rounded-xl bg-[#002855] hover:bg-[#001c3d] text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2.5 border border-[#002855] transition-transform active:scale-95 cursor-pointer"
                   >
                     <Download className="w-4 h-4 text-red-400" />
                     <span>📊 Descargar Póster de Estudios (PDF)</span>
@@ -5243,7 +5486,7 @@ export default function PortalFacultadCienciasMatematicas() {
           <section className="space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm print:hidden">
               <div>
-                <h2 className="text-lg sm:text-xl font-extrabold text-[#002855]">
+                <h2 className="text-lg sm:text-xl font-bold text-[#002855] dark:text-white">
                   Malla Curricular de {carreraActiva.nombre} (Ciclo 1 al Ciclo 10)
                 </h2>
                 <p className="text-xs text-slate-600">
@@ -5289,7 +5532,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         className={`w-full px-5 py-4 flex items-center justify-between ${temaActivo.cycleBtn} text-white transition-colors cursor-pointer`}
                       >
                         <div className="flex flex-wrap items-center gap-3">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-extrabold ${temaActivo.cyclePill} shadow-sm border border-white/20`}>CICLO {numCiclo}</span>
+                          <span className={`px-3 py-1 rounded-lg text-xs font-bold ${temaActivo.cyclePill} shadow-sm border border-white/20`}>CICLO {numCiclo}</span>
                           <span className="text-xs sm:text-sm font-bold text-white">{cursosCiclo.length} Asignaturas</span>
                           <span className="text-xs text-white/85 font-mono">• {totalCreditos.toFixed(1)} Créditos</span>
                         </div>
@@ -5302,15 +5545,15 @@ export default function PortalFacultadCienciasMatematicas() {
                             <div key={cur.id} className={`rounded-xl border border-slate-200 bg-white p-4 flex flex-col justify-between gap-3 shadow-sm ${temaActivo.cardHoverBorder} transition-all`}>
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between gap-2">
-                                  <span className={`font-mono text-xs font-extrabold px-2.5 py-0.5 rounded border ${temaActivo.badgeSoft}`}>{cur.codigo}</span>
+                                  <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded border ${temaActivo.badgeSoft}`}>{cur.codigo}</span>
                                   <div className="flex items-center gap-1.5">
-                                    <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${cur.tipo_curso === "O" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700 border border-slate-300"}`}>
+                                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${cur.tipo_curso === "O" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700 border border-slate-300"}`}>
                                       {cur.tipo_curso === "O" ? "Obligatorio" : "Electivo"}
                                     </span>
                                     <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800">{cur.creditos.toFixed(1)} cr.</span>
                                   </div>
                                 </div>
-                                <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 leading-snug">{cur.nombre_curso}</h4>
+                                <h4 className="font-bold text-xs sm:text-sm text-slate-900 leading-snug">{cur.nombre_curso}</h4>
                               </div>
                               <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
                                 <span className="text-slate-600">
@@ -5344,14 +5587,14 @@ export default function PortalFacultadCienciasMatematicas() {
                   return (
                     <div key={numCiclo} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
                       <div className={`${temaActivo.cycleBtn} text-white px-4 py-2.5 flex items-center justify-between border-b-2 ${temaActivo.borderAccent}`}>
-                        <span className="text-xs font-extrabold">CICLO {numCiclo}</span>
+                        <span className="text-xs font-bold">CICLO {numCiclo}</span>
                         <span className="text-[11px] font-mono text-white/90">{totalCred.toFixed(0)} cr.</span>
                       </div>
                       <div className="p-3 space-y-2.5 flex-1 bg-slate-50/50">
                         {cursosCiclo.map((cur) => (
                           <div key={cur.id} className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
                             <div className="flex items-center justify-between text-[10px]">
-                              <span className={`font-mono font-extrabold ${temaActivo.textAccent}`}>{cur.codigo}</span>
+                              <span className={`font-mono font-bold ${temaActivo.textAccent}`}>{cur.codigo}</span>
                               <span className="font-semibold text-slate-600">{cur.creditos.toFixed(1)} cr.</span>
                             </div>
                             <p className="text-xs font-bold text-slate-900 leading-tight">{cur.nombre_curso}</p>
@@ -5373,7 +5616,7 @@ export default function PortalFacultadCienciasMatematicas() {
           <div className="rounded-3xl bg-[#002855] text-white p-6 sm:p-8 border-b-4 border-red-700 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-1.5">
               <span className="text-xs font-mono uppercase text-red-300 font-bold">Comunidad Académica FCM • /repositorio</span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Repositorio Académico de la Facultad</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Repositorio Académico de la Facultad</h1>
               <p className="text-xs sm:text-sm text-blue-100 max-w-2xl">
                 Filtra exámenes resueltos, apuntes en LaTeX, libros y código por <strong>Carrera ➔ Ciclo ➔ Curso ➔ Formato</strong>.
               </p>
@@ -5383,7 +5626,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 setExitoSubidaModal(false);
                 setModalSubirAbierto(true);
               }}
-              className="px-5 py-3.5 rounded-xl bg-red-700 hover:bg-red-600 text-xs sm:text-sm font-extrabold text-white shadow-lg flex items-center gap-2 shrink-0 cursor-pointer"
+              className="px-5 py-3.5 rounded-xl bg-red-700 hover:bg-red-600 text-xs sm:text-sm font-bold text-white shadow-lg flex items-center gap-2 shrink-0 cursor-pointer"
             >
               <Upload className="w-4 h-4" /> ➕ Aportar Material Académico
             </button>
@@ -5392,7 +5635,7 @@ export default function PortalFacultadCienciasMatematicas() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <aside className="lg:col-span-3 rounded-2xl border border-slate-200 bg-white p-5 space-y-5 h-fit shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h3 className="text-sm font-extrabold text-[#002855] flex items-center gap-2">
+                <h3 className="text-sm font-bold text-[#002855] dark:text-white flex items-center gap-2">
                   <Filter className="w-4 h-4 text-red-700" /> Filtros Acumulativos
                 </h3>
                 <button
@@ -5501,17 +5744,17 @@ export default function PortalFacultadCienciasMatematicas() {
                         <article key={mat.id} className="rounded-2xl border border-slate-200 bg-white hover:border-[#002855] p-5 flex flex-col justify-between gap-4 shadow-sm">
                           <div className="space-y-3">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="px-2.5 py-1 rounded-md text-xs font-mono font-extrabold bg-red-50 text-red-700 border border-red-200">
+                              <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-red-50 text-red-700 border border-red-200">
                                 [{curso?.codigo || "CURSO"}] • Ciclo {mat.ciclo || curso?.ciclo || 1}
                               </span>
-                              <span className={`px-2.5 py-1 rounded-md text-[11px] font-extrabold border ${TEMA_CARRERA[mat.carrera_id].badgeSoft}`}>
+                              <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold border ${TEMA_CARRERA[mat.carrera_id].badgeSoft}`}>
                                 {carrera?.nombre}
                               </span>
                             </div>
                             <div className="flex items-start gap-3">
                               <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 shrink-0 mt-0.5">{renderIconoArchivo(mat.tipo_archivo)}</div>
                               <div className="space-y-1">
-                                <h3 className="font-extrabold text-sm text-[#002855] leading-snug">{mat.titulo}</h3>
+                                <h3 className="font-bold text-sm text-[#002855] dark:text-white leading-snug">{mat.titulo}</h3>
                                 <p className="text-xs text-red-700 font-bold">Curso: {curso?.nombre_curso}</p>
                                 <p className="text-xs text-slate-700 flex items-center gap-1.5 pt-0.5">
                                   <UserCheck className="w-3.5 h-3.5 text-[#002855]" />
@@ -5565,7 +5808,7 @@ export default function PortalFacultadCienciasMatematicas() {
                                 onClick={() => cambiarPaginaRepo(p)}
                                 className={`min-w-[34px] sm:min-w-[38px] h-[34px] sm:h-[38px] px-2 rounded-xl text-xs sm:text-sm transition-all duration-150 flex items-center justify-center cursor-pointer ${
                                   esActiva
-                                    ? "bg-[#002855] text-white font-extrabold shadow-md scale-105 border border-[#002855]"
+                                    ? "bg-[#002855] text-white font-bold shadow-md scale-105 border border-[#002855]"
                                     : "bg-white text-slate-700 hover:bg-blue-50 hover:text-[#002855] font-bold border border-slate-200 shadow-xs"
                                 }`}
                               >
@@ -5599,7 +5842,7 @@ export default function PortalFacultadCienciasMatematicas() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <section className="lg:col-span-5 space-y-4">
               <span className="text-xs font-bold uppercase text-red-700">Directorio Telefónico e Institucional FCM</span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#002855]">Directorio y Mesa de Ayuda</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white">Directorio y Mesa de Ayuda</h1>
               <p className="text-xs text-slate-600">Central Telefónica UNMSM: <strong>(01) 619-7000</strong></p>
               <div className="space-y-3 pt-1">
                 {[
@@ -5610,7 +5853,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 ].map((item, idx) => (
                   <div key={idx} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-extrabold text-[#002855] flex items-center gap-2"><Mail className="w-4 h-4 text-red-700" /> {item.area}</h3>
+                      <h3 className="text-xs font-bold text-[#002855] dark:text-white flex items-center gap-2"><Mail className="w-4 h-4 text-red-700" /> {item.area}</h3>
                       <span className="text-[11px] font-mono font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded">{item.anexo}</span>
                     </div>
                     <p className="text-xs font-mono text-slate-700">{item.correo}</p>
@@ -5621,7 +5864,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50/60 to-white p-4 shadow-xs space-y-2.5">
                   <div className="flex items-center gap-2">
                     <Share2 className="w-4 h-4 text-red-700" />
-                    <h3 className="text-xs font-extrabold text-[#002855]">Redes Sociales y Canales Oficiales</h3>
+                    <h3 className="text-xs font-bold text-[#002855] dark:text-white">Redes Sociales y Canales Oficiales</h3>
                   </div>
                   <p className="text-[11px] text-slate-600 leading-relaxed">
                     Sigue las transmisiones en vivo de ceremonias, conferencias magistrales, eventos y comunicados:
@@ -5631,7 +5874,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       href="https://www.facebook.com/FacultadDeCienciasMatematicasOficial"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-blue-200 hover:border-[#1877F2] text-xs font-extrabold transition-all shadow-2xs hover:scale-102"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-blue-200 hover:border-[#1877F2] text-xs font-bold transition-all shadow-2xs hover:scale-102"
                     >
                       <Facebook className="w-3.5 h-3.5" />
                       <span>Facebook</span>
@@ -5640,7 +5883,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       href="https://www.instagram.com/facultaddecienciasmatematicas/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gradient-to-r hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 text-pink-700 hover:text-white border border-pink-200 text-xs font-extrabold transition-all shadow-2xs hover:scale-102"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gradient-to-r hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 text-pink-700 hover:text-white border border-pink-200 text-xs font-bold transition-all shadow-2xs hover:scale-102"
                     >
                       <Instagram className="w-3.5 h-3.5" />
                       <span>Instagram</span>
@@ -5649,7 +5892,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       href="https://www.youtube.com/@fcmunmsm/videos"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FF0000] text-red-700 hover:text-white border border-red-200 text-xs font-extrabold transition-all shadow-2xs hover:scale-102"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FF0000] text-red-700 hover:text-white border border-red-200 text-xs font-bold transition-all shadow-2xs hover:scale-102"
                     >
                       <Youtube className="w-3.5 h-3.5" />
                       <span>YouTube</span>
@@ -5661,7 +5904,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
             <section className="lg:col-span-7">
               <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-5">
-                <h2 className="text-xl font-extrabold text-[#002855]">Formulario de Soporte Estudiantil</h2>
+                <h2 className="text-xl font-bold text-[#002855] dark:text-white">Formulario de Soporte Estudiantil</h2>
                 {ticketEnviadoOk ? (
                   <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-6 text-center space-y-3">
                     <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
@@ -5687,7 +5930,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     </div>
                     <input type="text" required value={formContacto.asunto} onChange={(e) => setFormContacto({ ...formContacto, asunto: e.target.value })} placeholder="Asunto de la consulta *" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
                     <textarea rows={4} required value={formContacto.mensaje} onChange={(e) => setFormContacto({ ...formContacto, mensaje: e.target.value })} placeholder="Describe tu solicitud..." className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
-                    <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-extrabold text-white">Enviar Mensaje a Soporte</button>
+                    <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-bold text-white">Enviar Mensaje a Soporte</button>
                   </form>
                 )}
               </div>
@@ -5703,7 +5946,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <div className="max-w-md mx-auto rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-lg space-y-5">
               <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto"><Lock className="w-6 h-6 text-red-700" /></div>
               <div>
-                <h2 className="text-xl font-extrabold text-[#002855]">Acceso Restringido • Administración FCM</h2>
+                <h2 className="text-xl font-bold text-[#002855] dark:text-white">Acceso Restringido • Administración FCM</h2>
                 <p className="text-xs text-slate-600 mt-1">
                   Ingresa la contraseña maestra de administrador para gestionar el portal institucional.
                 </p>
@@ -5726,7 +5969,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <button
                   type="submit"
                   disabled={cargandoAuthAdmin}
-                  className="w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-extrabold text-white cursor-pointer transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-bold text-white cursor-pointer transition-colors flex items-center justify-center gap-2"
                 >
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>
@@ -5739,7 +5982,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <div className="space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-4 bg-[#002855] text-white rounded-2xl p-5 border-b-4 border-red-700">
                 <div>
-                  <h1 className="text-lg sm:text-xl font-extrabold">Panel de Administración CMS • FCM UNMSM</h1>
+                  <h1 className="text-lg sm:text-xl font-bold">Panel de Administración CMS • FCM UNMSM</h1>
                   <p className="text-xs text-blue-200">Sincronizado con la tabla <code className="text-red-300">portal_config</code> de Supabase.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -5750,13 +5993,14 @@ export default function PortalFacultadCienciasMatematicas() {
                     { id: "docentes_cms", label: `👨‍🏫 Docentes (${docentes.length})` },
                     { id: "moderacion", label: `🛡️ Moderación (${materialesPendientes.length + resenasDocentes.length})` },
                     { id: "storage", label: `🖼️ Imágenes Storage (${imagenesStorage.length})` },
+                    { id: "orgullo", label: `🏆 Orgullo FCM (${orgulloItems.length})` },
                     { id: "malla", label: `🎓 Mallas (${malla.length})` },
                     { id: "soporte", label: `📬 Soporte (${tickets.length})` },
                   ].map((t) => (
                     <button
                       key={t.id}
                       onClick={() => setTabAdmin(t.id as typeof tabAdmin)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${tabAdmin === t.id ? "bg-red-700 text-white shadow" : "bg-blue-900 text-blue-100 hover:bg-blue-800"}`}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${tabAdmin === t.id ? "bg-red-700 text-white shadow" : "bg-blue-900 text-blue-100 hover:bg-blue-800"}`}
                     >
                       {t.label}
                     </button>
@@ -5764,7 +6008,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   <button
                     type="button"
                     onClick={handleCerrarSesionAdmin}
-                    className="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-black text-red-300 border border-red-500/40 flex items-center gap-1.5 cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-black text-red-300 border border-red-500/40 flex items-center gap-1.5 cursor-pointer"
                   >
                     <Lock className="w-3.5 h-3.5" /> Salir
                   </button>
@@ -5774,24 +6018,24 @@ export default function PortalFacultadCienciasMatematicas() {
               {tabAdmin === "dashboard" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div onClick={() => setTabAdmin("carreras_cms")} className="rounded-2xl border-2 border-blue-200 bg-white p-5 cursor-pointer hover:border-[#002855]">
-                    <p className="text-xs text-[#002855] font-extrabold uppercase">Gestión de Carreras</p>
-                    <p className="text-3xl font-extrabold text-[#002855] mt-2">4 Escuelas</p>
+                    <p className="text-xs text-[#002855] font-bold uppercase">Gestión de Carreras</p>
+                    <p className="text-3xl font-bold text-[#002855] mt-2">4 Escuelas</p>
                   </div>
                   <div onClick={() => setTabAdmin("noticias")} className="rounded-2xl border-2 border-red-200 bg-white p-5 cursor-pointer hover:border-red-600">
-                    <p className="text-xs text-red-700 font-extrabold uppercase">Noticias Activas</p>
-                    <p className="text-3xl font-extrabold text-[#002855] mt-2">{noticias.length}</p>
+                    <p className="text-xs text-red-700 font-bold uppercase">Noticias Activas</p>
+                    <p className="text-3xl font-bold text-[#002855] mt-2">{noticias.length}</p>
                   </div>
                   <div onClick={() => setTabAdmin("docentes_cms")} className="rounded-2xl border-2 border-emerald-200 bg-white p-5 cursor-pointer hover:border-emerald-700">
-                    <p className="text-xs text-emerald-700 font-extrabold uppercase">Plana Docente</p>
-                    <p className="text-3xl font-extrabold text-[#002855] mt-2">{docentes.length}</p>
+                    <p className="text-xs text-emerald-700 font-bold uppercase">Plana Docente</p>
+                    <p className="text-3xl font-bold text-[#002855] mt-2">{docentes.length}</p>
                   </div>
                   <div onClick={() => setTabAdmin("moderacion")} className="rounded-2xl border border-slate-200 bg-white p-5 cursor-pointer hover:border-[#002855]">
-                    <p className="text-xs text-[#002855] font-extrabold uppercase">Archivos Pendientes</p>
-                    <p className="text-3xl font-extrabold text-[#002855] mt-2">{materialesPendientes.length}</p>
+                    <p className="text-xs text-[#002855] font-bold uppercase">Archivos Pendientes</p>
+                    <p className="text-3xl font-bold text-[#002855] mt-2">{materialesPendientes.length}</p>
                   </div>
                   <div onClick={() => setTabAdmin("storage")} className="rounded-2xl border border-slate-200 bg-white p-5 cursor-pointer hover:border-[#002855]">
-                    <p className="text-xs text-[#002855] font-extrabold uppercase">Supabase Storage & Logo</p>
-                    <p className="text-3xl font-extrabold text-[#002855] mt-2">{imagenesStorage.length}</p>
+                    <p className="text-xs text-[#002855] font-bold uppercase">Supabase Storage & Logo</p>
+                    <p className="text-3xl font-bold text-[#002855] mt-2">{imagenesStorage.length}</p>
                   </div>
                 </div>
               )}
@@ -5799,7 +6043,7 @@ export default function PortalFacultadCienciasMatematicas() {
               {tabAdmin === "carreras_cms" && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 space-y-5">
-                    <h3 className="text-lg font-extrabold text-[#002855] border-b border-slate-200 pb-3">
+                    <h3 className="text-lg font-bold text-[#002855] dark:text-white border-b border-slate-200 pb-3">
                       Actualizar Imagen Referencial, Tríptico y Póster de Estudios por Carrera
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -5808,7 +6052,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           key={c.id}
                           type="button"
                           onClick={() => handleSeleccionarCarreraEnAdmin(c.id)}
-                          className={`px-3 py-2.5 rounded-xl text-xs font-extrabold border ${adminCarreraEditId === c.id ? "bg-[#002855] text-white border-[#002855]" : "bg-slate-50 text-slate-700 border-slate-300"}`}
+                          className={`px-3 py-2.5 rounded-xl text-xs font-bold border ${adminCarreraEditId === c.id ? "bg-[#002855] text-white border-[#002855]" : "bg-slate-50 text-slate-700 border-slate-300"}`}
                         >
                           {c.nombre}
                         </button>
@@ -5818,7 +6062,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     <form onSubmit={handleGuardarDatosCarreraAdmin} className="space-y-5">
                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-extrabold text-[#002855]">Imagen Referencial de {carreraAdminSeleccionada.nombre}</label>
+                          <label className="text-xs font-bold text-[#002855] dark:text-slate-200">Imagen Referencial de {carreraAdminSeleccionada.nombre}</label>
                           <button type="button" onClick={() => inputImagenCarreraRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
                             <Upload className="w-3.5 h-3.5" /> {subiendoAssetCarrera ? "Subiendo..." : "Subir Imagen (Storage)"}
                           </button>
@@ -5829,7 +6073,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                       <div className="p-4 rounded-2xl bg-red-50/40 border border-red-200 space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-extrabold text-red-800">Archivo PDF del Tríptico de {carreraAdminSeleccionada.nombre}</label>
+                          <label className="text-xs font-bold text-red-800">Archivo PDF del Tríptico de {carreraAdminSeleccionada.nombre}</label>
                           <button type="button" onClick={() => inputTripticoPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-red-700 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
                             <Upload className="w-3.5 h-3.5" /> Subir PDF (Storage)
                           </button>
@@ -5840,7 +6084,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                       <div className="p-4 rounded-2xl bg-blue-50/40 border border-blue-200 space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-extrabold text-blue-900">Archivo PDF del Póster de Estudios de {carreraAdminSeleccionada.nombre}</label>
+                          <label className="text-xs font-bold text-blue-900">Archivo PDF del Póster de Estudios de {carreraAdminSeleccionada.nombre}</label>
                           <button type="button" onClick={() => inputPosterPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
                             <Upload className="w-3.5 h-3.5" /> Subir PDF (Storage)
                           </button>
@@ -5850,7 +6094,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       </div>
 
                       <div className="flex gap-3">
-                        <button type="submit" className="flex-1 py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold">
+                        <button type="submit" className="flex-1 py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold">
                           Guardar en Supabase ({carreraAdminSeleccionada.nombre})
                         </button>
                         <button type="button" onClick={() => navegarACarrera(adminCarreraEditId)} className="px-4 py-3 rounded-xl bg-slate-100 text-xs font-bold text-[#002855]">
@@ -5861,7 +6105,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   </div>
 
                   <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 space-y-4 h-fit">
-                    <h4 className="text-xs font-extrabold uppercase text-slate-500">Vista Previa ({carreraAdminSeleccionada.nombre})</h4>
+                    <h4 className="text-xs font-bold uppercase text-slate-500">Vista Previa ({carreraAdminSeleccionada.nombre})</h4>
                     <img src={carreraAdminSeleccionada.imagen_referencial_url} alt={carreraAdminSeleccionada.nombre} className="w-full h-60 object-cover rounded-xl shadow-md border border-slate-200" />
                     <p className="text-xs text-slate-600">{carreraAdminSeleccionada.vision_carrera}</p>
                   </div>
@@ -5874,7 +6118,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     {/* Columna Izquierda: Editor Enriquecido con Barra de Herramientas */}
                     <form onSubmit={handleGuardarNoticia} className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
                       <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                        <h3 className="font-extrabold text-base text-[#002855]">
+                        <h3 className="font-bold text-base text-[#002855] dark:text-white">
                           {formNoticia.id ? "✏️ Editar Noticia / Comunicado" : "➕ Publicar Nueva Noticia Estructurada"}
                         </h3>
                         {formNoticia.id && (
@@ -5968,7 +6212,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                       {/* Barra de Herramientas de Formato */}
                       <div className="space-y-2">
-                        <label className="text-xs font-extrabold text-[#002855]">
+                        <label className="text-xs font-bold text-[#002855] dark:text-slate-200">
                           Contenido Estructurado de la Noticia (Usa los botones para ordenar el texto) *
                         </label>
                         <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-slate-100 border border-slate-300">
@@ -6051,7 +6295,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                       {/* Campos opcionales ordenados para Eventos / Convocatorias */}
                       <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-3">
-                        <p className="text-xs font-extrabold text-[#002855]">
+                        <p className="text-xs font-bold text-[#002855]">
                           📌 Ficha Rápida del Evento / Convocatoria (Opcional)
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -6097,7 +6341,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
-                            <p className="text-xs font-extrabold text-[#002855]">
+                            <p className="text-xs font-bold text-[#002855]">
                               ⭐ Proyección en Sección Principal (Carrusel de Portada)
                             </p>
                             <p className="text-[11px] text-slate-500">
@@ -6270,7 +6514,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         Destacar como &ldquo;Importante&rdquo;
                       </label>
 
-                      <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer">
+                      <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer">
                         {formNoticia.id ? "Guardar Cambios en Supabase" : "Publicar Noticia en Supabase"}
                       </button>
                     </form>
@@ -6278,7 +6522,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     {/* Columna Derecha: Vista Previa en Vivo */}
                     <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs sticky top-20">
                       <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
-                        <span className="text-xs font-extrabold uppercase tracking-wider">👁️ Vista Previa en Vivo</span>
+                        <span className="text-xs font-bold uppercase tracking-wider">👁️ Vista Previa en Vivo</span>
                         <span className="text-[10px] font-mono text-blue-200">Así lo leerán los alumnos</span>
                       </div>
                       <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
@@ -6291,7 +6535,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           <span className="px-2.5 py-0.5 rounded bg-[#002855] text-white text-[10px] font-bold">
                             {formNoticia.categoria || "Comunicado Oficial"}
                           </span>
-                          <h4 className="text-base font-extrabold text-[#002855] leading-snug">
+                          <h4 className="text-base font-bold text-[#002855] dark:text-white leading-snug">
                             {formNoticia.titulo || "Título de la noticia..."}
                           </h4>
                           {formNoticia.resumen && (
@@ -6309,7 +6553,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                   {/* Lista de Noticias Publicadas */}
                   <div className="space-y-3">
-                    <h4 className="text-sm font-extrabold text-[#002855]">Noticias Publicadas ({noticias.length})</h4>
+                    <h4 className="text-sm font-bold text-[#002855] dark:text-white">Noticias Publicadas ({noticias.length})</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {noticias.map((n) => (
                         <div key={n.id} className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-4">
@@ -6329,7 +6573,7 @@ export default function PortalFacultadCienciasMatematicas() {
                                   </span>
                                 )}
                               </div>
-                              <h4 className="font-extrabold text-xs sm:text-sm text-[#002855] line-clamp-2">{n.titulo}</h4>
+                              <h4 className="font-bold text-xs sm:text-sm text-[#002855] dark:text-white line-clamp-2">{n.titulo}</h4>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
@@ -6408,7 +6652,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                   <form onSubmit={handleGuardarDocente} className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 space-y-3.5">
                     <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                      <h3 className="font-extrabold text-base text-[#002855]">
+                      <h3 className="font-bold text-base text-[#002855] dark:text-white">
                         {formDocente.id ? "✏️ Editar Ficha de Docente" : "👨‍🏫 Registrar Docente en la Facultad"}
                       </h3>
                       {formDocente.id && (
@@ -6585,7 +6829,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       />
                     </div>
 
-                    <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer">
+                    <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer">
                       {formDocente.id ? "Guardar Cambios del Docente" : "Registrar Docente en Supabase"}
                     </button>
                   </form>
@@ -6595,7 +6839,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <button
                         type="button"
                         onClick={() => setAdminFiltroCarreraDocentes("TODAS")}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
                           adminFiltroCarreraDocentes === "TODAS" ? "bg-[#002855] text-white" : "bg-slate-100 text-slate-700"
                         }`}
                       >
@@ -6606,7 +6850,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           key={c.id}
                           type="button"
                           onClick={() => setAdminFiltroCarreraDocentes(c.id)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-extrabold cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
                             adminFiltroCarreraDocentes === c.id ? TEMA_CARRERA[c.id].badgeSolid : "bg-slate-100 text-slate-700"
                           }`}
                         >
@@ -6626,15 +6870,15 @@ export default function PortalFacultadCienciasMatematicas() {
                                 {doc.foto_url ? (
                                   <img src={doc.foto_url} alt={doc.nombre_completo} className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0" />
                                 ) : (
-                                  <div className={`w-14 h-14 rounded-xl ${temaD.headerBg} text-white font-extrabold text-sm flex items-center justify-center shrink-0`}>
+                                  <div className={`w-14 h-14 rounded-xl ${temaD.headerBg} text-white font-bold text-sm flex items-center justify-center shrink-0`}>
                                     {obtenerInicialesDocente(doc.nombre_completo)}
                                   </div>
                                 )}
                                 <div className="min-w-0">
-                                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-extrabold border ${temaD.badgeSoft}`}>
+                                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${temaD.badgeSoft}`}>
                                     {carreras.find((c) => c.id === doc.carrera_id)?.nombre}
                                   </span>
-                                  <h4 className="font-extrabold text-xs sm:text-sm text-[#002855] truncate mt-0.5">
+                                  <h4 className="font-bold text-xs sm:text-sm text-[#002855] dark:text-white truncate mt-0.5">
                                     {doc.grado_academico} {doc.nombre_completo}
                                   </h4>
                                   <p className="text-[11px] text-slate-500 truncate">{doc.especialidad}</p>
@@ -6671,7 +6915,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className="flex items-center gap-2.5 border-b border-slate-200 pb-3">
                         <ImageIcon className="w-5 h-5 text-red-700" />
                         <div>
-                          <h3 className="font-extrabold text-sm text-[#002855]">Subir Imagen a Supabase Storage</h3>
+                          <h3 className="font-bold text-sm text-[#002855] dark:text-white">Subir Imagen a Supabase Storage</h3>
                           <p className="text-[11px] text-slate-500">Bucket público: <code className="font-bold text-red-700">fcm-assets</code></p>
                         </div>
                       </div>
@@ -6700,7 +6944,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     {/* Configuración directa del Fondo Difuminado, Opacidad y Color del Hero */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
                       <div className="border-b border-slate-200 pb-2.5">
-                        <h3 className="font-extrabold text-sm text-[#002855]">
+                        <h3 className="font-bold text-sm text-[#002855] dark:text-white">
                           🖼️ Personalización del Fondo Hero (Difuminado, Opacidad y Color)
                         </h3>
                         <p className="text-[11px] text-slate-500">
@@ -6727,7 +6971,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/15 flex flex-col items-center justify-center p-3 text-center">
-                          <span className="text-xs font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+                          <span className="text-xs font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
                             Vista Previa en Vivo • Portal Académico FCM
                           </span>
                           <span className="mt-1 px-2.5 py-0.5 rounded-full bg-black/55 text-[10px] font-bold text-white border border-white/20">
@@ -6738,7 +6982,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                       {/* URL de la imagen */}
                       <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-700">URL de la Imagen de Fondo:</label>
+                        <label className="text-[11px] font-bold text-slate-700">URL de la Imagen de Fondo:</label>
                         <input
                           type="url"
                           value={heroBgInputUrl}
@@ -6751,7 +6995,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       {/* Control Deslizante 1: Nivel de Difuminado (Blur en px) */}
                       <div className="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-extrabold text-[#002855]">1. Nivel de Difuminado (Desenfoque):</span>
+                          <span className="font-bold text-[#002855]">1. Nivel de Difuminado (Desenfoque):</span>
                           <span className="px-2 py-0.5 rounded-md bg-[#002855] text-white font-mono text-[11px] font-bold">
                             {heroBlur} px {heroBlur === 0 ? "(Nítido)" : heroBlur <= 1.5 ? "(Sutil)" : "(Intenso)"}
                           </span>
@@ -6776,7 +7020,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       {/* Control Deslizante 2: Porcentaje de Opacidad de la Capa */}
                       <div className="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-extrabold text-[#002855]">2. Opacidad / Oscuridad del Fondo:</span>
+                          <span className="font-bold text-[#002855]">2. Opacidad / Oscuridad del Fondo:</span>
                           <span className="px-2 py-0.5 rounded-md bg-red-700 text-white font-mono text-[11px] font-bold">
                             {heroOverlayOpacity}%
                           </span>
@@ -6800,7 +7044,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       {/* Selector 3: Color de la Capa (Normal Neutro, Negro, Gris, Azul o Libre) */}
                       <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-extrabold text-[#002855]">3. Color del Filtro / Capa:</span>
+                          <span className="font-bold text-[#002855]">3. Color del Filtro / Capa:</span>
                           <span className="font-mono text-[11px] font-bold text-slate-600">{heroOverlayColor}</span>
                         </div>
                         <div className="grid grid-cols-2 gap-1.5">
@@ -6845,7 +7089,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           onClick={() =>
                             handleUsarComoFondoHero(heroBgInputUrl, heroBlur, heroOverlayOpacity, heroOverlayColor)
                           }
-                          className="flex-1 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer shadow-xs"
+                          className="flex-1 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer shadow-xs"
                         >
                           Guardar Personalización del Banner
                         </button>
@@ -6869,7 +7113,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded bg-[#002855] text-white text-[10px] font-bold">{img.categoria}</span>
                           </div>
                           <div className="p-3.5">
-                            <p className="text-xs font-extrabold text-[#002855] truncate">{img.nombre_archivo}</p>
+                            <p className="text-xs font-bold text-[#002855] truncate">{img.nombre_archivo}</p>
                             <p className="text-[10px] text-slate-400">{img.tamano_kb} • {img.fecha_subida}</p>
                           </div>
                         </div>
@@ -6914,7 +7158,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     <div className="bg-[#002855] text-white px-5 py-4 flex flex-wrap items-center justify-between gap-2 border-b-2 border-red-700">
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                        <h3 className="text-sm font-extrabold">
+                        <h3 className="text-sm font-bold">
                           Moderación de Calificaciones y Reseñas de Docentes ({resenasDocentes.length})
                         </h3>
                       </div>
@@ -6946,12 +7190,12 @@ export default function PortalFacultadCienciasMatematicas() {
                               const docInfo = docentes.find((d) => d.id === resena.docente_id);
                               return (
                                 <tr key={resena.id} className="hover:bg-slate-50/80">
-                                  <td className="py-3.5 px-4 font-extrabold text-[#002855]">
+                                  <td className="py-3.5 px-4 font-bold text-[#002855]">
                                     {docInfo ? `${docInfo.grado_academico} ${docInfo.nombre_completo}` : resena.docente_id}
                                     <div className="text-[10px] font-normal text-slate-400">{resena.fecha}</div>
                                   </td>
                                   <td className="py-3.5 px-4">
-                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 font-extrabold text-amber-800">
+                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 font-bold text-amber-800">
                                       <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                                       <span>{resena.puntuacion}.0</span>
                                     </div>
@@ -6965,11 +7209,11 @@ export default function PortalFacultadCienciasMatematicas() {
                                   </td>
                                   <td className="py-3.5 px-4">
                                     {resena.estado === "aprobado" ? (
-                                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold uppercase">
+                                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase">
                                         Pública
                                       </span>
                                     ) : (
-                                      <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold uppercase">
+                                      <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase">
                                         Oculta / Pendiente
                                       </span>
                                     )}
@@ -7012,7 +7256,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   {/* SECCIÓN 2: MODERACIÓN DE ARCHIVOS DEL REPOSITORIO PENDIENTES */}
                   <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
                     <div className="bg-slate-100 px-5 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="text-sm font-extrabold text-[#002855]">
+                      <h3 className="text-sm font-bold text-[#002855] dark:text-white">
                         Archivos del Repositorio Pendientes de Aprobación ({materialesPendientes.length})
                       </h3>
                       <span className="text-[11px] text-slate-500">
@@ -7087,7 +7331,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   {/* SECCIÓN 3: ARCHIVOS APROBADOS PUBLICADOS EN EL REPOSITORIO */}
                   <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
                     <div className="bg-slate-100 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
-                      <h3 className="text-sm font-extrabold text-[#002855]">
+                      <h3 className="text-sm font-bold text-[#002855] dark:text-white">
                         Materiales Publicados en el Repositorio ({materialesAprobados.length})
                       </h3>
                     </div>
@@ -7134,7 +7378,7 @@ export default function PortalFacultadCienciasMatematicas() {
               {tabAdmin === "malla" && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   <form onSubmit={handleGuardarCursoMalla} className="lg:col-span-4 rounded-2xl border border-slate-200 bg-white p-5 space-y-3 h-fit">
-                    <h3 className="font-extrabold text-sm text-[#002855]">Añadir Asignatura a la Malla</h3>
+                    <h3 className="font-bold text-sm text-[#002855] dark:text-white">Añadir Asignatura a la Malla</h3>
                     <select
                       value={formCursoMalla.carrera_id}
                       onChange={(e) => setFormCursoMalla({ ...formCursoMalla, carrera_id: e.target.value as CarreraId })}
@@ -7188,6 +7432,116 @@ export default function PortalFacultadCienciasMatematicas() {
                 </div>
               )}
 
+              
+              {tabAdmin === "orgullo" && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div>
+                      <h3 className="font-bold text-base text-[#002855] dark:text-white flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-amber-500" />
+                        Gestión de Historias de Éxito: Orgullo San Marquino
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Agrega o edita pósters, fotografías y reconocimientos de estudiantes destacados que impactan a nivel nacional e internacional.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormOrgullo({
+                          id: "",
+                          titulo: "",
+                          subtitulo_categoria: "SELECCIONADO POR IBRO 2026",
+                          estudiante: "",
+                          carrera_id: "computacion-cientifica",
+                          descripcion: "",
+                          foto_url: "",
+                          tipo_tarjeta: "afiche",
+                          enlace_nota: "",
+                          anio: "2026",
+                          destacado: true,
+                        });
+                        setEditandoOrgulloId(null);
+                        setModalOrgulloFormAbierto(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-xs flex items-center gap-2 shadow cursor-pointer self-start sm:self-auto"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>➕ Añadir Nuevo Logro</span>
+                    </button>
+                  </div>
+
+                  {/* Lista de Logros en CMS */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {orgulloItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm flex flex-col justify-between space-y-3"
+                      >
+                        <div className="flex gap-3">
+                          <div className="w-20 h-28 shrink-0 rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800">
+                            <img src={item.foto_url} alt={item.titulo} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="space-y-1 min-w-0">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-[#002855] dark:text-blue-200">
+                              {item.subtitulo_categoria}
+                            </span>
+                            <h4 className="font-bold text-xs sm:text-sm text-[#002855] dark:text-white truncate">
+                              {item.titulo}
+                            </h4>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                              👤 {item.estudiante}
+                            </p>
+                            <p className="text-[10px] font-semibold text-red-700 dark:text-red-400">
+                              {item.carrera_nombre} • {item.anio}
+                            </p>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
+                          {item.descripcion}
+                        </p>
+
+                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormOrgullo(item);
+                              setEditandoOrgulloId(item.id);
+                              setModalOrgulloFormAbierto(true);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900 text-[#002855] dark:text-blue-300 font-bold text-xs transition-colors cursor-pointer"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (window.confirm(`¿Estás seguro de eliminar "${item.titulo}" del Orgullo San Marquino?`)) {
+                                const actualizados = orgulloItems.filter((x) => x.id !== item.id);
+                                setOrgulloItems(actualizados);
+                                if (typeof window !== "undefined") window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(actualizados));
+                                const metaPayload = { id: "__fcm_orgullo_config__", orgullo_items: actualizados };
+                                const storageFiltrado = imagenesStorage.filter((x) => x.id !== "__fcm_orgullo_config__");
+                                const nuevoStorage = [...storageFiltrado, metaPayload as any];
+                                await sincronizarPortalConfigSupabase({
+                                  orgullo_data: actualizados,
+                                  storage_data: nuevoStorage,
+                                });
+                                lanzarToast("🗑️ Logro eliminado y cambios persistidos en Supabase.");
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900 text-red-700 dark:text-red-300 font-bold text-xs transition-colors cursor-pointer"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {tabAdmin === "soporte" && (
                 <div className="space-y-3">
                   {tickets.map((t) => (
@@ -7211,13 +7565,13 @@ export default function PortalFacultadCienciasMatematicas() {
         <div className="fixed inset-0 z-50 bg-slate-900/75 flex items-center justify-center p-4 overflow-y-auto">
           <div className="max-w-xl w-full rounded-3xl border-2 border-[#002855] bg-white p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b-2 border-red-600 pb-3">
-              <h3 className="text-lg font-extrabold text-[#002855]">➕ Aportar Material al Repositorio FCM</h3>
+              <h3 className="text-lg font-bold text-[#002855] dark:text-white">➕ Aportar Material al Repositorio FCM</h3>
               <button onClick={() => setModalSubirAbierto(false)} className="text-xs font-bold text-slate-500 hover:text-red-700">✕ Cerrar</button>
             </div>
             {exitoSubidaModal ? (
               <div className="p-6 text-center space-y-4">
                 <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-                <h4 className="text-base font-extrabold text-[#002855]">¡Gracias! Tu material será revisado antes de publicarse</h4>
+                <h4 className="text-base font-bold text-[#002855] dark:text-white">¡Gracias! Tu material será revisado antes de publicarse</h4>
                 <button onClick={() => setModalSubirAbierto(false)} className="px-4 py-2 rounded-xl bg-[#002855] text-xs font-bold text-white">Cerrar</button>
               </div>
             ) : (
@@ -7315,7 +7669,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   <input type="url" required value={formSubidaAnon.url_archivo} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, url_archivo: e.target.value })} placeholder="URL (Google Drive / GitHub) *" className="col-span-2 rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs" />
                   <input type="text" value={formSubidaAnon.autor_alias} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, autor_alias: e.target.value })} placeholder="Alias (Opcional)" className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs" />
                 </div>
-                <button type="submit" className="w-full py-3 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-extrabold">Enviar Material a Revisión</button>
+                <button type="submit" className="w-full py-3 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold">Enviar Material a Revisión</button>
               </form>
             )}
           </div>
@@ -7329,7 +7683,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <div className="bg-[#002855] text-white px-6 py-4 border-b-4 border-red-700 flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-mono uppercase text-red-300 font-bold">{servicioModalInfo.sigla}</span>
-                <h3 className="text-base font-extrabold text-white">{servicioModalInfo.titulo}</h3>
+                <h3 className="text-base font-bold text-white">{servicioModalInfo.titulo}</h3>
               </div>
               <button onClick={() => setServicioModalInfo(null)} className="text-xs font-bold text-blue-200 hover:text-white">✕</button>
             </div>
@@ -7348,6 +7702,318 @@ export default function PortalFacultadCienciasMatematicas() {
         </div>
       )}
 
+      
+      {/* MODAL DE DETALLE: ORGULLO SAN MARQUINO */}
+      {modalDetalleOrgullo && (
+        <div
+          onClick={() => setModalDetalleOrgullo(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-5 shadow-2xl border-2 border-[#002855] dark:border-blue-700 max-h-[92vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-red-700 dark:text-red-400" />
+                <span className="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
+                  Orgullo San Marquino • FCM UNMSM
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalDetalleOrgullo(null)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+              <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-slate-950 shadow-md">
+                <img
+                  src={modalDetalleOrgullo.foto_url}
+                  alt={modalDetalleOrgullo.titulo}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="space-y-3 text-left">
+                <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-[#002855] dark:bg-blue-950 text-white dark:text-blue-200 border border-blue-800">
+                  {modalDetalleOrgullo.subtitulo_categoria}
+                </span>
+                <h3 className="text-xl font-bold text-[#002855] dark:text-white leading-snug">
+                  {modalDetalleOrgullo.titulo}
+                </h3>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  👤 <span className="font-bold text-[#002855] dark:text-blue-300">{modalDetalleOrgullo.estudiante}</span>
+                </p>
+                <p className="text-xs text-red-700 dark:text-red-400 font-semibold">
+                  🏛️ {modalDetalleOrgullo.carrera_nombre || "Facultad de Ciencias Matemáticas"} • Año {modalDetalleOrgullo.anio}
+                </p>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed pt-2 border-t border-slate-200 dark:border-slate-800">
+                  {modalDetalleOrgullo.descripcion}
+                </p>
+                {modalDetalleOrgullo.enlace_nota && (
+                  <div className="pt-2">
+                    <a
+                      href={modalDetalleOrgullo.enlace_nota}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow transition-colors"
+                    >
+                      <span>Ver Enlace Oficial / Nota de Prensa</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CMS: CREAR / EDITAR LOGRO ORGULLO SAN MARQUINO */}
+      {modalOrgulloFormAbierto && (
+        <div
+          onClick={() => setModalOrgulloFormAbierto(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl border-2 border-[#002855] dark:border-blue-700 max-h-[92vh] overflow-y-auto text-left"
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="font-bold text-base text-[#002855] dark:text-white flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-amber-500" />
+                  {editandoOrgulloId ? "Editar Logro en Orgullo San Marquino" : "Añadir Nuevo Logro en Orgullo San Marquino"}
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Completa los campos para publicar un reconocimiento con fotografía o póster oficial.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOrgulloFormAbierto(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!formOrgullo.titulo.trim() || !formOrgullo.foto_url.trim()) {
+                  lanzarToast("⚠️ Debes ingresar un título y la URL de la imagen.");
+                  return;
+                }
+
+                const carreraNombreMap: Record<string, string> = {
+                  "computacion-cientifica": "Computación Científica",
+                  matematica: "Matemática",
+                  estadistica: "Estadística",
+                  "investigacion-operativa": "Investigación Operativa",
+                  fcm: "Facultad de Ciencias Matemáticas",
+                };
+
+                const itemCompleto: OrgulloItem = {
+                  ...formOrgullo,
+                  id: editandoOrgulloId || `org-${Date.now()}`,
+                  carrera_nombre: carreraNombreMap[formOrgullo.carrera_id] || "FCM UNMSM",
+                };
+
+                let actualizados: OrgulloItem[];
+                if (editandoOrgulloId) {
+                  actualizados = orgulloItems.map((item) => (item.id === editandoOrgulloId ? itemCompleto : item));
+                } else {
+                  actualizados = [itemCompleto, ...orgulloItems];
+                }
+
+                setOrgulloItems(actualizados);
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(actualizados));
+                }
+
+                const metaPayload = { id: "__fcm_orgullo_config__", orgullo_items: actualizados };
+                const storageFiltrado = imagenesStorage.filter((x) => x.id !== "__fcm_orgullo_config__");
+                const nuevoStorage = [...storageFiltrado, metaPayload as any];
+
+                const exito = await sincronizarPortalConfigSupabase({
+                  orgullo_data: actualizados,
+                  storage_data: nuevoStorage,
+                });
+
+                setModalOrgulloFormAbierto(false);
+                setEditandoOrgulloId(null);
+                lanzarToast(
+                  exito
+                    ? "✅ Logro de Orgullo San Marquino guardado y sincronizado en Supabase."
+                    : "✅ Guardado localmente y en caché del portal."
+                );
+              }}
+              className="space-y-3.5 text-xs"
+            >
+              <div>
+                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Título del Logro / Reconocimiento:</label>
+                <input
+                  type="text"
+                  required
+                  value={formOrgullo.titulo}
+                  onChange={(e) => setFormOrgullo({ ...formOrgullo, titulo: e.target.value })}
+                  placeholder="ej. Translational Neuroscience School — IBRO 2026"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Categoría / Distintivo Superior:</label>
+                  <input
+                    type="text"
+                    required
+                    value={formOrgullo.subtitulo_categoria}
+                    onChange={(e) => setFormOrgullo({ ...formOrgullo, subtitulo_categoria: e.target.value })}
+                    placeholder="ej. SELECCIONADO POR IBRO 2026"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Estudiante o Equipo Reconocido:</label>
+                  <input
+                    type="text"
+                    required
+                    value={formOrgullo.estudiante}
+                    onChange={(e) => setFormOrgullo({ ...formOrgullo, estudiante: e.target.value })}
+                    placeholder="ej. Diego Quispe Huamán"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Escuela Profesional:</label>
+                  <select
+                    value={formOrgullo.carrera_id}
+                    onChange={(e) => setFormOrgullo({ ...formOrgullo, carrera_id: e.target.value as any })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                  >
+                    <option value="computacion-cientifica">Computación Científica</option>
+                    <option value="matematica">Matemática</option>
+                    <option value="estadistica">Estadística</option>
+                    <option value="investigacion-operativa">Investigación Operativa</option>
+                    <option value="fcm">Facultad FCM General</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Tipo de Tarjeta:</label>
+                  <select
+                    value={formOrgullo.tipo_tarjeta}
+                    onChange={(e) => setFormOrgullo({ ...formOrgullo, tipo_tarjeta: e.target.value as any })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                  >
+                    <option value="afiche">Afiche / Convocatoria</option>
+                    <option value="estudiante">Protagonista / Estudiante</option>
+                    <option value="delegacion">Delegación / Premiación</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Año:</label>
+                  <input
+                    type="text"
+                    value={formOrgullo.anio}
+                    onChange={(e) => setFormOrgullo({ ...formOrgullo, anio: e.target.value })}
+                    placeholder="2026"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">URL de la Fotografía o Póster (Aspecto 3:4):</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    required
+                    value={formOrgullo.foto_url}
+                    onChange={(e) => setFormOrgullo({ ...formOrgullo, foto_url: e.target.value })}
+                    placeholder="ej. /orgullo/card1.png o https://..."
+                    className="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono text-[11px]"
+                  />
+                  <label className="px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-200 border border-blue-200 dark:border-blue-800 font-bold hover:bg-blue-100 flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{subiendoFotoOrgullo ? "Subiendo..." : "Subir Foto"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setSubiendoFotoOrgullo(true);
+                        try {
+                          const publicUrl = await subirArchivoASupabaseStorage(file, "orgullo");
+                          if (publicUrl) {
+                            setFormOrgullo((prev) => ({ ...prev, foto_url: publicUrl }));
+                            lanzarToast("📸 Foto subida con éxito.");
+                          } else {
+                            lanzarToast("❌ Error al subir la imagen.");
+                          }
+                        } catch {
+                          lanzarToast("❌ Error al procesar archivo.");
+                        } finally {
+                          setSubiendoFotoOrgullo(false);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Enlace a Nota de Prensa o Web Oficial (Opcional):</label>
+                <input
+                  type="url"
+                  value={formOrgullo.enlace_nota || ""}
+                  onChange={(e) => setFormOrgullo({ ...formOrgullo, enlace_nota: e.target.value })}
+                  placeholder="https://ejemplo.unmsm.edu.pe/nota-prensa"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Descripción / Resumen del Logro:</label>
+                <textarea
+                  rows={3}
+                  value={formOrgullo.descripcion}
+                  onChange={(e) => setFormOrgullo({ ...formOrgullo, descripcion: e.target.value })}
+                  placeholder="Describe brevemente el impacto del logro..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setModalOrgulloFormAbierto(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold flex items-center gap-2 shadow"
+                >
+                  <Trophy className="w-4 h-4 text-amber-300" />
+                  <span>Guardar Logro</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* MODAL DE PERSONALIZACIÓN DEL FONDO HERO (DIFUMINADO, OPACIDAD Y COLOR) - IMAGEN 3 */}
       {modalHeroFondoAbierto && (
         <div
@@ -7360,7 +8026,7 @@ export default function PortalFacultadCienciasMatematicas() {
           >
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div>
-                <h3 className="font-extrabold text-base text-[#002855]">
+                <h3 className="font-bold text-base text-[#002855] dark:text-white">
                   🖼️ Personalización del Fondo Hero (Difuminado, Opacidad y Color)
                 </h3>
                 <p className="text-[11px] text-slate-500">
@@ -7395,7 +8061,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 flex flex-col items-center justify-center p-3 text-center">
-                <span className="text-xs font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+                <span className="text-xs font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
                   Vista Previa en Vivo • Portal Académico FCM
                 </span>
                 <span className="mt-1 px-3 py-0.5 rounded-full bg-black/60 text-[10px] font-bold text-white border border-white/20">
@@ -7406,7 +8072,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
             {/* URL de la imagen */}
             <div className="space-y-1">
-              <label className="text-[11px] font-extrabold text-slate-700">URL de la Imagen de Fondo:</label>
+              <label className="text-[11px] font-bold text-slate-700">URL de la Imagen de Fondo:</label>
               <input
                 type="url"
                 value={heroBgInputUrl}
@@ -7419,7 +8085,7 @@ export default function PortalFacultadCienciasMatematicas() {
             {/* 1. Nivel de Difuminado */}
             <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-extrabold text-[#002855]">1. Nivel de Difuminado (Desenfoque):</span>
+                <span className="font-bold text-[#002855]">1. Nivel de Difuminado (Desenfoque):</span>
                 <span className="px-2.5 py-0.5 rounded-md bg-[#002855] text-white font-mono text-[11px] font-bold">
                   {heroBlur} px {heroBlur === 0 ? "(Sin blur)" : heroBlur <= 1.5 ? "(Sutil)" : "(Intenso)"}
                 </span>
@@ -7444,7 +8110,7 @@ export default function PortalFacultadCienciasMatematicas() {
             {/* 2. Opacidad / Oscuridad */}
             <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-extrabold text-[#002855]">2. Opacidad / Oscuridad del Fondo:</span>
+                <span className="font-bold text-[#002855]">2. Opacidad / Oscuridad del Fondo:</span>
                 <span className="px-2.5 py-0.5 rounded-md bg-red-700 text-white font-mono text-[11px] font-bold">
                   {heroOverlayOpacity}%
                 </span>
@@ -7468,7 +8134,7 @@ export default function PortalFacultadCienciasMatematicas() {
             {/* 3. Color del Filtro / Capa */}
             <div className="space-y-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-extrabold text-[#002855]">3. Color del Filtro / Capa:</span>
+                <span className="font-bold text-[#002855]">3. Color del Filtro / Capa:</span>
                 <span className="font-mono text-[11px] font-bold text-slate-600">{heroOverlayColor}</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -7514,7 +8180,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   await handleUsarComoFondoHero(heroBgInputUrl, heroBlur, heroOverlayOpacity, heroOverlayColor);
                   setModalHeroFondoAbierto(false);
                 }}
-                className="flex-1 py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold cursor-pointer shadow-md transition-colors"
+                className="flex-1 py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer shadow-md transition-colors"
               >
                 Guardar Personalización del Banner
               </button>
@@ -7560,19 +8226,19 @@ export default function PortalFacultadCienciasMatematicas() {
                       className="w-20 h-20 rounded-2xl object-cover border-2 border-white/80 shadow-md shrink-0"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-black/30 border-2 border-white/60 flex items-center justify-center text-2xl font-extrabold text-white shrink-0">
+                    <div className="w-20 h-20 rounded-2xl bg-black/30 border-2 border-white/60 flex items-center justify-center text-2xl font-bold text-white shrink-0">
                       {obtenerInicialesDocente(docenteModalActivo.nombre_completo)}
                     </div>
                   )}
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded bg-black/30 text-[10px] font-extrabold uppercase tracking-wider text-white border border-white/20">
+                      <span className="px-2.5 py-0.5 rounded bg-black/30 text-[10px] font-bold uppercase tracking-wider text-white border border-white/20">
                         Escuela de {carreras.find((c) => c.id === docenteModalActivo.carrera_id)?.nombre}
                       </span>
                       <span className="px-2.5 py-0.5 rounded bg-white/20 text-[10px] font-bold text-white">
                         Docente {docenteModalActivo.categoria_docente} • {docenteModalActivo.condicion}
                       </span>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/60 text-[11px] font-extrabold text-amber-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/60 text-[11px] font-bold text-amber-200">
                         <Star className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
                         <span>
                           {statsModal.total > 0
@@ -7581,7 +8247,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         </span>
                       </span>
                     </div>
-                    <h3 className="text-lg sm:text-xl font-extrabold text-white leading-snug">
+                    <h3 className="text-lg sm:text-xl font-bold text-white leading-snug">
                       {docenteModalActivo.grado_academico} {docenteModalActivo.nombre_completo}
                     </h3>
                     <p className="text-xs text-white/90 font-mono">{docenteModalActivo.correo}</p>
@@ -7598,21 +8264,21 @@ export default function PortalFacultadCienciasMatematicas() {
 
               <div className="p-6 space-y-6 text-xs sm:text-sm">
                 <div className="space-y-1.5">
-                  <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
+                  <h4 className={`text-xs font-bold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
                     Área de Especialidad Académica
                   </h4>
                   <p className="text-slate-800 font-semibold leading-relaxed">{docenteModalActivo.especialidad}</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
+                  <h4 className={`text-xs font-bold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
                     Líneas de Investigación Activas
                   </h4>
                   <p className="text-slate-600 leading-relaxed">{docenteModalActivo.lineas_investigacion}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className={`text-xs font-extrabold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
+                  <h4 className={`text-xs font-bold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
                     Asignaturas a su Cargo
                   </h4>
                   <div className="flex flex-wrap gap-2">
@@ -7706,7 +8372,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                      <h4 className="text-base font-extrabold text-[#002855]">
+                      <h4 className="text-base font-bold text-[#002855] dark:text-white">
                         ⭐ Calificaciones y Opiniones Estudiantiles
                       </h4>
                     </div>
@@ -7718,7 +8384,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   {/* 1. RESUMEN GENERAL + DISTRIBUCIÓN DE ESTRELLAS */}
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center rounded-2xl bg-slate-50 border border-slate-200 p-5">
                     <div className="sm:col-span-5 text-center sm:border-r border-slate-200 sm:pr-4 space-y-1.5">
-                      <div className="text-3xl sm:text-4xl font-extrabold text-[#002855]">
+                      <div className="text-3xl sm:text-4xl font-bold text-[#002855]">
                         {statsModal.total > 0 ? statsModal.promedio.toFixed(1) : "—"}
                         <span className="text-lg font-bold text-slate-400"> / 5.0</span>
                       </div>
@@ -7745,7 +8411,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     <div className="sm:col-span-7 space-y-2">
                       {statsModal.distribucion.map((fila) => (
                         <div key={fila.estrellas} className="flex items-center gap-2.5 text-xs">
-                          <span className="w-8 font-extrabold text-slate-700 flex items-center gap-0.5 shrink-0">
+                          <span className="w-8 font-bold text-slate-700 flex items-center gap-0.5 shrink-0">
                             {fila.estrellas} <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                           </span>
                           <div className="flex-1 h-2.5 rounded-full bg-slate-200 overflow-hidden">
@@ -7779,7 +8445,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       style={{ display: "none" }}
                     />
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h5 className="text-xs sm:text-sm font-extrabold text-[#002855]">
+                      <h5 className="text-xs sm:text-sm font-bold text-[#002855] dark:text-white">
                         Califica al docente y comparte tu experiencia académica
                       </h5>
                       <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
@@ -7789,7 +8455,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                     {/* Selector interactivo de 1 a 5 estrellas con hover animado */}
                     <div className="space-y-1.5">
-                      <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600">
                         Selecciona tu calificación (1 a 5 estrellas) *
                       </label>
                       <div className="flex items-center gap-2">
@@ -7813,7 +8479,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             </button>
                           );
                         })}
-                        <span className="ml-2 text-xs font-extrabold text-[#002855]">
+                        <span className="ml-2 text-xs font-bold text-[#002855]">
                           {formResenaDocente.puntuacion}.0 / 5.0
                         </span>
                       </div>
@@ -7842,7 +8508,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
                           <label className="text-[11px] font-bold text-slate-700">Tu Nombre o Alias</label>
-                          <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#002855] cursor-pointer">
+                          <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#002855] dark:text-slate-200 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={formResenaDocente.esAnonimo}
@@ -7907,7 +8573,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     <div className="flex justify-end">
                       <button
                         type="submit"
-                        className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold flex items-center gap-2 shadow-sm cursor-pointer"
+                        className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer"
                       >
                         <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                         <span>Enviar Reseña del Docente</span>
@@ -7917,14 +8583,14 @@ export default function PortalFacultadCienciasMatematicas() {
 
                   {/* 3. MURO DE RESEÑAS PÚBLICAS DEL DOCENTE */}
                   <div className="space-y-3">
-                    <h5 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                    <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                       Opiniones de Estudiantes ({statsModal.total})
                     </h5>
 
                     {statsModal.aprobadas.length === 0 ? (
                       <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center space-y-1.5">
                         <Star className="w-7 h-7 text-amber-400 mx-auto" />
-                        <p className="text-xs font-extrabold text-[#002855]">
+                        <p className="text-xs font-bold text-[#002855]">
                           Este docente aún no tiene reseñas registradas
                         </p>
                         <p className="text-[11px] text-slate-500">
@@ -7952,7 +8618,7 @@ export default function PortalFacultadCienciasMatematicas() {
                                     />
                                   ))}
                                 </div>
-                                <span className="text-xs font-extrabold text-[#002855]">
+                                <span className="text-xs font-bold text-[#002855]">
                                   {resena.autor_alias}
                                 </span>
                                 <span
@@ -7998,7 +8664,7 @@ function Footer({ logoUrl, onOpenAdmin }: { logoUrl: string; onOpenAdmin: () => 
             <div className="flex items-center gap-3">
               <img src={logoUrl} alt="Escudo UNMSM" className="h-11 w-auto object-contain" />
               <div>
-                <p className="font-extrabold text-sm tracking-wide text-white">FACULTAD DE CIENCIAS MATEMÁTICAS</p>
+                <p className="font-bold text-sm tracking-wide text-white">FACULTAD DE CIENCIAS MATEMÁTICAS</p>
                 <p className="text-xs text-blue-200">Universidad Nacional Mayor de San Marcos</p>
               </div>
             </div>
@@ -8008,14 +8674,14 @@ function Footer({ logoUrl, onOpenAdmin }: { logoUrl: string; onOpenAdmin: () => 
           </div>
 
           <div className="space-y-2 text-xs text-blue-200">
-            <p className="font-extrabold uppercase tracking-wider text-white mb-2">Contacto Institucional</p>
+            <p className="font-bold uppercase tracking-wider text-white mb-2">Contacto Institucional</p>
             <p className="flex items-center gap-2"><MapPin className="w-4 h-4 text-red-400 shrink-0" /><span>Ciudad Universitaria UNMSM - Av. Venezuela cdra. 34, Lima</span></p>
             <p className="flex items-center gap-2"><Phone className="w-4 h-4 text-red-400 shrink-0" /><span>Central Telefónica: (01) 619-7000 Anexo 1401</span></p>
             <p className="flex items-center gap-2"><Mail className="w-4 h-4 text-red-400 shrink-0" /><span>decanato.matematicas@unmsm.edu.pe</span></p>
           </div>
 
           <div className="space-y-3">
-            <p className="font-extrabold uppercase tracking-wider text-xs text-white">Redes Sociales Oficiales</p>
+            <p className="font-bold uppercase tracking-wider text-xs text-white">Redes Sociales Oficiales</p>
             <p className="text-xs text-blue-200">Conéctate con las transmisiones, eventos y comunicados de la facultad:</p>
             <div className="flex items-center gap-3 pt-1">
               <a

@@ -63,11 +63,12 @@ export async function POST(req: NextRequest) {
       .select();
 
     if (error) {
-      // Intento de respaldo excluyendo campos que pudieran no existir en columnas directas
-      const { hero_blur, hero_overlay_opacity, hero_overlay_color, ...resto } = cambios;
+      // Intento de respaldo excluyendo campos que pudieran no existir en columnas directas de portal_config
+      const { hero_blur, hero_overlay_opacity, hero_overlay_color, orgullo_data, ...resto } = cambios;
       void hero_blur;
       void hero_overlay_opacity;
       void hero_overlay_color;
+      void orgullo_data;
 
       const { data: retryData, error: retryError } = await supabaseServer
         .from("portal_config")
