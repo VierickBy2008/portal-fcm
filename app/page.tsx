@@ -292,6 +292,8 @@ interface Carrera {
   imagen_referencial_url: string;
   triptico_pdf_url: string;
   triptico_nombre_archivo?: string;
+  poster_pdf_url?: string;
+  poster_nombre_archivo?: string;
 }
 
 interface CursoMalla {
@@ -365,6 +367,8 @@ const CARRERAS_INICIALES: Carrera[] = [
       "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=80",
     triptico_pdf_url: "",
     triptico_nombre_archivo: "Triptico_Oficial_Computacion_Cientifica_2026.pdf",
+    poster_pdf_url: "",
+    poster_nombre_archivo: "Poster_Estudios_Computacion_Cientifica_Plan_2026.pdf",
   },
   {
     id: "matematica",
@@ -386,6 +390,8 @@ const CARRERAS_INICIALES: Carrera[] = [
       "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1000&q=80",
     triptico_pdf_url: "",
     triptico_nombre_archivo: "Triptico_Oficial_Matematica_2026.pdf",
+    poster_pdf_url: "",
+    poster_nombre_archivo: "Poster_Estudios_Matematica_Plan_2026.pdf",
   },
   {
     id: "estadistica",
@@ -407,6 +413,8 @@ const CARRERAS_INICIALES: Carrera[] = [
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80",
     triptico_pdf_url: "",
     triptico_nombre_archivo: "Triptico_Oficial_Estadistica_2026.pdf",
+    poster_pdf_url: "",
+    poster_nombre_archivo: "Poster_Estudios_Estadistica_Plan_2026.pdf",
   },
   {
     id: "investigacion-operativa",
@@ -428,6 +436,8 @@ const CARRERAS_INICIALES: Carrera[] = [
       "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1000&q=80",
     triptico_pdf_url: "",
     triptico_nombre_archivo: "Triptico_Oficial_Investigacion_Operativa_2026.pdf",
+    poster_pdf_url: "",
+    poster_nombre_archivo: "Poster_Estudios_Investigacion_Operativa_Plan_2026.pdf",
   },
 ];
 
@@ -990,9 +1000,11 @@ export default function PortalFacultadCienciasMatematicas() {
   );
   const [urlImagenCarreraInput, setUrlImagenCarreraInput] = useState(CARRERAS_INICIALES[0].imagen_referencial_url);
   const [urlTripticoCarreraInput, setUrlTripticoCarreraInput] = useState(CARRERAS_INICIALES[0].triptico_pdf_url);
+  const [urlPosterCarreraInput, setUrlPosterCarreraInput] = useState(CARRERAS_INICIALES[0].poster_pdf_url || "");
   const [subiendoAssetCarrera, setSubiendoAssetCarrera] = useState(false);
   const inputImagenCarreraRef = useRef<HTMLInputElement | null>(null);
   const inputTripticoPdfRef = useRef<HTMLInputElement | null>(null);
+  const inputPosterPdfRef = useRef<HTMLInputElement | null>(null);
 
   // Estado inicial de noticias con fecha_publicacion: "" (sin new Date() en declaración de estado)
   const [formNoticia, setFormNoticia] = useState({
@@ -1303,6 +1315,7 @@ export default function PortalFacultadCienciasMatematicas() {
             if (inicial) {
               setUrlImagenCarreraInput(inicial.imagen_referencial_url);
               setUrlTripticoCarreraInput(inicial.triptico_pdf_url);
+              setUrlPosterCarreraInput(inicial.poster_pdf_url || "");
             }
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_carreras_data", JSON.stringify(data.carreras_data));
           }
@@ -1495,6 +1508,7 @@ export default function PortalFacultadCienciasMatematicas() {
     if (encontrada) {
       setUrlImagenCarreraInput(encontrada.imagen_referencial_url);
       setUrlTripticoCarreraInput(encontrada.triptico_pdf_url);
+      setUrlPosterCarreraInput(encontrada.poster_pdf_url || "");
     }
   };
 
@@ -1756,11 +1770,35 @@ export default function PortalFacultadCienciasMatematicas() {
     }
   };
 
+  const handleSubirPosterPdfStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendoAssetCarrera(true);
+    try {
+      const publicUrl = await subirArchivoASupabaseStorage(file, `posters/${adminCarreraEditId}`);
+      setUrlPosterCarreraInput(publicUrl);
+      const nuevasCarreras = carreras.map((c) =>
+        c.id === adminCarreraEditId ? { ...c, poster_pdf_url: publicUrl, poster_nombre_archivo: file.name } : c
+      );
+      setCarreras(nuevasCarreras);
+      await sincronizarPortalConfigSupabase({ carreras_data: nuevasCarreras });
+      lanzarToast(`📥 Póster de Estudios PDF "${file.name}" guardado en Supabase para ${carreraAdminSeleccionada.nombre}.`);
+    } finally {
+      setSubiendoAssetCarrera(false);
+      if (inputPosterPdfRef.current) inputPosterPdfRef.current.value = "";
+    }
+  };
+
   const handleGuardarDatosCarreraAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     const nuevasCarreras = carreras.map((c) =>
       c.id === adminCarreraEditId
-        ? { ...c, imagen_referencial_url: urlImagenCarreraInput.trim() || c.imagen_referencial_url, triptico_pdf_url: urlTripticoCarreraInput.trim() }
+        ? {
+            ...c,
+            imagen_referencial_url: urlImagenCarreraInput.trim() || c.imagen_referencial_url,
+            triptico_pdf_url: urlTripticoCarreraInput.trim(),
+            poster_pdf_url: urlPosterCarreraInput.trim(),
+          }
         : c
     );
     setCarreras(nuevasCarreras);
@@ -1810,6 +1848,111 @@ export default function PortalFacultadCienciasMatematicas() {
     win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8" /><title>Tríptico - ${carreraActiva.nombre}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;margin:20px;color:#0F172A}.grid-triptico{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;border:2px solid #002855;border-radius:12px;padding:20px}.col{border-right:1px dashed #CBD5E1;padding-right:16px}.col:last-child{border-right:none;padding-right:0}h1{font-size:18px;color:#002855;margin:6px 0}h2{font-size:13px;color:#B91C1C;text-transform:uppercase;border-bottom:2px solid #002855;padding-bottom:4px;margin-top:14px}p,li{font-size:12px;line-height:1.55;color:#334155}</style></head><body><div class="grid-triptico"><div class="col"><div style="background:#002855;color:#FFF;padding:14px;border-radius:8px;border-bottom:4px solid #B91C1C"><div style="font-size:10px;font-weight:700;color:#FCA5A5">UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS</div><h1 style="color:#FFF;margin:4px 0">Escuela Profesional de ${carreraActiva.nombre}</h1><div style="font-size:11px;color:#BFDBFE">${carreraActiva.codigo_escuela} • Plan 2026</div></div><h2>Presentación</h2><p>${carreraActiva.descripcion}</p><h2>Visión Académica</h2><p>${carreraActiva.vision_carrera}</p></div><div class="col"><h2>Perfil del Egresado</h2><p>${carreraActiva.perfil_egreso}</p><h2>Campo Laboral</h2><p>${carreraActiva.campo_laboral}</p><h2>¿Por qué estudiar ${carreraActiva.nombre}?</h2><p>${carreraActiva.por_que_estudiar}</p></div><div class="col"><h2>Grados y Títulos Oficiales</h2><p><strong>Duración:</strong> 10 Semestres Académicos</p><p><strong>Grado:</strong> ${carreraActiva.grado_academico}</p><p><strong>Título:</strong> ${carreraActiva.titulo_profesional}</p><h2>Asignaturas Base</h2><ul style="padding-left:16px">${primerosCursos}</ul></div></div><script>window.onload=function(){setTimeout(function(){window.print()},250)}</script></body></html>`);
     win.document.close();
     lanzarToast(`📥 Generando Tríptico PDF de ${carreraActiva.nombre}...`);
+  };
+
+  const handleDescargarPosterEstudios = () => {
+    if (carreraActiva.poster_pdf_url && carreraActiva.poster_pdf_url.trim() !== "") {
+      const link = document.createElement("a");
+      link.href = carreraActiva.poster_pdf_url;
+      link.target = "_blank";
+      link.download = carreraActiva.poster_nombre_archivo || `Poster_Estudios_${carreraActiva.id}_Plan2026.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      lanzarToast(`📥 Descargando Póster Oficial de Estudios de ${carreraActiva.nombre}...`);
+      return;
+    }
+
+    setCiclosAbiertos([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    const totalCreditosCarrera = cursosDeCarreraActiva.reduce((acc, c) => acc + c.creditos, 0);
+    const totalObligatorios = cursosDeCarreraActiva.filter((c) => c.tipo_curso === "O").length;
+    const totalElectivos = cursosDeCarreraActiva.filter((c) => c.tipo_curso === "E").length;
+
+    const ventanaImpresion = window.open("", "_blank", "width=1200,height=900");
+    if (!ventanaImpresion) {
+      window.print();
+      return;
+    }
+
+    const bloquesCiclosHtml = Array.from({ length: 10 }, (_, i) => i + 1)
+      .map((numCiclo) => {
+        const cursosCiclo = cursosDeCarreraActiva.filter((c) => c.ciclo === numCiclo);
+        const credCiclo = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
+        const filasHtml = cursosCiclo
+          .map(
+            (cur) => `
+              <div style="background:#ffffff;border:1px solid #E2E8F0;border-left:3.5px solid ${cur.tipo_curso === 'O' ? '#002855' : '#B91C1C'};padding:6px 8px;border-radius:6px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:2px">
+                  <span style="font-family:monospace;font-weight:800;color:#002855">[${cur.codigo}]</span>
+                  <span style="font-weight:700;color:${cur.tipo_curso === 'O' ? '#1E3A8A' : '#991B1B'};background:${cur.tipo_curso === 'O' ? '#EFF6FF' : '#FEF2F2'};padding:1px 5px;border-radius:4px">${cur.creditos.toFixed(1)} cr</span>
+                </div>
+                <div style="font-size:10.5px;font-weight:700;color:#1E293B;line-height:1.25">${cur.nombre_curso}</div>
+                <div style="font-size:9px;color:#64748B;margin-top:2px;font-family:monospace">Req: ${cur.prerequisitos.length > 0 ? cur.prerequisitos.join(', ') : 'Ninguno'}</div>
+              </div>
+            `
+          )
+          .join("");
+
+        return `
+          <div style="background:#F8FAFC;border:1px solid #CBD5E1;border-radius:10px;padding:8px;display:flex;flex-direction:column">
+            <div style="background:#002855;color:#ffffff;padding:6px 10px;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+              <strong style="font-size:11px;letter-spacing:0.5px">CICLO ${numCiclo}</strong>
+              <span style="font-size:9.5px;color:#93C5FD">${credCiclo.toFixed(1)} cr</span>
+            </div>
+            <div style="flex:1">${filasHtml}</div>
+          </div>
+        `;
+      })
+      .join("");
+
+    ventanaImpresion.document.write(`
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Póster Oficial de Estudios — ${carreraActiva.nombre} (Plan 2026)</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+          * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page { size: A3 landscape; margin: 8mm; }
+          body { font-family: 'Inter', -apple-system, sans-serif; background: #ffffff; color: #0F172A; padding: 14px; }
+          .header { border-bottom: 3px solid #B91C1C; padding-bottom: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .grid-poster { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+          @media print {
+            body { padding: 0; }
+            .no-print { display: none !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;gap:10px">
+          <button onclick="window.print()" style="background:#002855;color:#ffffff;border:none;padding:12px 24px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.3)">🖨️ Imprimir / Guardar Póster en PDF</button>
+        </div>
+        <div class="header">
+          <div>
+            <div style="font-size:11px;font-weight:900;color:#B91C1C;letter-spacing:1px;text-transform:uppercase">Universidad Nacional Mayor de San Marcos • Decana de América</div>
+            <h1 style="font-size:22px;color:#002855;font-weight:900;margin:3px 0">FACULTAD DE CIENCIAS MATEMÁTICAS (${carreraActiva.codigo_escuela})</h1>
+            <h2 style="font-size:15px;color:#334155;font-weight:800">PÓSTER OFICIAL DE ESTUDIOS — ${carreraActiva.nombre.toUpperCase()} (PLAN 2026)</h2>
+          </div>
+          <div style="text-align:right;font-size:11px;color:#334155;background:#F1F5F9;padding:8px 14px;border-radius:8px;border:1px solid #CBD5E1">
+            <div><strong>Duración:</strong> 10 Semestres • <strong>Total Créditos:</strong> ${totalCreditosCarrera.toFixed(1)}</div>
+            <div><strong>Asignaturas:</strong> ${cursosDeCarreraActiva.length} (${totalObligatorios} Obligatorias, ${totalElectivos} Electivas)</div>
+            <div style="color:#002855;font-weight:700">Grado: ${carreraActiva.grado_academico}</div>
+          </div>
+        </div>
+        <div class="grid-poster">
+          ${bloquesCiclosHtml}
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          }
+        </script>
+      </body>
+      </html>
+    `);
+    ventanaImpresion.document.close();
+    lanzarToast(`📊 Abriendo Póster Oficial de Estudios de ${carreraActiva.nombre}...`);
   };
 
   const handleDescargarMallaPDF = () => {
@@ -4344,9 +4487,23 @@ export default function PortalFacultadCienciasMatematicas() {
                     <Download className="w-4 h-4 text-white" />
                     <span>📥 Descargar Tríptico de la Carrera (PDF)</span>
                   </button>
+
+                  <button
+                    onClick={handleDescargarPosterEstudios}
+                    className="px-5 py-3.5 rounded-xl bg-[#002855] hover:bg-[#001c3d] text-white font-extrabold text-xs sm:text-sm shadow-md flex items-center gap-2.5 border border-[#002855] transition-transform active:scale-95 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 text-red-400" />
+                    <span>📊 Descargar Póster de Estudios (PDF)</span>
+                  </button>
+
                   {carreraActiva.triptico_pdf_url && (
                     <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
-                      ✓ PDF oficial sincronizado con Supabase
+                      ✓ Tríptico oficial sincronizado
+                    </span>
+                  )}
+                  {carreraActiva.poster_pdf_url && (
+                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+                      ✓ Póster oficial sincronizado
                     </span>
                   )}
                 </div>
@@ -4938,7 +5095,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 space-y-5">
                     <h3 className="text-lg font-extrabold text-[#002855] border-b border-slate-200 pb-3">
-                      Actualizar Imagen Referencial y Tríptico PDF por Carrera
+                      Actualizar Imagen Referencial, Tríptico y Póster de Estudios por Carrera
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {carreras.map((c) => (
@@ -4957,7 +5114,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                         <div className="flex items-center justify-between">
                           <label className="text-xs font-extrabold text-[#002855]">Imagen Referencial de {carreraAdminSeleccionada.nombre}</label>
-                          <button type="button" onClick={() => inputImagenCarreraRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center gap-1.5">
+                          <button type="button" onClick={() => inputImagenCarreraRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
                             <Upload className="w-3.5 h-3.5" /> {subiendoAssetCarrera ? "Subiendo..." : "Subir Imagen (Storage)"}
                           </button>
                           <input ref={inputImagenCarreraRef} type="file" accept="image/*" onChange={handleSubirImagenCarreraStorage} className="hidden" />
@@ -4968,12 +5125,23 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className="p-4 rounded-2xl bg-red-50/40 border border-red-200 space-y-3">
                         <div className="flex items-center justify-between">
                           <label className="text-xs font-extrabold text-red-800">Archivo PDF del Tríptico de {carreraAdminSeleccionada.nombre}</label>
-                          <button type="button" onClick={() => inputTripticoPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-red-700 text-white text-[11px] font-bold flex items-center gap-1.5">
+                          <button type="button" onClick={() => inputTripticoPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-red-700 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
                             <Upload className="w-3.5 h-3.5" /> Subir PDF (Storage)
                           </button>
                           <input ref={inputTripticoPdfRef} type="file" accept="application/pdf" onChange={handleSubirTripticoPdfStorage} className="hidden" />
                         </div>
-                        <input type="url" value={urlTripticoCarreraInput} onChange={(e) => setUrlTripticoCarreraInput(e.target.value)} placeholder="URL del PDF en Supabase Storage..." className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs" />
+                        <input type="url" value={urlTripticoCarreraInput} onChange={(e) => setUrlTripticoCarreraInput(e.target.value)} placeholder="URL del PDF del Tríptico en Supabase Storage..." className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs" />
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-blue-50/40 border border-blue-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-extrabold text-blue-900">Archivo PDF del Póster de Estudios de {carreraAdminSeleccionada.nombre}</label>
+                          <button type="button" onClick={() => inputPosterPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
+                            <Upload className="w-3.5 h-3.5" /> Subir PDF (Storage)
+                          </button>
+                          <input ref={inputPosterPdfRef} type="file" accept="application/pdf" onChange={handleSubirPosterPdfStorage} className="hidden" />
+                        </div>
+                        <input type="url" value={urlPosterCarreraInput} onChange={(e) => setUrlPosterCarreraInput(e.target.value)} placeholder="URL del PDF del Póster en Supabase Storage..." className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs" />
                       </div>
 
                       <div className="flex gap-3">
