@@ -63,16 +63,43 @@ export async function POST(req: NextRequest) {
       .select();
 
     if (error) {
-      // Intento de respaldo excluyendo campos que pudieran no existir en columnas directas de portal_config
-      const { hero_blur, hero_overlay_opacity, hero_overlay_color, orgullo_data, ...resto } = cambios;
+      // Intento de respaldo robusto si las columnas orgullo_data o transparencia_data aún no existen como columnas directas en SQL:
+      // Empaquetamos automáticamente ambos arrays dentro de storage_data para garantizar persistencia multidispositivo
+      const existingStorage = Array.isArray(cambios.storage_data)
+        ? [...cambios.storage_data]
+        : [];
+
+      if (Array.isArray(cambios.orgullo_data)) {
+        const idx = existingStorage.findIndex((x: any) => x && x.id === "__fcm_orgullo_config__");
+        const metaOrg = { id: "__fcm_orgullo_config__", orgullo_items: cambios.orgullo_data };
+        if (idx !== -1) existingStorage[idx] = metaOrg as any;
+        else existingStorage.push(metaOrg as any);
+      }
+
+      if (Array.isArray(cambios.transparencia_data)) {
+        const idx = existingStorage.findIndex((x: any) => x && x.id === "__fcm_transparencia_config__");
+        const metaTrans = { id: "__fcm_transparencia_config__", transparencia_items: cambios.transparencia_data };
+        if (idx !== -1) existingStorage[idx] = metaTrans as any;
+        else existingStorage.push(metaTrans as any);
+      }
+
+      const { hero_blur, hero_overlay_opacity, hero_overlay_color, orgullo_data, transparencia_data, ...resto } = cambios;
       void hero_blur;
       void hero_overlay_opacity;
       void hero_overlay_color;
       void orgullo_data;
+      void transparencia_data;
+
+      const retryPayload = {
+        id: 1,
+        ...resto,
+        ...(existingStorage.length > 0 ? { storage_data: existingStorage } : {}),
+        updated_at: new Date().toISOString(),
+      };
 
       const { data: retryData, error: retryError } = await supabaseServer
         .from("portal_config")
-        .upsert({ id: 1, ...resto, updated_at: new Date().toISOString() }, { onConflict: "id" })
+        .upsert(retryPayload, { onConflict: "id" })
         .select();
 
       if (retryError) {

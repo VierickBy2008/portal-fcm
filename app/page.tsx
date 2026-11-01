@@ -1231,6 +1231,29 @@ export default function PortalFacultadCienciasMatematicas() {
   const [filtroTransparenciaAnio, setFiltroTransparenciaAnio] = useState<string>("TODOS");
   const [busquedaTransparencia, setBusquedaTransparencia] = useState<string>("");
   const [paginaTransparencia, setPaginaTransparencia] = useState<number>(1);
+  const [modalTransparenciaFormAbierto, setModalTransparenciaFormAbierto] = useState<boolean>(false);
+  const [editandoTransparenciaId, setEditandoTransparenciaId] = useState<string | null>(null);
+  const [formTransparencia, setFormTransparencia] = useState<{
+    codigo: string;
+    titulo: string;
+    categoria: DocumentoTransparencia["categoria"];
+    anio: number;
+    dependencia: string;
+    fecha: string;
+    tamano_archivo: string;
+    url_pdf: string;
+    sumilla: string;
+  }>({
+    codigo: "",
+    titulo: "",
+    categoria: "Resoluciones Decanales",
+    anio: 2026,
+    dependencia: "Decanato FCM",
+    fecha: "2026-03-15",
+    tamano_archivo: "1.5 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "",
+  });
 
   const [exitoResenaDocente, setExitoResenaDocente] = useState<boolean>(false);
 
@@ -1303,7 +1326,7 @@ export default function PortalFacultadCienciasMatematicas() {
   const [pinAdmin, setPinAdmin] = useState("");
   const [errorPin, setErrorPin] = useState("");
   const [tabAdmin, setTabAdmin] = useState<
-    "dashboard" | "carreras_cms" | "noticias" | "docentes_cms" | "malla" | "moderacion" | "storage" | "soporte" | "orgullo"
+    "dashboard" | "carreras_cms" | "noticias" | "docentes_cms" | "malla" | "moderacion" | "storage" | "soporte" | "orgullo" | "transparencia"
   >("dashboard");
 
   const [adminCarreraEditId, setAdminCarreraEditId] = useState<CarreraId>("computacion-cientifica");
@@ -1591,6 +1614,14 @@ export default function PortalFacultadCienciasMatematicas() {
             } catch {}
           }
 
+          const localTransparencia = window.localStorage.getItem("fcm_transparencia_data");
+          if (localTransparencia && activo) {
+            try {
+              const parsedTrans = JSON.parse(localTransparencia);
+              if (Array.isArray(parsedTrans) && parsedTrans.length > 0) setDocumentosTransparencia(parsedTrans);
+            } catch {}
+          }
+
           if (localLogo && activo) setLogoUrl(localLogo);
           if (localHeroBg && activo) {
             aplicarHeroCfgDesdeString(localHeroBg);
@@ -1700,6 +1731,17 @@ export default function PortalFacultadCienciasMatematicas() {
             }
           }
 
+          if (Array.isArray(data.transparencia_data) && data.transparencia_data.length > 0) {
+            setDocumentosTransparencia(data.transparencia_data);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(data.transparencia_data));
+          } else if (Array.isArray(data.storage_data)) {
+            const metaTrans = data.storage_data.find((x: any) => x && x.id === "__fcm_transparencia_config__");
+            if (metaTrans && Array.isArray(metaTrans.transparencia_items) && metaTrans.transparencia_items.length > 0) {
+              setDocumentosTransparencia(metaTrans.transparencia_items);
+              if (typeof window !== "undefined") window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(metaTrans.transparencia_items));
+            }
+          }
+
           if (Array.isArray(data.materiales_data) && data.materiales_data.length > 0) {
             const limpios = data.materiales_data.filter((m: MaterialRepositorio) => m.id !== "mat-pend-1" && m.id !== "mat-pend-2");
             setMateriales(limpios);
@@ -1738,7 +1780,11 @@ export default function PortalFacultadCienciasMatematicas() {
     resenas_docentes?: ResenaDocente[];
     materiales_data?: MaterialRepositorio[];
     orgullo_data?: OrgulloItem[];
+    transparencia_data?: DocumentoTransparencia[];
   }): Promise<boolean> => {
+    if (typeof window !== "undefined" && cambios.transparencia_data) {
+      window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(cambios.transparencia_data));
+    }
     if (typeof window !== "undefined") {
       if (cambios.logo_url) window.localStorage.setItem("fcm_logo_url", cambios.logo_url);
       if (cambios.hero_bg_url) window.localStorage.setItem("fcm_hero_bg_url", cambios.hero_bg_url);
@@ -1914,8 +1960,8 @@ export default function PortalFacultadCienciasMatematicas() {
         });
       },
       {
-        threshold: 0.12,
-        rootMargin: "0px 0px -40px 0px",
+        threshold: 0.05,
+        rootMargin: "0px 0px -20px 0px",
       }
     );
 
@@ -5502,7 +5548,7 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* VISTA B: DETALLE DE LA CARRERA (/carreras/[id]) */}
       {vistaActual === "/carreras/[id]" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
-          <div className="bg-white border border-slate-200 p-3 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-4 print:hidden">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-4 print:hidden">
             <div className="flex flex-wrap gap-2">
               {carreras.map((c) => {
                 const count = malla.filter((m) => m.carrera_id === c.id).length;
@@ -5515,7 +5561,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                       esActiva
                         ? temaTab.tabActive
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                     }`}
                   >
                     <span>{c.nombre}</span>
@@ -5526,13 +5572,13 @@ export default function PortalFacultadCienciasMatematicas() {
                 );
               })}
             </div>
-            <span className="text-xs font-mono text-slate-500 px-2">
+            <span className="text-xs font-mono text-slate-500 dark:text-slate-400 px-2">
               Ruta: <strong className={temaActivo.textAccent}>/carreras/{carreraActiva.id}</strong>
             </span>
           </div>
 
           {/* ENCABEZADO DE LA CARRERA CON COLOR PROPIO POR ESCUELA */}
-          <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+          <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className={`${temaActivo.headerBg} text-white px-6 sm:px-8 py-6 border-b-4 ${temaActivo.borderAccent} flex flex-col lg:flex-row lg:items-center justify-between gap-6`}>
               <div className="space-y-2 max-w-3xl">
                 <div className="flex items-center gap-2.5">
@@ -5568,21 +5614,21 @@ export default function PortalFacultadCienciasMatematicas() {
               </div>
             </div>
 
-            <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
+            <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
               <div className="md:col-span-2 space-y-1.5">
                 <h3 className={`text-xs font-bold uppercase tracking-wider ${temaActivo.textAccent}`}>Perfil del Egresado</h3>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">{carreraActiva.perfil_egreso}</p>
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{carreraActiva.perfil_egreso}</p>
               </div>
-              <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-1.5 text-xs">
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 p-4 space-y-1.5 text-xs">
                 <p className={`font-bold uppercase ${temaActivo.textAccent}`}>Grados y Títulos Oficiales</p>
-                <p className="text-slate-600">Grado: <strong className="text-slate-900">{carreraActiva.grado_academico}</strong></p>
-                <p className="text-slate-600">Título: <strong className="text-slate-900">{carreraActiva.titulo_profesional}</strong></p>
+                <p className="text-slate-600 dark:text-slate-400">Grado: <strong className="text-slate-900 dark:text-white">{carreraActiva.grado_academico}</strong></p>
+                <p className="text-slate-600 dark:text-slate-400">Título: <strong className="text-slate-900 dark:text-white">{carreraActiva.titulo_profesional}</strong></p>
               </div>
             </div>
           </section>
 
           {/* SECCIÓN A 2 COLUMNAS: PERFIL / CAMPO LABORAL + BOTÓN TRÍPTICO PDF Y FOTO REFERENCIAL (rounded-xl shadow-md) */}
-          <section className="rounded-3xl bg-white border border-slate-200 p-6 sm:p-8 shadow-sm">
+          <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-7 space-y-5">
                 <div>
@@ -5594,7 +5640,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   </h2>
                 </div>
 
-                <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <div className="space-y-4 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                   <div className="flex items-start gap-3">
                     <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Target className="w-4 h-4" /></div>
                     <div>
@@ -5675,7 +5721,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
           {/* MALLA CURRICULAR (CICLOS 1 AL 10) */}
           <section className="space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm print:hidden">
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm print:hidden">
               <div>
                 <h2 className="text-lg sm:text-xl font-bold text-[#002855] dark:text-white">
                   Malla Curricular de {carreraActiva.nombre} (Ciclo 1 al Ciclo 10)
@@ -5717,7 +5763,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   const totalCreditos = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
                   const abierto = ciclosAbiertos.includes(numCiclo);
                   return (
-                    <div key={numCiclo} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div key={numCiclo} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
                       <button
                         onClick={() => toggleCicloAcordeon(numCiclo)}
                         className={`w-full px-5 py-4 flex items-center justify-between ${temaActivo.cycleBtn} text-white transition-colors cursor-pointer`}
@@ -5731,9 +5777,9 @@ export default function PortalFacultadCienciasMatematicas() {
                       </button>
 
                       {abierto && (
-                        <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/70">
+                        <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/70 dark:bg-slate-950/40">
                           {cursosCiclo.map((cur) => (
-                            <div key={cur.id} className={`rounded-xl border border-slate-200 bg-white p-4 flex flex-col justify-between gap-3 shadow-sm ${temaActivo.cardHoverBorder} transition-all`}>
+                            <div key={cur.id} className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between gap-3 shadow-sm ${temaActivo.cardHoverBorder} transition-all`}>
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between gap-2">
                                   <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded border ${temaActivo.badgeSoft}`}>{cur.codigo}</span>
@@ -6331,7 +6377,7 @@ export default function PortalFacultadCienciasMatematicas() {
             <section className="lg:col-span-5 space-y-4">
               <span className="text-xs font-bold uppercase text-red-700">Directorio Telefónico e Institucional FCM</span>
               <h1 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white">Directorio y Mesa de Ayuda</h1>
-              <p className="text-xs text-slate-600">Central Telefónica UNMSM: <strong>(01) 619-7000</strong></p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">Central Telefónica UNMSM: <strong className="text-slate-900 dark:text-white">(01) 619-7000</strong></p>
               <div className="space-y-3 pt-1">
                 {[
                   { area: "Decanato y Secretaría Académica", correo: "decanato.matematicas@unmsm.edu.pe", anexo: "Anexo 1401 / 1402" },
@@ -6342,7 +6388,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   <div key={idx} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-1">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xs font-bold text-[#002855] dark:text-white flex items-center gap-2"><Mail className="w-4 h-4 text-red-700" /> {item.area}</h3>
-                      <span className="text-[11px] font-mono font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded">{item.anexo}</span>
+                      <span className="text-[11px] font-mono font-bold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/70 border dark:border-red-800/60 px-2 py-0.5 rounded">{item.anexo}</span>
                     </div>
                     <p className="text-xs font-mono text-slate-700 dark:text-slate-300">{item.correo}</p>
                   </div>
@@ -6413,11 +6459,11 @@ export default function PortalFacultadCienciasMatematicas() {
                       style={{ display: "none" }}
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <input type="text" required value={formContacto.nombre} onChange={(e) => setFormContacto({ ...formContacto, nombre: e.target.value })} placeholder="Nombre completo *" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
-                      <input type="email" required value={formContacto.email} onChange={(e) => setFormContacto({ ...formContacto, email: e.target.value })} placeholder="Correo institucional (@unmsm.edu.pe) *" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
+                      <input type="text" required value={formContacto.nombre} onChange={(e) => setFormContacto({ ...formContacto, nombre: e.target.value })} placeholder="Nombre completo *" className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500" />
+                      <input type="email" required value={formContacto.email} onChange={(e) => setFormContacto({ ...formContacto, email: e.target.value })} placeholder="Correo institucional (@unmsm.edu.pe) *" className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500" />
                     </div>
-                    <input type="text" required value={formContacto.asunto} onChange={(e) => setFormContacto({ ...formContacto, asunto: e.target.value })} placeholder="Asunto de la consulta *" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
-                    <textarea rows={4} required value={formContacto.mensaje} onChange={(e) => setFormContacto({ ...formContacto, mensaje: e.target.value })} placeholder="Describe tu solicitud..." className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs" />
+                    <input type="text" required value={formContacto.asunto} onChange={(e) => setFormContacto({ ...formContacto, asunto: e.target.value })} placeholder="Asunto de la consulta *" className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500" />
+                    <textarea rows={4} required value={formContacto.mensaje} onChange={(e) => setFormContacto({ ...formContacto, mensaje: e.target.value })} placeholder="Describe tu solicitud..." className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500" />
                     <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-bold text-white">Enviar Mensaje a Soporte</button>
                   </form>
                 )}
@@ -6431,8 +6477,8 @@ export default function PortalFacultadCienciasMatematicas() {
       {vistaActual === "/admin" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10">
           {!adminAutenticado ? (
-            <div className="max-w-md mx-auto rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-lg space-y-5">
-              <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto"><Lock className="w-6 h-6 text-red-700" /></div>
+            <div className="max-w-md mx-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-2xl space-y-5">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 flex items-center justify-center mx-auto"><Lock className="w-6 h-6 text-red-700 dark:text-red-400" /></div>
               <div>
                 <h2 className="text-xl font-bold text-[#002855] dark:text-white">Acceso Restringido • Administración FCM</h2>
                 <p className="text-xs text-slate-600 mt-1">
@@ -6483,6 +6529,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     { id: "storage", label: `🖼️ Imágenes Storage (${imagenesStorage.length})` },
                     { id: "orgullo", label: `🏆 Orgullo FCM (${orgulloItems.length})` },
                     { id: "malla", label: `🎓 Mallas (${malla.length})` },
+                    { id: "transparencia", label: `📜 Transparencia (${documentosTransparencia.length})` },
                     { id: "soporte", label: `📬 Soporte (${tickets.length})` },
                   ].map((t) => (
                     <button
@@ -7921,6 +7968,126 @@ export default function PortalFacultadCienciasMatematicas() {
               )}
 
               
+              {tabAdmin === "transparencia" && (
+                <div className="space-y-6">
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-base font-bold text-[#002855] dark:text-white flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-red-700 dark:text-red-400" />
+                        Gestor de Documentos Oficiales y Resoluciones FCM
+                      </h2>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Publica, edita y retira Resoluciones Decanales, Rectorales, POI y Memorias. Sincronizado en <code className="text-red-600 dark:text-red-400 font-bold">portal_config.transparencia_data</code>.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditandoTransparenciaId(null);
+                        setFormTransparencia({
+                          codigo: "R.D. Nº ",
+                          titulo: "",
+                          categoria: "Resoluciones Decanales",
+                          anio: 2026,
+                          dependencia: "Decanato FCM",
+                          fecha: new Date().toISOString().slice(0, 10),
+                          tamano_archivo: "1.5 MB",
+                          url_pdf: "https://matematicas.unmsm.edu.pe",
+                          sumilla: "",
+                        });
+                        setModalTransparenciaFormAbierto(true);
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-xs flex items-center gap-2 shrink-0 cursor-pointer shadow-sm transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>➕ Nueva Resolución / Documento Oficial</span>
+                    </button>
+                  </div>
+
+                  {/* Lista de Documentos en Admin */}
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+                    {documentosTransparencia.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                      >
+                        <div className="space-y-1.5 flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono font-bold text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2 py-0.5 rounded border border-red-200 dark:border-red-900/60">
+                              {doc.codigo}
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                              {doc.categoria}
+                            </span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                              • Año {doc.anio} • {doc.fecha} • {doc.dependencia}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">
+                            {doc.titulo}
+                          </h4>
+                          {doc.sumilla && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                              {doc.sumilla}
+                            </p>
+                          )}
+                          <div className="text-[10px] text-slate-400 font-mono">
+                            PDF: <a href={doc.url_pdf} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 underline">{doc.url_pdf}</a> ({doc.tamano_archivo})
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditandoTransparenciaId(doc.id);
+                              setFormTransparencia({
+                                codigo: doc.codigo,
+                                titulo: doc.titulo,
+                                categoria: doc.categoria,
+                                anio: doc.anio,
+                                dependencia: doc.dependencia,
+                                fecha: doc.fecha,
+                                tamano_archivo: doc.tamano_archivo,
+                                url_pdf: doc.url_pdf,
+                                sumilla: doc.sumilla || "",
+                              });
+                              setModalTransparenciaFormAbierto(true);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] hover:text-white text-[#002855] dark:text-blue-300 font-bold text-xs transition-colors cursor-pointer border border-blue-200 dark:border-slate-700"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (window.confirm(`¿Estás seguro de eliminar el documento "${doc.codigo} - ${doc.titulo}" del portal de transparencia?`)) {
+                                const actualizados = documentosTransparencia.filter((x) => x.id !== doc.id);
+                                setDocumentosTransparencia(actualizados);
+                                if (typeof window !== "undefined") {
+                                  window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(actualizados));
+                                }
+                                const metaTrans = { id: "__fcm_transparencia_config__", transparencia_items: actualizados };
+                                const storageFiltrado = imagenesStorage.filter((x) => x.id !== "__fcm_transparencia_config__");
+                                const nuevoStorage = [...storageFiltrado, metaTrans as any];
+                                await sincronizarPortalConfigSupabase({
+                                  transparencia_data: actualizados,
+                                  storage_data: nuevoStorage,
+                                });
+                                lanzarToast("🗑️ Documento eliminado del Portal de Transparencia.");
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/60 hover:bg-red-700 hover:text-white text-red-700 dark:text-red-300 font-bold text-xs transition-colors cursor-pointer border border-red-200 dark:border-red-800"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {tabAdmin === "orgullo" && (
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -8308,6 +8475,207 @@ export default function PortalFacultadCienciasMatematicas() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PARA CREAR O EDITAR DOCUMENTOS DE TRANSPARENCIA */}
+      {modalTransparenciaFormAbierto && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="font-bold text-base text-[#002855] dark:text-white flex items-center gap-2">
+                <FileText className="w-5 h-5 text-red-700 dark:text-red-400" />
+                {editandoTransparenciaId ? "Editar Documento de Transparencia" : "Nuevo Documento Normativo / Resolución"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setModalTransparenciaFormAbierto(false)}
+                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!formTransparencia.codigo.trim() || !formTransparencia.titulo.trim()) {
+                  lanzarToast("⚠️ El código y el título del documento son obligatorios.");
+                  return;
+                }
+
+                const docCompleto: DocumentoTransparencia = {
+                  id: editandoTransparenciaId || `trans-${Date.now()}`,
+                  codigo: formTransparencia.codigo.trim(),
+                  titulo: formTransparencia.titulo.trim(),
+                  categoria: formTransparencia.categoria || "Resoluciones Decanales",
+                  anio: Number(formTransparencia.anio) || 2026,
+                  dependencia: formTransparencia.dependencia.trim() || "Decanato FCM",
+                  fecha: formTransparencia.fecha || new Date().toISOString().slice(0, 10),
+                  tamano_archivo: formTransparencia.tamano_archivo.trim() || "1.5 MB",
+                  url_pdf: formTransparencia.url_pdf.trim() || "https://matematicas.unmsm.edu.pe",
+                  sumilla: formTransparencia.sumilla.trim(),
+                };
+
+                let actualizados: DocumentoTransparencia[];
+                if (editandoTransparenciaId) {
+                  actualizados = documentosTransparencia.map((d) => (d.id === editandoTransparenciaId ? docCompleto : d));
+                } else {
+                  actualizados = [docCompleto, ...documentosTransparencia];
+                }
+
+                setDocumentosTransparencia(actualizados);
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(actualizados));
+                }
+
+                const metaTrans = { id: "__fcm_transparencia_config__", transparencia_items: actualizados };
+                const storageFiltrado = imagenesStorage.filter((x) => x.id !== "__fcm_transparencia_config__");
+                const nuevoStorage = [...storageFiltrado, metaTrans as any];
+
+                const exito = await sincronizarPortalConfigSupabase({
+                  transparencia_data: actualizados,
+                  storage_data: nuevoStorage,
+                });
+
+                setModalTransparenciaFormAbierto(false);
+                setEditandoTransparenciaId(null);
+                lanzarToast(
+                  exito
+                    ? "✅ Documento de Transparencia guardado y sincronizado en Supabase."
+                    : "✅ Guardado localmente y en caché del portal."
+                );
+              }}
+              className="space-y-3.5 text-xs"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Código Oficial (ej. R.D. Nº 0488-D-FCM-2026):</label>
+                  <input
+                    type="text"
+                    required
+                    value={formTransparencia.codigo}
+                    onChange={(e) => setFormTransparencia({ ...formTransparencia, codigo: e.target.value })}
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Categoría Normativa:</label>
+                  <select
+                    value={formTransparencia.categoria}
+                    onChange={(e) => setFormTransparencia({ ...formTransparencia, categoria: e.target.value as any })}
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-bold text-slate-800 dark:text-white"
+                  >
+                    <option value="Resoluciones Decanales">Resoluciones Decanales</option>
+                    <option value="Resoluciones Rectorales">Resoluciones Rectorales</option>
+                    <option value="Plan Operativo Institucional (POI)">Plan Operativo Institucional (POI)</option>
+                    <option value="Memorias de Gestión">Memorias de Gestión</option>
+                    <option value="Balances y Presupuesto">Balances y Presupuesto</option>
+                    <option value="Actas de Consejo de Facultad">Actas de Consejo de Facultad</option>
+                    <option value="Convenios y Alianzas">Convenios y Alianzas</option>
+                    <option value="Anuncios y Convocatorias">Anuncios y Convocatorias</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Título del Documento / Asunto:</label>
+                <input
+                  type="text"
+                  required
+                  value={formTransparencia.titulo}
+                  onChange={(e) => setFormTransparencia({ ...formTransparencia, titulo: e.target.value })}
+                  placeholder="Ej: Aprobación del Cronograma de Matrícula y Actualización Curricular 2026"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Año:</label>
+                  <input
+                    type="number"
+                    required
+                    value={formTransparencia.anio}
+                    onChange={(e) => setFormTransparencia({ ...formTransparencia, anio: Number(e.target.value) })}
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Fecha Oficial:</label>
+                  <input
+                    type="date"
+                    required
+                    value={formTransparencia.fecha}
+                    onChange={(e) => setFormTransparencia({ ...formTransparencia, fecha: e.target.value })}
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Tamaño (ej. 2.4 MB):</label>
+                  <input
+                    type="text"
+                    required
+                    value={formTransparencia.tamano_archivo}
+                    onChange={(e) => setFormTransparencia({ ...formTransparencia, tamano_archivo: e.target.value })}
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Dependencia Emisora:</label>
+                  <input
+                    type="text"
+                    required
+                    value={formTransparencia.dependencia}
+                    onChange={(e) => setFormTransparencia({ ...formTransparencia, dependencia: e.target.value })}
+                    placeholder="Ej: Decanato FCM, Consejo de Facultad..."
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">URL del Archivo PDF:</label>
+                  <input
+                    type="url"
+                    required
+                    value={formTransparencia.url_pdf}
+                    onChange={(e) => setFormTransparencia({ ...formTransparencia, url_pdf: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Sumilla / Resumen del Documento:</label>
+                <textarea
+                  rows={3}
+                  value={formTransparencia.sumilla}
+                  onChange={(e) => setFormTransparencia({ ...formTransparencia, sumilla: e.target.value })}
+                  placeholder="Breve descripción o resumen de la resolución..."
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setModalTransparenciaFormAbierto(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer"
+                >
+                  Guardar Documento Oficial
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
