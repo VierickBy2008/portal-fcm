@@ -18,11 +18,12 @@ export const metadata: Metadata = {
     "Portal Académico Oficial de la Facultad de Ciencias Matemáticas de la Universidad Nacional Mayor de San Marcos (UNMSM). Computación Científica, Matemática, Estadística e Investigación Operativa.",
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
       { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/UNMSM_coatofarms_seal.svg/240px-UNMSM_coatofarms_seal.svg.png", type: "image/png" },
     ],
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
 };
 
