@@ -33,7 +33,7 @@ const Youtube = createLucideIcon("Youtube", [
 ]);
 
 type CarreraId = "computacion-cientifica" | "matematica" | "estadistica" | "investigacion-operativa";
-type VistaPortal = "/" | "/carreras/[id]" | "/noticias/[id]" | "/repositorio" | "/contacto" | "/admin" | "/docentes" | "/noticias" | "/orgullo";
+type VistaPortal = "/" | "/carreras/[id]" | "/noticias/[id]" | "/repositorio" | "/contacto" | "/admin" | "/docentes" | "/noticias" | "/orgullo" | "/transparencia";
 type TipoArchivo = "PDF" | "Examen" | "Apunte" | "Codigo" | "Video" | "Silabo";
 type EstadoMaterial = "pendiente" | "aprobado" | "rechazado";
 type EstadoAtencion = "pendiente" | "en_proceso" | "resuelto";
@@ -94,6 +94,175 @@ export interface OrgulloItem {
   anio: string;
   destacado?: boolean;
 }
+
+
+export interface DocumentoTransparencia {
+  id: string;
+  codigo: string;
+  titulo: string;
+  categoria:
+    | "Resoluciones Decanales"
+    | "Resoluciones Rectorales"
+    | "Plan Operativo Institucional (POI)"
+    | "Memorias de Gestión"
+    | "Balances y Presupuesto"
+    | "Actas de Consejo de Facultad"
+    | "Convenios y Alianzas"
+    | "Anuncios y Convocatorias";
+  anio: number;
+  dependencia: string;
+  fecha: string;
+  tamano_archivo: string;
+  url_pdf: string;
+  sumilla?: string;
+}
+
+const DOCUMENTOS_TRANSPARENCIA_INICIALES: DocumentoTransparencia[] = [
+  {
+    id: "doc-trans-1",
+    codigo: "R.D. Nº 0488-D-FCM-2026",
+    titulo: "Aprobación del Cronograma de Matrícula y Funcionamiento de Cátedra - Semestre Académico 2026-I",
+    categoria: "Resoluciones Decanales",
+    anio: 2026,
+    dependencia: "Decanato FCM",
+    fecha: "2026-03-10",
+    tamano_archivo: "1.8 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Establece los periodos de matrícula regular, extemporánea, rectificación y asignación de aulas para las 4 escuelas profesionales.",
+  },
+  {
+    id: "doc-trans-2",
+    codigo: "R.D. Nº 0395-D-FCM-2026",
+    titulo: "Reconocimiento y Felicitación Institucional a la Delegación Estudiantil FCM Ganadora del I Hackathon Nacional",
+    categoria: "Resoluciones Decanales",
+    anio: 2026,
+    dependencia: "Decanato FCM",
+    fecha: "2026-02-28",
+    tamano_archivo: "1.2 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Concede distinción de honor a los alumnos de Computación Científica por su destacada participación en soluciones algorítmicas y educación financiera.",
+  },
+  {
+    id: "doc-trans-3",
+    codigo: "R.R. Nº 01248-R-2026",
+    titulo: "Ratificación de la Actualización Integral de Mallas Curriculares Plan 2026 de las cuatro Escuelas de la FCM",
+    categoria: "Resoluciones Rectorales",
+    anio: 2026,
+    dependencia: "Rectorado UNMSM",
+    fecha: "2026-02-15",
+    tamano_archivo: "3.5 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Ratifica en Consejo Universitario la vigencia de los planes de estudio 2026 para Computación Científica, Matemática, Estadística e Investigación Operativa.",
+  },
+  {
+    id: "doc-trans-4",
+    codigo: "POI-FCM-2026",
+    titulo: "Plan Operativo Institucional 2026 - Metas Físicas, Financieras y de Calidad Académica de la FCM",
+    categoria: "Plan Operativo Institucional (POI)",
+    anio: 2026,
+    dependencia: "Oficina de Planificación FCM",
+    fecha: "2026-01-20",
+    tamano_archivo: "4.8 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Programación multianual de inversiones en infraestructura, equipamiento de laboratorios SECOMAT y fortalecimiento de grupos de investigación.",
+  },
+  {
+    id: "doc-trans-5",
+    codigo: "MEM-GESTION-2025",
+    titulo: "Memoria Anual de Gestión Institucional y Producción Científica FCM 2025",
+    categoria: "Memorias de Gestión",
+    anio: 2025,
+    dependencia: "Decanato FCM",
+    fecha: "2025-12-28",
+    tamano_archivo: "6.2 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Informe detallado de publicaciones en Scopus/WoS, convenios internacionales, graduaciones y gestión presupuestaria del periodo 2025.",
+  },
+  {
+    id: "doc-trans-6",
+    codigo: "BAL-FCM-2025",
+    titulo: "Balance Anual de Ejecución Presupuestal y Fondos Directamente Recaudados (FDR) 2025",
+    categoria: "Balances y Presupuesto",
+    anio: 2025,
+    dependencia: "Unidad de Economía FCM",
+    fecha: "2025-12-20",
+    tamano_archivo: "2.1 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Rendición de cuentas de ingresos y egresos, partidas de adquisición de software y mantenimiento de aulas universitarias.",
+  },
+  {
+    id: "doc-trans-7",
+    codigo: "ACTA-CF-018-2026",
+    titulo: "Acta de Sesión Ordinaria de Consejo de Facultad - Aprobación del Cuadro de Cátedra y Plazas Docentes",
+    categoria: "Actas de Consejo de Facultad",
+    anio: 2026,
+    dependencia: "Consejo de Facultad FCM",
+    fecha: "2026-02-20",
+    tamano_archivo: "2.7 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Acuerdo del Consejo de Facultad respecto a la contratación de docentes y distribución de asignaturas para el ciclo 2026-I.",
+  },
+  {
+    id: "doc-trans-8",
+    codigo: "CONV-FCM-CONCYTEC-2025",
+    titulo: "Convenio Marco de Cooperación Científica y Financiamiento de Proyectos de Investigación Aplicada",
+    categoria: "Convenios y Alianzas",
+    anio: 2025,
+    dependencia: "Vicedecanato de Investigación",
+    fecha: "2025-11-14",
+    tamano_archivo: "3.1 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Alianza interinstitucional para fondos semilla en inteligencia artificial, modelado numérico y biometría estadística.",
+  },
+  {
+    id: "doc-trans-9",
+    codigo: "R.D. Nº 0214-D-FCM-2025",
+    titulo: "Reglamento Interno de Uso de Laboratorios de Cómputo de Alto Rendimiento SECOMAT y Servidores",
+    categoria: "Resoluciones Decanales",
+    anio: 2025,
+    dependencia: "SECOMAT / Decanato",
+    fecha: "2025-09-08",
+    tamano_archivo: "1.5 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Protocolos de acceso remoto y local a clusters de cálculo, estaciones Linux y reserva de licencias matemáticas.",
+  },
+  {
+    id: "doc-trans-10",
+    codigo: "CONV-FCM-UNI-2024",
+    titulo: "Convenio Específico de Movilidad Estudiantil e Intercambio de Cátedra de Posgrado FCM - UNI",
+    categoria: "Convenios y Alianzas",
+    anio: 2024,
+    dependencia: "Decanato FCM",
+    fecha: "2024-08-22",
+    tamano_archivo: "2.9 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Facilita la convalidación de cursos avanzados de maestría y doctorado en ciencias matemáticas entre ambas universidades.",
+  },
+  {
+    id: "doc-trans-11",
+    codigo: "R.R. Nº 08742-R-2024",
+    titulo: "Aprobación de la Creación de Grupos de Investigación en Ciencia de Datos y Criptografía Matemática FCM",
+    categoria: "Resoluciones Rectorales",
+    anio: 2024,
+    dependencia: "Vicerrectorado de Investigación",
+    fecha: "2024-06-18",
+    tamano_archivo: "2.3 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Formaliza la inscripción en el Registro Nacional de Grupos de Investigación de San Marcos para docentes y tesistas.",
+  },
+  {
+    id: "doc-trans-12",
+    codigo: "POI-FCM-2025",
+    titulo: "Plan Operativo Institucional 2025 - Indicadores de Eficiencia Educativa y Licenciamiento SUNEDU",
+    categoria: "Plan Operativo Institucional (POI)",
+    anio: 2025,
+    dependencia: "Oficina de Planificación FCM",
+    fecha: "2025-01-18",
+    tamano_archivo: "4.1 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "Metas de acreditación y seguimiento curricular en cumplimiento del modelo de licenciamiento institucional.",
+  },
+];
 
 interface ResenaDocente {
   id: string;
@@ -1056,6 +1225,13 @@ export default function PortalFacultadCienciasMatematicas() {
     bot_trap: "",
   });
   const [errorResenaDocente, setErrorResenaDocente] = useState<string>("");
+  // Transparencia Institucional (/transparencia)
+  const [documentosTransparencia, setDocumentosTransparencia] = useState<DocumentoTransparencia[]>(DOCUMENTOS_TRANSPARENCIA_INICIALES);
+  const [filtroTransparenciaCategoria, setFiltroTransparenciaCategoria] = useState<string>("TODAS");
+  const [filtroTransparenciaAnio, setFiltroTransparenciaAnio] = useState<string>("TODOS");
+  const [busquedaTransparencia, setBusquedaTransparencia] = useState<string>("");
+  const [paginaTransparencia, setPaginaTransparencia] = useState<number>(1);
+
   const [exitoResenaDocente, setExitoResenaDocente] = useState<boolean>(false);
 
   // Carrusel Institucional Superior de Noticias y Comunicados (Slider tipo San Marcos)
@@ -1272,6 +1448,10 @@ export default function PortalFacultadCienciasMatematicas() {
       setVistaActual("/repositorio");
       return;
     }
+    if (hash === "/transparencia" || hash.startsWith("/transparencia")) {
+      setVistaActual("/transparencia");
+      return;
+    }
     if (hash === "/contacto") {
       setVistaActual("/contacto");
       return;
@@ -1310,7 +1490,9 @@ export default function PortalFacultadCienciasMatematicas() {
           nuevoHash = `#/noticias/${idNoticiaFinal}`;
         } else if (nuevaVista === "/repositorio") {
           nuevoHash = "#/repositorio";
-        } else if (nuevaVista === "/contacto") {
+        } else if (nuevaVista === "/transparencia") {
+        nuevoHash = "#/transparencia";
+      } else if (nuevaVista === "/contacto") {
           nuevoHash = "#/contacto";
         } else if (nuevaVista === "/admin") {
           nuevoHash = "#/admin";
@@ -1718,6 +1900,33 @@ export default function PortalFacultadCienciasMatematicas() {
       return nuevo;
     });
   };
+
+  
+  // Scroll-Reveal: Revelado animado fluido al bajar por la página
+  useEffect(() => {
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: "0px 0px -40px 0px",
+      }
+    );
+
+    const elementos = document.querySelectorAll(".reveal-on-scroll");
+    elementos.forEach((el) => observer.observe(el));
+
+    return () => {
+      elementos.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+    };
+  }, [vistaActual, carreraSeleccionadaId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -3029,178 +3238,6 @@ export default function PortalFacultadCienciasMatematicas() {
             </div>
           </div>
 
-          {/* BUSCADOR COMPACTO EN NAVBAR (ENTRE LOGO Y NAVEGACIÓN) */}
-          <div
-            ref={contenedorNavbarSearchRef}
-            className="relative hidden md:flex items-center flex-1 max-w-xs lg:max-w-md mx-3"
-          >
-            <div className="relative w-full">
-              <Search className="w-4 h-4 text-blue-300 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                ref={inputNavbarRef}
-                type="text"
-                value={busquedaNavbar}
-                onChange={(e) => {
-                  setBusquedaNavbar(e.target.value);
-                  setNavbarResultadosAbiertos(true);
-                }}
-                onFocus={() => {
-                  if (busquedaNavbar.trim().length >= 2) setNavbarResultadosAbiertos(true);
-                }}
-                placeholder="Buscar cursos, docentes, noticias..."
-                className="w-full pl-9 pr-14 py-1.5 text-xs rounded-xl bg-blue-900/60 hover:bg-blue-900/90 focus:bg-white focus:text-slate-900 focus:placeholder-slate-400 placeholder-blue-300/80 border border-blue-700/60 focus:border-red-500 focus:outline-none transition-all shadow-inner text-white"
-              />
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-0.5">
-                <kbd className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-blue-950/80 border border-blue-700 text-blue-200">
-                  Ctrl K
-                </kbd>
-              </div>
-            </div>
-
-            {/* Desplegable en tiempo real de resultados de búsqueda navbar */}
-            {navbarResultadosAbiertos && busquedaNavbar.trim().length >= 2 && resultadosBusquedaNavbar && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white text-slate-900 rounded-2xl shadow-2xl border-2 border-[#002855] overflow-hidden z-50 divide-y divide-slate-100 max-h-[75vh] overflow-y-auto">
-                <div className="bg-[#002855] text-white px-4 py-2.5 flex items-center justify-between text-xs">
-                  <span className="font-bold flex items-center gap-1.5">
-                    <Search className="w-3.5 h-3.5 text-red-400" />
-                    {resultadosBusquedaNavbar.total > 0
-                      ? `${resultadosBusquedaNavbar.total} resultado(s)`
-                      : "Sin resultados directos"}
-                  </span>
-                  <span className="text-[10px] text-blue-200">ESC para cerrar</span>
-                </div>
-
-                {resultadosBusquedaNavbar.cursos.length > 0 && (
-                  <div className="p-2 space-y-1">
-                    <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Cursos del Plan de Estudios
-                    </p>
-                    {resultadosBusquedaNavbar.cursos.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => {
-                          navegar("/carreras/[id]", { carreraId: c.carrera_id });
-                          setCiclosAbiertos((prev) => (prev.includes(c.ciclo) ? prev : [...prev, c.ciclo]));
-                          setNavbarResultadosAbiertos(false);
-                          setNavbarBuscadorAbierto(false);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
-                      >
-                        <div>
-                          <p className="font-bold text-xs text-[#002855] group-hover:text-red-700">
-                            {c.nombre_curso}
-                          </p>
-                          <p className="text-[10px] text-slate-500">
-                            Código: <strong className="font-mono text-slate-700">[{c.codigo}]</strong> • Ciclo {c.ciclo} • {c.creditos} Créditos
-                          </p>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-700" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {resultadosBusquedaNavbar.docentes.length > 0 && (
-                  <div className="p-2 space-y-1">
-                    <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Docentes e Investigadores
-                    </p>
-                    {resultadosBusquedaNavbar.docentes.map((d) => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => {
-                          setDocenteModalActivo(d);
-                          setNavbarResultadosAbiertos(false);
-                          setNavbarBuscadorAbierto(false);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
-                      >
-                        <div>
-                          <p className="font-bold text-xs text-[#002855] group-hover:text-red-700">
-                            {d.grado_academico} {d.nombre_completo}
-                          </p>
-                          <p className="text-[10px] text-slate-500">
-                            {d.especialidad} • {d.cursos_dictados.slice(0, 2).join(", ")}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-700" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {resultadosBusquedaNavbar.noticias.length > 0 && (
-                  <div className="p-2 space-y-1">
-                    <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Noticias y Comunicados
-                    </p>
-                    {resultadosBusquedaNavbar.noticias.map((n) => (
-                      <button
-                        key={n.id}
-                        type="button"
-                        onClick={() => {
-                          navegar("/noticias/[id]", { noticiaId: n.id });
-                          setNavbarResultadosAbiertos(false);
-                          setNavbarBuscadorAbierto(false);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
-                      >
-                        <div>
-                          <p className="font-bold text-xs text-[#002855] group-hover:text-red-700 line-clamp-1">
-                            {n.titulo}
-                          </p>
-                          <p className="text-[10px] text-slate-500">
-                            {n.categoria} • {n.fecha_publicacion}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-700" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {resultadosBusquedaNavbar.materiales.length > 0 && (
-                  <div className="p-2 space-y-1">
-                    <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Materiales del Repositorio
-                    </p>
-                    {resultadosBusquedaNavbar.materiales.map((m) => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => {
-                          navegar("/repositorio");
-                          setRepoBusquedaTexto(m.titulo);
-                          setNavbarResultadosAbiertos(false);
-                          setNavbarBuscadorAbierto(false);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50/80 transition-colors flex items-center justify-between group cursor-pointer"
-                      >
-                        <div>
-                          <p className="font-bold text-xs text-[#002855] group-hover:text-red-700 line-clamp-1">
-                            [{m.tipo_archivo}] {m.titulo}
-                          </p>
-                          <p className="text-[10px] text-slate-500">
-                            Docente: {m.docente} • Subido por: {m.autor_alias}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-700" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {resultadosBusquedaNavbar.total === 0 && (
-                  <div className="p-4 text-center text-xs text-slate-500">
-                    No se encontraron coincidencias para &quot;{busquedaNavbar}&quot;. Prueba con otro término.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
           <nav className="hidden md:flex flex-wrap items-center gap-1 sm:gap-1.5 bg-blue-950/80 p-1.5 rounded-xl border border-blue-800">
             {/* DROPDOWN INSTITUCIONAL: FORMACIÓN ACADÉMICA (IMAGEN 1) */}
             <div
@@ -3529,6 +3566,20 @@ export default function PortalFacultadCienciasMatematicas() {
               )}
             </div>
 
+            {/* BOTÓN TRANSPARENCIA INSTITUCIONAL (IMAGEN 4 Y 5) */}
+            <button
+              type="button"
+              onClick={() => navegar("/transparencia")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                vistaActual === "/transparencia"
+                  ? "bg-white text-[#002855] shadow-sm"
+                  : "text-blue-100 hover:bg-blue-900"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5 text-red-400" />
+              <span>TRANSPARENCIA</span>
+            </button>
+
             <button
               onClick={() => navegar("/contacto")}
               className={`hidden lg:flex px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap items-center gap-1 cursor-pointer ${
@@ -3577,26 +3628,20 @@ export default function PortalFacultadCienciasMatematicas() {
             </button>
           </nav>
 
-          {/* BOTONES MÓVILES (BUSCADOR EXPANDIBLE + MENÚ HAMBURGUESA) */}
+          {/* BOTONES MÓVILES (TEMA OSCURO + MENÚ HAMBURGUESA) */}
           <div className="flex md:hidden items-center gap-1.5">
             <button
               type="button"
-              onClick={() => {
-                setNavbarBuscadorAbierto((prev) => !prev);
-                setMenuMovilAbierto(false);
-                setTimeout(() => inputNavbarRef.current?.focus(), 60);
-              }}
+              onClick={toggleModoOscuro}
               className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-blue-900 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="Abrir buscador"
+              aria-label={modoOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+              title={modoOscuro ? "Modo Claro" : "Modo Oscuro"}
             >
-              <Search className="w-5 h-5" />
+              {modoOscuro ? <Sun className="w-5 h-5 text-amber-300" /> : <Moon className="w-5 h-5 text-blue-200" />}
             </button>
             <button
               type="button"
-              onClick={() => {
-                setMenuMovilAbierto((prev) => !prev);
-                setNavbarBuscadorAbierto(false);
-              }}
+              onClick={() => setMenuMovilAbierto((prev) => !prev)}
               className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-blue-900 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label={menuMovilAbierto ? "Cerrar menú" : "Abrir menú"}
             >
@@ -3604,128 +3649,6 @@ export default function PortalFacultadCienciasMatematicas() {
             </button>
           </div>
         </div>
-
-        {/* BUSCADOR MÓVIL DESPLEGABLE */}
-        {navbarBuscadorAbierto && (
-          <div className="md:hidden bg-[#001f42] border-t border-blue-900 p-3 animate-in fade-in slide-in-from-top-2 duration-150">
-            <div className="relative">
-              <Search className="w-4 h-4 text-blue-300 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={busquedaNavbar}
-                onChange={(e) => {
-                  setBusquedaNavbar(e.target.value);
-                  setNavbarResultadosAbiertos(true);
-                }}
-                placeholder="Buscar cursos, docentes, noticias..."
-                className="w-full pl-9 pr-9 py-2 text-xs rounded-xl bg-blue-900/90 text-white placeholder-blue-300 border border-blue-700 focus:outline-none focus:border-red-500"
-                autoFocus
-              />
-              {busquedaNavbar && (
-                <button
-                  type="button"
-                  onClick={() => setBusquedaNavbar("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-300 hover:text-white"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Resultados móviles */}
-            {busquedaNavbar.trim().length >= 2 && resultadosBusquedaNavbar && (
-              <div className="mt-2 bg-white text-slate-900 rounded-xl shadow-xl overflow-hidden divide-y divide-slate-100 max-h-[60vh] overflow-y-auto">
-                {resultadosBusquedaNavbar.cursos.length > 0 && (
-                  <div className="p-2 space-y-1">
-                    <p className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Cursos
-                    </p>
-                    {resultadosBusquedaNavbar.cursos.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => {
-                          navegar("/carreras/[id]", { carreraId: c.carrera_id });
-                          setCiclosAbiertos((prev) => (prev.includes(c.ciclo) ? prev : [...prev, c.ciclo]));
-                          setNavbarBuscadorAbierto(false);
-                        }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-[#002855] block"
-                      >
-                        [{c.codigo}] {c.nombre_curso}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {resultadosBusquedaNavbar.docentes.length > 0 && (
-                  <div className="p-2 space-y-1">
-                    <p className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Docentes
-                    </p>
-                    {resultadosBusquedaNavbar.docentes.map((d) => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => {
-                          setDocenteModalActivo(d);
-                          setNavbarBuscadorAbierto(false);
-                        }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-[#002855] block"
-                      >
-                        {d.grado_academico} {d.nombre_completo}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {resultadosBusquedaNavbar.noticias.length > 0 && (
-                  <div className="p-2 space-y-1">
-                    <p className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Noticias
-                    </p>
-                    {resultadosBusquedaNavbar.noticias.map((n) => (
-                      <button
-                        key={n.id}
-                        type="button"
-                        onClick={() => {
-                          navegar("/noticias/[id]", { noticiaId: n.id });
-                          setNavbarBuscadorAbierto(false);
-                        }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-[#002855] block line-clamp-1"
-                      >
-                        {n.titulo}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {resultadosBusquedaNavbar.materiales.length > 0 && (
-                  <div className="p-2 space-y-1">
-                    <p className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Repositorio
-                    </p>
-                    {resultadosBusquedaNavbar.materiales.map((m) => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => {
-                          navegar("/repositorio");
-                          setRepoBusquedaTexto(m.titulo);
-                          setNavbarBuscadorAbierto(false);
-                        }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-[#002855] block line-clamp-1"
-                      >
-                        [{m.tipo_archivo}] {m.titulo}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {resultadosBusquedaNavbar.total === 0 && (
-                  <div className="p-3 text-center text-xs text-slate-500">
-                    Sin resultados para &quot;{busquedaNavbar}&quot;
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* MENÚ MÓVIL DESPLEGABLE / DRAWER */}
         {menuMovilAbierto && (
@@ -3837,6 +3760,19 @@ export default function PortalFacultadCienciasMatematicas() {
               >
                 <Users className="w-4 h-4 text-red-400" />
                 <span>Plana Docente Oficial</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  navegar("/transparencia");
+                  setMenuMovilAbierto(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
+                  vistaActual === "/transparencia" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                }`}
+              >
+                <FileText className="w-4 h-4 text-red-400" />
+                <span>Transparencia Institucional</span>
               </button>
 
               <button
@@ -4199,7 +4135,7 @@ export default function PortalFacultadCienciasMatematicas() {
             </div>
           </section>
 
-          <section className="space-y-5">
+          <section className="space-y-5 reveal-on-scroll">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-blue-900 pb-3">
               <div>
                 <span className="text-xs font-bold uppercase text-red-700">Mallas Curriculares Completas (Ciclos 1 al 10)</span>
@@ -4251,7 +4187,7 @@ export default function PortalFacultadCienciasMatematicas() {
           </section>
 
           {/* SECCIÓN DE NOTICIAS CON GRID LIMITADO A 4 + TARJETA "VER MÁS NOTICIAS" (IMAGEN 1) */}
-          <section className="space-y-5">
+          <section className="space-y-5 reveal-on-scroll">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-blue-900 pb-3">
               <div>
                 <span className="text-xs font-bold uppercase text-red-700 dark:text-red-400">Actualidad Universitaria</span>
@@ -4528,7 +4464,7 @@ export default function PortalFacultadCienciasMatematicas() {
           </section>
 
 
-          <section id="plana-docente" className="pt-4 space-y-8">
+          <section id="plana-docente" className="pt-4 space-y-8 reveal-on-scroll">
             <div className="text-center max-w-3xl mx-auto space-y-2.5">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 text-[#002855] dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
                 <Users className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
@@ -4757,8 +4693,8 @@ export default function PortalFacultadCienciasMatematicas() {
 
           {/* Cuadrícula de Noticias */}
           {noticiasFiltradasHemeroteca.length === 0 ? (
-            <div className="max-w-xl mx-auto rounded-3xl border border-slate-200 bg-white p-12 text-center space-y-4 shadow-sm">
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+            <div className="max-w-xl mx-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-4 shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
                 <Newspaper className="w-8 h-8" />
               </div>
               <h3 className="text-lg font-bold text-[#002855] dark:text-white">No se encontraron comunicados</h3>
@@ -5043,11 +4979,11 @@ export default function PortalFacultadCienciasMatematicas() {
       {vistaActual === "/docentes" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
           {/* Barra superior de retorno */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 px-4 py-3 rounded-2xl shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl shadow-xs">
             <button
               type="button"
               onClick={() => navegar("/")}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#002855] hover:text-white text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>← Volver al Portal Principal</span>
@@ -5113,7 +5049,7 @@ export default function PortalFacultadCienciasMatematicas() {
           })()}
 
           {/* Barra de Filtros: Pestañas de Escuela, Buscador y Categoría */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
             {/* Pestañas de Escuela */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
               <button
@@ -5141,11 +5077,11 @@ export default function PortalFacultadCienciasMatematicas() {
                     type="button"
                     onClick={() => navegar("/docentes", { docenteCarrera: car.id })}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                      activo ? temaCar.tabActive : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      activo ? temaCar.tabActive : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                     }`}
                   >
                     <span>{car.nombre}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${activo ? temaCar.tabPillActive : "bg-slate-300 text-slate-800"}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${activo ? temaCar.tabPillActive : "bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200"}`}>
                       {totalPorEscuela}
                     </span>
                   </button>
@@ -5162,7 +5098,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   value={busquedaDocentes}
                   onChange={(e) => setBusquedaDocentes(e.target.value)}
                   placeholder="Buscar profesor por apellido, especialidad o asignatura que dicta..."
-                  className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-[#002855]"
+                  className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
                 />
                 {busquedaDocentes && (
                   <button
@@ -5180,7 +5116,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <select
                   value={filtroCategoriaDocente}
                   onChange={(e) => setFiltroCategoriaDocente(e.target.value)}
-                  className="w-full py-2.5 px-3 rounded-xl bg-slate-50 border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#002855]"
+                  className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
                 >
                   <option value="TODAS">Todas las Categorías</option>
                   <option value="Principal">Profesor Principal</option>
@@ -5888,8 +5824,8 @@ export default function PortalFacultadCienciasMatematicas() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <aside className="lg:col-span-3 rounded-2xl border border-slate-200 bg-white p-5 space-y-5 h-fit shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <aside className="lg:col-span-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-5 h-fit shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <h3 className="text-sm font-bold text-[#002855] dark:text-white flex items-center gap-2">
                   <Filter className="w-4 h-4 text-red-700" /> Filtros Acumulativos
                 </h3>
@@ -5908,14 +5844,14 @@ export default function PortalFacultadCienciasMatematicas() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">1. Carrera Profesional</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">1. Carrera Profesional</label>
                 <select
                   value={repoFiltroCarrera}
                   onChange={(e) => {
                     setRepoFiltroCarrera(e.target.value as "TODAS" | CarreraId);
                     setRepoFiltroCurso("TODOS");
                   }}
-                  className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
                 >
                   <option value="TODAS">Todas las Carreras (4)</option>
                   {carreras.map((c) => (
@@ -5925,14 +5861,14 @@ export default function PortalFacultadCienciasMatematicas() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">2. Ciclo Académico (1 - 10)</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">2. Ciclo Académico (1 - 10)</label>
                 <select
                   value={repoFiltroCiclo}
                   onChange={(e) => {
                     setRepoFiltroCiclo(e.target.value === "TODOS" ? "TODOS" : Number(e.target.value));
                     setRepoFiltroCurso("TODOS");
                   }}
-                  className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
                 >
                   <option value="TODOS">Todos los Ciclos</option>
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((c) => (
@@ -5942,11 +5878,11 @@ export default function PortalFacultadCienciasMatematicas() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">3. Curso ({cursosDisponiblesFiltroRepo.length})</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">3. Curso ({cursosDisponiblesFiltroRepo.length})</label>
                 <select
                   value={repoFiltroCurso}
                   onChange={(e) => setRepoFiltroCurso(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
                 >
                   <option value="TODOS">Todos los cursos</option>
                   {cursosDisponiblesFiltroRepo.map((cur) => (
@@ -5956,11 +5892,11 @@ export default function PortalFacultadCienciasMatematicas() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">4. Formato de Archivo</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">4. Formato de Archivo</label>
                 <select
                   value={repoFiltroTipo}
                   onChange={(e) => setRepoFiltroTipo(e.target.value as "TODOS" | TipoArchivo)}
-                  className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs font-medium text-slate-900"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
                 >
                   <option value="TODOS">Todos los formatos</option>
                   <option value="Examen">Examen Resuelto</option>
@@ -5980,7 +5916,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   value={repoBusquedaTexto}
                   onChange={(e) => setRepoBusquedaTexto(e.target.value)}
                   placeholder="Filtrar recursos por título, código de curso, nombre del curso o docente..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 shadow-xs"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-red-500 shadow-xs"
                 />
               </div>
 
@@ -5996,7 +5932,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       const curso = malla.find((c) => c.id === mat.curso_id);
                       const carrera = carreras.find((ca) => ca.id === mat.carrera_id);
                       return (
-                        <article key={mat.id} className="rounded-2xl border border-slate-200 bg-white hover:border-[#002855] p-5 flex flex-col justify-between gap-4 shadow-sm">
+                        <article key={mat.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-600 p-5 flex flex-col justify-between gap-4 shadow-sm">
                           <div className="space-y-3">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-red-50 text-red-700 border border-red-200">
@@ -6007,19 +5943,19 @@ export default function PortalFacultadCienciasMatematicas() {
                               </span>
                             </div>
                             <div className="flex items-start gap-3">
-                              <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 shrink-0 mt-0.5">{renderIconoArchivo(mat.tipo_archivo)}</div>
+                              <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 mt-0.5">{renderIconoArchivo(mat.tipo_archivo)}</div>
                               <div className="space-y-1">
                                 <h3 className="font-bold text-sm text-[#002855] dark:text-white leading-snug">{mat.titulo}</h3>
                                 <p className="text-xs text-red-700 font-bold">Curso: {curso?.nombre_curso}</p>
-                                <p className="text-xs text-slate-700 flex items-center gap-1.5 pt-0.5">
+                                <p className="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pt-0.5">
                                   <UserCheck className="w-3.5 h-3.5 text-[#002855]" />
                                   <span>Docente: <strong>{mat.docente}</strong></span>
                                 </p>
                               </div>
                             </div>
                           </div>
-                          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                            <span className="text-slate-500">Subido por: <strong className="text-slate-800">{mat.autor_alias}</strong></span>
+                          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                            <span className="text-slate-500 dark:text-slate-400">Subido por: <strong className="text-slate-800 dark:text-slate-200">{mat.autor_alias}</strong></span>
                             <a href={mat.url_archivo} target="_blank" rel="noreferrer" className="px-3.5 py-1.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-bold flex items-center gap-1.5">
                               <Download className="w-3.5 h-3.5" /> Descargar
                             </a>
@@ -6030,7 +5966,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   </div>
 
                   {/* BARRA DE PAGINACIÓN INSTITUCIONAL FCM */}
-                  <div className="pt-6 border-t border-slate-200 flex flex-col items-center gap-3">
+                  <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center gap-3">
                     <p className="text-xs font-semibold text-slate-500">
                       Mostrando <strong className="text-[#002855]">{materialesFiltradosRepo.length === 0 ? 0 : inicioIndiceRepo + 1}</strong> - <strong className="text-[#002855]">{finIndiceRepo}</strong> de <strong className="text-[#002855]">{materialesFiltradosRepo.length}</strong> materiales académicos
                     </p>
@@ -6041,7 +5977,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           type="button"
                           onClick={() => cambiarPaginaRepo(repoPaginaActual - 1)}
                           disabled={repoPaginaActual <= 1}
-                          className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border border-slate-200 bg-white text-slate-700 hover:bg-blue-50 hover:text-[#002855] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-700 cursor-pointer shadow-xs"
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-[#002855] dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs"
                         >
                           ← Anterior
                         </button>
@@ -6091,6 +6027,303 @@ export default function PortalFacultadCienciasMatematicas() {
         </main>
       )}
 
+      
+      {/* VISTA DEDICADA DE TRANSPARENCIA INSTITUCIONAL (/transparencia) */}
+      {vistaActual === "/transparencia" && (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8 animate-in fade-in duration-200">
+          {/* Breadcrumbs y Barra Superior de Retorno */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl shadow-xs">
+            <div className="flex items-center gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => navegar("/")}
+                className="font-bold text-[#002855] dark:text-blue-400 hover:underline flex items-center gap-1.5 cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Portal FCM</span>
+              </button>
+              <span className="text-slate-400">/</span>
+              <span className="text-slate-600 dark:text-slate-300 font-semibold">Transparencia Institucional</span>
+              <span className="text-slate-400">/</span>
+              <span className="text-red-700 dark:text-red-400 font-bold">Resoluciones y Documentos Oficiales</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+              <FileText className="w-4 h-4 text-red-700 dark:text-red-400" />
+              <span>188 Documentos Normativos Registrados</span>
+            </div>
+          </div>
+
+          {/* Banner Institucional de Transparencia (Estilo Imagen 5) */}
+          <div className="rounded-3xl bg-gradient-to-r from-[#002855] via-[#001c3d] to-[#4d0713] text-white p-6 sm:p-8 shadow-xl relative overflow-hidden border-b-4 border-red-700">
+            <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-red-600/20 via-transparent to-transparent pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-3 max-w-3xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs border border-white/20 text-xs font-bold uppercase tracking-wider text-red-300">
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Órgano Oficial de Transparencia y Acceso a la Información • FCM UNMSM</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
+                  Portal de Transparencia Institucional
+                </h1>
+                <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
+                  Acceso libre y oportuno a las Resoluciones Decanales, Resoluciones Rectorales, Planes Operativos Institucionales (POI), Memorias Anuales de Gestión, Actas de Consejo de Facultad y balances presupuestarios de la Facultad de Ciencias Matemáticas de la Universidad Nacional Mayor de San Marcos.
+                </p>
+              </div>
+
+              {/* Tarjeta de Estadísticas y Resumen Oficial (Imagen 5) */}
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 shrink-0 grid grid-cols-2 gap-4 text-center min-w-[280px]">
+                <div className="border-r border-white/15 pr-3">
+                  <span className="text-3xl font-extrabold text-white block">188</span>
+                  <span className="text-[11px] font-bold text-red-300 uppercase tracking-wider block mt-0.5">
+                    Docs Oficiales
+                  </span>
+                  <span className="text-[10px] text-blue-200 block mt-1">Digitalizados PDF</span>
+                </div>
+                <div className="pl-3">
+                  <span className="text-3xl font-extrabold text-amber-400 block">8</span>
+                  <span className="text-[11px] font-bold text-blue-200 uppercase tracking-wider block mt-0.5">
+                    Categorías
+                  </span>
+                  <span className="text-[10px] text-emerald-300 block mt-1">Actualizado 2026</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filtros Acumulativos: Categorías + Selector de Año + Buscador */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            {/* Pestañas de Categoría Normativa */}
+            <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+              {[
+                "TODAS",
+                "Resoluciones Decanales",
+                "Resoluciones Rectorales",
+                "Plan Operativo Institucional (POI)",
+                "Memorias de Gestión",
+                "Balances y Presupuesto",
+                "Actas de Consejo de Facultad",
+                "Convenios y Alianzas",
+              ].map((cat) => {
+                const activo = filtroTransparenciaCategoria === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      setFiltroTransparenciaCategoria(cat);
+                      setPaginaTransparencia(1);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      activo
+                        ? "bg-[#002855] dark:bg-blue-600 text-white shadow-md border-b-2 border-red-500"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    {cat === "TODAS" ? "Todos los Documentos" : cat}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Fila: Buscador por sumilla/código + Selector de Año */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+              <div className="md:col-span-9 relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  value={busquedaTransparencia}
+                  onChange={(e) => {
+                    setBusquedaTransparencia(e.target.value);
+                    setPaginaTransparencia(1);
+                  }}
+                  placeholder="Buscar por número de resolución (ej. 0488), palabra clave o sumilla..."
+                  className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-red-500"
+                />
+                {busquedaTransparencia && (
+                  <button
+                    type="button"
+                    onClick={() => setBusquedaTransparencia("")}
+                    className="absolute right-2.5 top-2 px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-[11px] font-bold text-slate-700 dark:text-slate-200"
+                  >
+                    Limpiar
+                  </button>
+                )}
+              </div>
+
+              <div className="md:col-span-3">
+                <select
+                  value={filtroTransparenciaAnio}
+                  onChange={(e) => {
+                    setFiltroTransparenciaAnio(e.target.value);
+                    setPaginaTransparencia(1);
+                  }}
+                  className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-red-500"
+                >
+                  <option value="TODOS">Todos los Años</option>
+                  <option value="2026">Año 2026 (Vigente)</option>
+                  <option value="2025">Año 2025</option>
+                  <option value="2024">Año 2024</option>
+                  <option value="2023">Año 2023</option>
+                  <option value="2022">Año 2022</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid de Documentos de Transparencia */}
+          {(() => {
+            const documentosFiltrados = documentosTransparencia.filter((doc) => {
+              if (filtroTransparenciaCategoria !== "TODAS" && doc.categoria !== filtroTransparenciaCategoria) {
+                return false;
+              }
+              if (filtroTransparenciaAnio !== "TODOS" && String(doc.anio) !== filtroTransparenciaAnio) {
+                return false;
+              }
+              if (busquedaTransparencia.trim()) {
+                const q = busquedaTransparencia.toLowerCase().trim();
+                const matchCod = doc.codigo.toLowerCase().includes(q);
+                const matchTit = doc.titulo.toLowerCase().includes(q);
+                const matchSum = (doc.sumilla || "").toLowerCase().includes(q);
+                const matchDep = doc.dependencia.toLowerCase().includes(q);
+                if (!matchCod && !matchTit && !matchSum && !matchDep) return false;
+              }
+              return true;
+            });
+
+            const porPagina = 6;
+            const totalPags = Math.ceil(documentosFiltrados.length / porPagina) || 1;
+            const docsPaginados = documentosFiltrados.slice(
+              (paginaTransparencia - 1) * porPagina,
+              paginaTransparencia * porPagina
+            );
+
+            if (documentosFiltrados.length === 0) {
+              return (
+                <div className="max-w-xl mx-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-4 shadow-sm">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+                    <FileText className="w-8 h-8 text-red-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                    No se encontraron documentos oficiales
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                    Intenta seleccionando otra categoría, borrando el término de búsqueda o cambiando el año.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFiltroTransparenciaCategoria("TODAS");
+                      setFiltroTransparenciaAnio("TODOS");
+                      setBusquedaTransparencia("");
+                      setPaginaTransparencia(1);
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer"
+                  >
+                    Restablecer Filtros
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {docsPaginados.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-600 p-6 flex flex-col justify-between gap-4 shadow-sm transition-all"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="font-mono font-bold text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900/60">
+                            {doc.codigo}
+                          </span>
+                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                            {doc.categoria}
+                          </span>
+                        </div>
+
+                        <h3 className="text-base font-bold text-[#002855] dark:text-white leading-snug">
+                          {doc.titulo}
+                        </h3>
+
+                        {doc.sumilla && (
+                          <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                            {doc.sumilla}
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
+                            {doc.fecha}
+                          </span>
+                          <span>•</span>
+                          <span>{doc.dependencia}</span>
+                          <span>•</span>
+                          <span className="font-mono font-bold">{doc.tamano_archivo}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-slate-400">Formato Oficial Digital</span>
+                        <a
+                          href={doc.url_pdf}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-red-700 text-white font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Descargar PDF</span>
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Paginación de Transparencia */}
+                {totalPags > 1 && (
+                  <div className="pt-4 flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaginaTransparencia((p) => Math.max(1, p - 1))}
+                      disabled={paginaTransparencia <= 1}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 cursor-pointer"
+                    >
+                      ← Anterior
+                    </button>
+                    {Array.from({ length: totalPags }, (_, i) => i + 1).map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setPaginaTransparencia(num)}
+                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          paginaTransparencia === num
+                            ? "bg-[#002855] dark:bg-blue-600 text-white"
+                            : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setPaginaTransparencia((p) => Math.min(totalPags, p + 1))}
+                      disabled={paginaTransparencia >= totalPags}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 cursor-pointer"
+                    >
+                      Siguiente →
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </main>
+      )}
+
       {/* VISTA D: CONTACTO (/contacto) */}
       {vistaActual === "/contacto" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10">
@@ -6106,22 +6339,22 @@ export default function PortalFacultadCienciasMatematicas() {
                   { area: "Escuela Profesional de Computación Científica", correo: "epcc.matematicas@unmsm.edu.pe", anexo: "Anexo 1425" },
                   { area: "CERSEU / SECOMAT / Unidad de Economía", correo: "economia.fcm@unmsm.edu.pe", anexo: "Anexos 1412 / 1420 / 1410" },
                 ].map((item, idx) => (
-                  <div key={idx} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1">
+                  <div key={idx} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-1">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xs font-bold text-[#002855] dark:text-white flex items-center gap-2"><Mail className="w-4 h-4 text-red-700" /> {item.area}</h3>
                       <span className="text-[11px] font-mono font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded">{item.anexo}</span>
                     </div>
-                    <p className="text-xs font-mono text-slate-700">{item.correo}</p>
+                    <p className="text-xs font-mono text-slate-700 dark:text-slate-300">{item.correo}</p>
                   </div>
                 ))}
 
                 {/* Redes Sociales y Canales Oficiales FCM */}
-                <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50/60 to-white p-4 shadow-xs space-y-2.5">
+                <div className="rounded-2xl border border-blue-200 dark:border-slate-800 bg-gradient-to-br from-blue-50/60 to-white dark:from-slate-900 dark:to-slate-900 p-4 shadow-xs space-y-2.5">
                   <div className="flex items-center gap-2">
                     <Share2 className="w-4 h-4 text-red-700" />
                     <h3 className="text-xs font-bold text-[#002855] dark:text-white">Redes Sociales y Canales Oficiales</h3>
                   </div>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                     Sigue las transmisiones en vivo de ceremonias, conferencias magistrales, eventos y comunicados:
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1">
@@ -6129,7 +6362,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       href="https://www.facebook.com/FacultadDeCienciasMatematicasOficial"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-blue-200 hover:border-[#1877F2] text-xs font-bold transition-all shadow-2xs hover:scale-102"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold transition-all shadow-2xs hover:scale-102"
                     >
                       <Facebook className="w-3.5 h-3.5" />
                       <span>Facebook</span>
@@ -6138,7 +6371,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       href="https://www.instagram.com/facultaddecienciasmatematicas/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gradient-to-r hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 text-pink-700 hover:text-white border border-pink-200 text-xs font-bold transition-all shadow-2xs hover:scale-102"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-gradient-to-r hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 text-pink-700 hover:text-white border border-pink-200 dark:border-slate-700 text-xs font-bold transition-all shadow-2xs hover:scale-102"
                     >
                       <Instagram className="w-3.5 h-3.5" />
                       <span>Instagram</span>
@@ -6147,7 +6380,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       href="https://www.youtube.com/@fcmunmsm/videos"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FF0000] text-red-700 hover:text-white border border-red-200 text-xs font-bold transition-all shadow-2xs hover:scale-102"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-[#FF0000] text-red-700 hover:text-white border border-red-200 dark:border-slate-700 text-xs font-bold transition-all shadow-2xs hover:scale-102"
                     >
                       <Youtube className="w-3.5 h-3.5" />
                       <span>YouTube</span>
@@ -6158,7 +6391,7 @@ export default function PortalFacultadCienciasMatematicas() {
             </section>
 
             <section className="lg:col-span-7">
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-5">
+              <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-5">
                 <h2 className="text-xl font-bold text-[#002855] dark:text-white">Formulario de Soporte Estudiantil</h2>
                 {ticketEnviadoOk ? (
                   <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-6 text-center space-y-3">
@@ -6445,7 +6678,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold text-slate-700">Imagen o Afiche de Portada *</label>
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Imagen o Afiche de Portada *</label>
                           <button
                             type="button"
                             onClick={() => inputImagenNoticiaRef.current?.click()}
@@ -6619,7 +6852,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         {/* Selector de Color de Fondo para la Noticia */}
                         <div className="space-y-2 pt-2 border-t border-slate-200">
                           <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold text-slate-700">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                               🎨 Color de Fondo del Banner para esta Noticia
                             </label>
                             <div className="flex items-center gap-2">
@@ -6992,7 +7225,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-700">Fotografía del Docente (o dejar vacío para Avatar)</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Fotografía del Docente (o dejar vacío para Avatar)</label>
                         <button
                           type="button"
                           onClick={() => inputFotoDocenteRef.current?.click()}
