@@ -33,7 +33,7 @@ const Youtube = createLucideIcon("Youtube", [
 ]);
 
 type CarreraId = "computacion-cientifica" | "matematica" | "estadistica" | "investigacion-operativa";
-type VistaPortal = "/" | "/carreras/[id]" | "/noticias/[id]" | "/repositorio" | "/contacto" | "/admin" | "/docentes" | "/noticias";
+type VistaPortal = "/" | "/carreras/[id]" | "/noticias/[id]" | "/repositorio" | "/contacto" | "/admin" | "/docentes" | "/noticias" | "/orgullo";
 type TipoArchivo = "PDF" | "Examen" | "Apunte" | "Codigo" | "Video" | "Silabo";
 type EstadoMaterial = "pendiente" | "aprobado" | "rechazado";
 type EstadoAtencion = "pendiente" | "en_proceso" | "resuelto";
@@ -1009,6 +1009,31 @@ export default function PortalFacultadCienciasMatematicas() {
   });
   const [subiendoFotoOrgullo, setSubiendoFotoOrgullo] = useState<boolean>(false);
 
+  // Filtros de la Galería Completa de Orgullo San Marquino (/orgullo)
+  const [filtroOrgulloCarrera, setFiltroOrgulloCarrera] = useState<"TODAS" | CarreraId | "fcm">("TODAS");
+  const [busquedaOrgullo, setBusquedaOrgullo] = useState<string>("");
+
+  const orgulloFiltrados = useMemo(() => {
+    return orgulloItems.filter((item) => {
+      const coincideCarrera =
+        filtroOrgulloCarrera === "TODAS" ||
+        item.carrera_id === filtroOrgulloCarrera ||
+        (filtroOrgulloCarrera === "fcm" && item.carrera_id === "fcm");
+
+      const q = busquedaOrgullo.trim().toLowerCase();
+      const coincideBusqueda =
+        !q ||
+        item.titulo.toLowerCase().includes(q) ||
+        item.estudiante.toLowerCase().includes(q) ||
+        (item.carrera_nombre && item.carrera_nombre.toLowerCase().includes(q)) ||
+        item.subtitulo_categoria.toLowerCase().includes(q) ||
+        item.descripcion.toLowerCase().includes(q);
+
+      return coincideCarrera && coincideBusqueda;
+    });
+  }, [orgulloItems, filtroOrgulloCarrera, busquedaOrgullo]);
+
+
   const [logoUrl, setLogoUrl] = useState<string>(LOGO_UNMSM_TRANSPARENTE_DEFAULT);
   const [heroBgUrl, setHeroBgUrl] = useState<string>(HERO_BG_DEFAULT);
   const [heroBgInputUrl, setHeroBgInputUrl] = useState<string>(HERO_BG_DEFAULT);
@@ -1230,6 +1255,10 @@ export default function PortalFacultadCienciasMatematicas() {
       setVistaActual("/noticias");
       return;
     }
+    if (hash === "/orgullo" || hash.startsWith("/orgullo")) {
+      setVistaActual("/orgullo");
+      return;
+    }
     if (hash === "/docentes" || hash.startsWith("/docentes/")) {
       const idCar = hash.replace("/docentes/", "").replace("/docentes", "").trim();
       const carrerasValidas: CarreraId[] = ["computacion-cientifica", "matematica", "estadistica", "investigacion-operativa"];
@@ -1287,6 +1316,8 @@ export default function PortalFacultadCienciasMatematicas() {
           nuevoHash = "#/admin";
         } else if (nuevaVista === "/noticias") {
           nuevoHash = "#/noticias";
+        } else if (nuevaVista === "/orgullo") {
+          nuevoHash = "#/orgullo";
         } else if (nuevaVista === "/docentes") {
           const escId = params?.docenteCarrera || filtroDocenteCarrera;
           nuevoHash = escId && escId !== "TODAS" ? `#/docentes/${escId}` : "#/docentes";
@@ -4188,7 +4219,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   <div
                     key={car.id}
                     onClick={() => navegarACarrera(car.id)}
-                    className={`group rounded-2xl border border-slate-200 bg-white ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between`}
+                    className={`group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between`}
                   >
                     <div>
                       <div className={`${temaCar.headerBg} text-white px-5 py-3.5 flex items-center justify-between border-b-2 ${temaCar.borderAccent}`}>
@@ -4197,18 +4228,18 @@ export default function PortalFacultadCienciasMatematicas() {
                       </div>
                       <div className="p-5 space-y-3">
                         <div className="flex items-center gap-3">
-                          <div className={`p-2.5 rounded-xl border ${temaCar.iconWrap}`}>{renderIconoCarrera(car.id)}</div>
-                          <h3 className={`text-lg font-bold text-[#002855] ${temaCar.groupHoverText} transition-colors`}>{car.nombre}</h3>
+                          <div className={`p-2.5 rounded-xl border ${temaCar.iconWrap} dark:bg-slate-800 dark:border-slate-700`}>{renderIconoCarrera(car.id)}</div>
+                          <h3 className={`text-lg font-bold text-[#002855] dark:text-white ${temaCar.groupHoverText} transition-colors`}>{car.nombre}</h3>
                         </div>
-                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">{car.descripcion}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">{car.descripcion}</p>
                       </div>
                     </div>
-                    <div className="px-5 py-4 bg-slate-50 border-t border-slate-200 space-y-2">
-                      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
+                    <div className="px-5 py-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700 dark:text-slate-300">
                         <span className={`${temaCar.textAccent} font-bold`}>{cursosCar.length} asignaturas</span>
-                        <span>{totalCreditos.toFixed(0)} créditos</span>
+                        <span className="text-slate-500 dark:text-slate-400">{totalCreditos.toFixed(0)} créditos</span>
                       </div>
-                      <div className={`flex items-center justify-between text-xs font-bold text-[#002855] ${temaCar.groupHoverText}`}>
+                      <div className={`flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300 ${temaCar.groupHoverText}`}>
                         <span>Ver Tríptico y Malla (1-10)</span>
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </div>
@@ -4353,7 +4384,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
           {/* 3. SECCIÓN "PLANA DOCENTE E INVESTIGADORES" EN EL HOME (IMAGEN 2) */}
           
-          {/* SECCIÓN INSTITUCIONAL: ORGULLO SAN MARQUINO / FCM (IMÁGENES 3, 4 Y 5) */}
+          {/* SECCIÓN INSTITUCIONAL: ORGULLO SAN MARQUINO / FCM (IMÁGENES 1, 3, 4 Y 5) */}
           <section id="orgullo-sanmarquino" className="space-y-6 pt-4">
             <div className="border-b-2 border-blue-900 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div className="space-y-2">
@@ -4361,42 +4392,47 @@ export default function PortalFacultadCienciasMatematicas() {
                   <Award className="w-3.5 h-3.5" />
                   <span>EXCELENCIA ESTUDIANTIL E IMPACTO INTERNACIONAL • FCM UNMSM</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white flex items-center gap-2 tracking-tight">
-                    <Trophy className="w-7 h-7 text-amber-500" />
-                    Orgullo San Marquino
-                  </h2>
-                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-slate-950 shadow-sm flex items-center gap-1.5 animate-pulse">
-                    <Sparkles className="w-3 h-3 fill-slate-950" />
-                    SELECCIONADO POR IBRO 2026
-                  </span>
-                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white flex items-center gap-2.5 tracking-tight">
+                  <Trophy className="w-7 h-7 text-amber-500" />
+                  <span>Orgullo San Marquino</span>
+                </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
                   Celebramos el talento, la dedicación y los logros de nuestros estudiantes e investigadores que llevan el nombre de la Facultad de Ciencias Matemáticas y la Decana de América a los escenarios científicos más prestigiosos del mundo.
                 </p>
               </div>
 
-              {adminAutenticado && (
+              <div className="flex flex-wrap items-center gap-2.5 self-start md:self-end">
                 <button
                   type="button"
-                  onClick={() => {
-                    setTabAdmin("orgullo");
-                    navegar("/admin");
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer self-start md:self-end"
+                  onClick={() => navegar("/orgullo")}
+                  className="px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  <span>Gestionar en CMS</span>
+                  <span>Galería Completa ({orgulloItems.length})</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
-              )}
+                {adminAutenticado && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTabAdmin("orgullo");
+                      navegar("/admin");
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Gestionar CMS</span>
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Grid de 3 a 4 Tarjetas Verticales Proporción Póster (aspect-[3/4]) */}
+            {/* Grid de 3 Tarjetas Destacadas + 1 Tarjeta Especial "Ver Más Logros" (Imagen 4) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {orgulloItems.map((item) => (
+              {orgulloItems.slice(0, 3).map((item) => (
                 <div
                   key={item.id}
-                  className="group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-red-500 shadow-md hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between overflow-hidden"
+                  onClick={() => setModalDetalleOrgullo(item)}
+                  className="group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-red-500 shadow-md hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between overflow-hidden cursor-pointer"
                 >
                   {/* Imagen del Afiche o Fotografía */}
                   <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-950">
@@ -4407,7 +4443,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none" />
 
-                    {/* Badge superior */}
+                    {/* Badges superiores */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
                       <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[#002855]/90 text-white backdrop-blur-md border border-white/20 shadow-md">
                         {item.subtitulo_categoria}
@@ -4431,7 +4467,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     </div>
                   </div>
 
-                  {/* Pie de Tarjeta con descripción y botón */}
+                  {/* Pie de Tarjeta con descripción y botón que abre detalle siempre */}
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 space-y-3 flex-1 flex flex-col justify-between">
                     <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
                       {item.descripcion}
@@ -4441,30 +4477,53 @@ export default function PortalFacultadCienciasMatematicas() {
                       <span className="text-[11px] font-bold text-[#002855] dark:text-blue-300">
                         {item.tipo_tarjeta === "afiche" ? "📜 Afiche Oficial" : item.tipo_tarjeta === "estudiante" ? "⭐ Reconocimiento" : "🏆 Delegación FCM"}
                       </span>
-                      {item.enlace_nota ? (
-                        <a
-                          href={item.enlace_nota}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-bold text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
-                        >
-                          <span>Ver Nota</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </a>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setModalDetalleOrgullo(item)}
-                          className="text-xs font-bold text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform cursor-pointer"
-                        >
-                          <span>Ver Detalle</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      <span className="text-xs font-bold text-red-700 dark:text-red-400 group-hover:text-red-800 dark:group-hover:text-red-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                        <span>Ver Detalle</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
                     </div>
                   </div>
                 </div>
               ))}
+
+              {/* Posición 4: Tarjeta Especial de Llamada a la Acción "Galería Completa" (Imagen 4) */}
+              <div
+                onClick={() => navegar("/orgullo")}
+                className="group relative rounded-2xl bg-gradient-to-br from-[#002855] via-[#001f42] to-[#4d0713] text-white p-6 sm:p-7 border-2 border-blue-800/80 shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden min-h-[380px]"
+              >
+                <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/15 rounded-full blur-xl pointer-events-none" />
+
+                <div className="space-y-4 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-md">
+                      <Trophy className="w-6 h-6" />
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-slate-950 shadow-sm border border-amber-400">
+                      +{Math.max(0, orgulloItems.length - 3)} Más
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-300 block">
+                      Reconocimientos FCM
+                    </span>
+                    <h3 className="text-xl font-bold text-white leading-snug group-hover:text-amber-200 transition-colors">
+                      Galería Completa de Orgullo San Marquino
+                    </h3>
+                    <p className="text-xs text-blue-100/80 leading-relaxed">
+                      Conoce todas las distinciones, pasantías en neurociencia, premios en hackathones y congresos mundiales de nuestra facultad.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-6 relative z-10">
+                  <div className="w-full py-3 px-4 rounded-xl bg-white text-[#002855] font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-amber-500 group-hover:text-slate-950 transition-all shadow-md">
+                    <span>Explorar todos los logros</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -4625,17 +4684,17 @@ export default function PortalFacultadCienciasMatematicas() {
       {vistaActual === "/noticias" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
           {/* Barra superior de retorno */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 px-4 py-3 rounded-2xl shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl shadow-xs">
             <button
               type="button"
               onClick={() => navegar("/")}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-slate-800 dark:text-slate-100 hover:text-white text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>← Volver al Portal Principal</span>
             </button>
 
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
               <Newspaper className="w-4 h-4 text-red-700" />
               <span>{noticiasFiltradasHemeroteca.length} comunicados encontrados</span>
             </div>
@@ -4656,7 +4715,7 @@ export default function PortalFacultadCienciasMatematicas() {
           </div>
 
           {/* Buscador y Filtro por Categoría */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
               <div className="md:col-span-8 relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -4665,13 +4724,13 @@ export default function PortalFacultadCienciasMatematicas() {
                   value={busquedaHemeroteca}
                   onChange={(e) => setBusquedaHemeroteca(e.target.value)}
                   placeholder="Buscar comunicado por título, palabras clave o contenido..."
-                  className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-[#002855]"
+                  className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
                 />
                 {busquedaHemeroteca && (
                   <button
                     type="button"
                     onClick={() => setBusquedaHemeroteca("")}
-                    className="absolute right-2.5 top-2 px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-[11px] font-bold text-slate-700"
+                    className="absolute right-2.5 top-2 px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-[11px] font-bold text-slate-700 dark:text-slate-200"
                   >
                     Limpiar
                   </button>
@@ -4683,7 +4742,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 <select
                   value={filtroCategoriaHemeroteca}
                   onChange={(e) => setFiltroCategoriaHemeroteca(e.target.value)}
-                  className="w-full py-2.5 px-3 rounded-xl bg-slate-50 border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#002855]"
+                  className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
                 >
                   <option value="TODAS">Todas las Categorías ({noticias.length})</option>
                   {Array.from(new Set(noticias.map((n) => n.categoria))).map((cat) => (
@@ -4784,6 +4843,202 @@ export default function PortalFacultadCienciasMatematicas() {
         </main>
       )}
 
+            {/* VISTA DEDICADA DE HEMEROTECA / GALERÍA COMPLETA DE ORGULLO SAN MARQUINO (/orgullo) */}
+      {vistaActual === "/orgullo" && (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
+          {/* Barra superior de retorno */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl shadow-xs">
+            <button
+              type="button"
+              onClick={() => navegar("/")}
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-slate-800 dark:text-slate-100 hover:text-white text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>← Volver al Portal Principal</span>
+            </button>
+
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+              <Trophy className="w-4 h-4 text-amber-500" />
+              <span>{orgulloFiltrados.length} reconocimientos registrados</span>
+            </div>
+          </div>
+
+          {/* Banner Institucional de la Galería de Orgullo */}
+          <div className="rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden bg-gradient-to-r from-[#002855] via-[#001c3d] to-[#4d0713] border-b-4 border-amber-500">
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 text-xs font-bold uppercase tracking-wider text-amber-300">
+                  <Award className="w-3.5 h-3.5" />
+                  <span>EXCELENCIA ESTUDIANTIL E IMPACTO INTERNACIONAL • FCM UNMSM</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight flex items-center gap-3">
+                  <Trophy className="w-8 h-8 text-amber-400" />
+                  <span>Galería de Orgullo San Marquino</span>
+                </h1>
+                <p className="text-xs sm:text-sm text-white/85 max-w-2xl leading-relaxed">
+                  Historias de éxito, distinciones internacionales, pasantías y logros destacados de nuestros estudiantes, investigadores y egresados de la Facultad de Ciencias Matemáticas.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="bg-white/10 backdrop-blur-xs border border-white/20 rounded-2xl p-4 text-center min-w-[120px]">
+                  <span className="text-2xl sm:text-3xl font-bold block text-amber-300">
+                    {orgulloItems.length}
+                  </span>
+                  <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
+                    Distinciones
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filtros: Pestañas de Escuela + Buscador */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <button
+                type="button"
+                onClick={() => setFiltroOrgulloCarrera("TODAS")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  filtroOrgulloCarrera === "TODAS"
+                    ? "bg-[#002855] dark:bg-blue-600 text-white shadow-md border-b-2 border-amber-500"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                <span>Todas las Escuelas</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${filtroOrgulloCarrera === "TODAS" ? "bg-amber-500 text-slate-950 font-bold" : "bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200"}`}>
+                  {orgulloItems.length}
+                </span>
+              </button>
+
+              {carreras.map((car) => {
+                const totalEsc = orgulloItems.filter((i) => i.carrera_id === car.id).length;
+                const activo = filtroOrgulloCarrera === car.id;
+                const temaCar = TEMA_CARRERA[car.id];
+                return (
+                  <button
+                    key={car.id}
+                    type="button"
+                    onClick={() => setFiltroOrgulloCarrera(car.id)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                      activo
+                        ? temaCar.tabActive
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    <span>{car.nombre}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${activo ? temaCar.tabPillActive : "bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200"}`}>
+                      {totalEsc}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Buscador de Logros */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <input
+                type="text"
+                value={busquedaOrgullo}
+                onChange={(e) => setBusquedaOrgullo(e.target.value)}
+                placeholder="Buscar por estudiante, certamen, conferencia o logro..."
+                className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
+              />
+              {busquedaOrgullo && (
+                <button
+                  type="button"
+                  onClick={() => setBusquedaOrgullo("")}
+                  className="absolute right-2.5 top-2 px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-[11px] font-bold text-slate-700 dark:text-slate-200"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Grid de Logros Completo */}
+          {orgulloFiltrados.length === 0 ? (
+            <div className="max-w-xl mx-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-4 shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+                <Trophy className="w-8 h-8 text-amber-500" />
+              </div>
+              <h3 className="text-lg font-bold text-[#002855] dark:text-white">No se encontraron reconocimientos con esos filtros</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                Intenta limpiando el texto del buscador o seleccionando otra escuela profesional.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setBusquedaOrgullo("");
+                  setFiltroOrgulloCarrera("TODAS");
+                }}
+                className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer shadow-sm transition-all"
+              >
+                Restablecer Filtros
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {orgulloFiltrados.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => setModalDetalleOrgullo(item)}
+                  className="group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-red-500 shadow-md hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between overflow-hidden cursor-pointer"
+                >
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-950">
+                    <img
+                      src={item.foto_url}
+                      alt={item.titulo}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none" />
+
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[#002855]/90 text-white backdrop-blur-md border border-white/20 shadow-md">
+                        {item.subtitulo_categoria}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-slate-950 shadow-sm">
+                        {item.anio}
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-3 left-3 right-3 space-y-1 text-white pointer-events-none">
+                      <span className="text-[11px] font-semibold text-red-300 block uppercase tracking-wider">
+                        {item.carrera_nombre || "Facultad de Ciencias Matemáticas"}
+                      </span>
+                      <h3 className="text-base font-bold leading-tight line-clamp-2 drop-shadow-md">
+                        {item.titulo}
+                      </h3>
+                      <p className="text-xs text-slate-200 font-medium line-clamp-1">
+                        👤 {item.estudiante}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 space-y-3 flex-1 flex flex-col justify-between">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                      {item.descripcion}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                      <span className="text-[11px] font-bold text-[#002855] dark:text-blue-300">
+                        {item.tipo_tarjeta === "afiche" ? "📜 Afiche Oficial" : item.tipo_tarjeta === "estudiante" ? "⭐ Reconocimiento" : "🏆 Delegación FCM"}
+                      </span>
+                      <span className="text-xs font-bold text-red-700 dark:text-red-400 group-hover:text-red-800 dark:group-hover:text-red-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                        <span>Ver Detalle</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+      )}
+
+
       {/* VISTA DEDICADA DE PLANA DOCENTE E INVESTIGADORES (/docentes) */}
       {vistaActual === "/docentes" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -4860,18 +5115,18 @@ export default function PortalFacultadCienciasMatematicas() {
           {/* Barra de Filtros: Pestañas de Escuela, Buscador y Categoría */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
             {/* Pestañas de Escuela */}
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 border-b border-slate-100 pb-4">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
               <button
                 type="button"
                 onClick={() => navegar("/docentes", { docenteCarrera: "TODAS" })}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                   filtroDocenteCarrera === "TODAS"
                     ? "bg-[#002855] text-white shadow-md border-b-2 border-red-600"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                 }`}
               >
                 <span>Todas (FCM)</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] ${filtroDocenteCarrera === "TODAS" ? "bg-red-700 text-white" : "bg-slate-300 text-slate-800"}`}>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${filtroDocenteCarrera === "TODAS" ? "bg-red-700 text-white" : "bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200"}`}>
                   {docentes.length}
                 </span>
               </button>
@@ -4970,7 +5225,7 @@ export default function PortalFacultadCienciasMatematicas() {
                 return (
                   <div key={escuelaGrupo.id} className="space-y-4">
                     {filtroDocenteCarrera === "TODAS" && (
-                      <div className="flex items-center justify-between border-b-2 border-slate-200 pb-2.5">
+                      <div className="flex items-center justify-between border-b-2 border-slate-200 dark:border-slate-800 pb-2.5">
                         <div className="flex items-center gap-2.5">
                           <span className={`w-3.5 h-3.5 rounded-full ${temaGrupo.headerBg}`} />
                           <h2 className="text-lg font-bold text-[#002855] dark:text-white">
@@ -4983,7 +5238,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         <button
                           type="button"
                           onClick={() => navegar("/docentes", { docenteCarrera: escuelaGrupo.id })}
-                          className="text-xs font-bold text-[#002855] hover:text-red-700 cursor-pointer"
+                          className="text-xs font-bold text-[#002855] dark:text-blue-300 hover:text-red-700 dark:hover:text-red-400 cursor-pointer"
                         >
                           Ver solo esta escuela →
                         </button>
@@ -4999,11 +5254,11 @@ export default function PortalFacultadCienciasMatematicas() {
                           <div
                             key={doc.id}
                             onClick={() => abrirModalDocente(doc)}
-                            className={`group rounded-2xl bg-white border border-slate-200 ${temaDoc.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
+                            className={`group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${temaDoc.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
                           >
                             <div>
                               {/* Fotografía Superior Uniforme o Avatar Institucional */}
-                              <div className="relative h-52 w-full bg-slate-100 overflow-hidden border-b border-slate-100">
+                              <div className="relative h-52 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden border-b border-slate-100 dark:border-slate-800">
                                 {doc.foto_url ? (
                                   <img
                                     src={doc.foto_url}
@@ -5028,7 +5283,7 @@ export default function PortalFacultadCienciasMatematicas() {
                                 <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${temaDoc.badgeSoft}`}>
                                   {nombreEscuela}
                                 </span>
-                                <h3 className={`text-sm sm:text-base font-bold text-[#002855] ${temaDoc.groupHoverText} transition-colors leading-snug`}>
+                                <h3 className={`text-sm sm:text-base font-bold text-[#002855] dark:text-white ${temaDoc.groupHoverText} transition-colors leading-snug`}>
                                   {doc.grado_academico} {doc.nombre_completo}
                                 </h3>
 
@@ -5048,13 +5303,13 @@ export default function PortalFacultadCienciasMatematicas() {
                                   )}
                                 </div>
 
-                                <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                                <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
                                   {doc.especialidad}
                                 </p>
                               </div>
                             </div>
 
-                            <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#002855] group-hover:text-red-700">
+                            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700 dark:group-hover:text-red-400">
                               <span>Ver Ficha y Calificar</span>
                               <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                             </div>
@@ -7703,69 +7958,121 @@ export default function PortalFacultadCienciasMatematicas() {
       )}
 
       
-      {/* MODAL DE DETALLE: ORGULLO SAN MARQUINO */}
+      {/* MODAL DE DETALLE AMPLIADO: ORGULLO SAN MARQUINO (IMÁGENES 3 Y 4) */}
       {modalDetalleOrgullo && (
         <div
           onClick={() => setModalDetalleOrgullo(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-5 shadow-2xl border-2 border-[#002855] dark:border-blue-700 max-h-[92vh] overflow-y-auto"
+            className="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl lg:max-w-5xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border-2 border-[#002855] dark:border-blue-700 max-h-[92vh] overflow-y-auto"
           >
+            {/* Cabecera del modal */}
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-red-700 dark:text-red-400" />
-                <span className="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
-                  Orgullo San Marquino • FCM UNMSM
-                </span>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 flex items-center justify-center text-amber-500">
+                  <Trophy className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-red-700 dark:text-red-400 block">
+                    Excelencia Estudiantil FCM • UNMSM
+                  </span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Detalle de Reconocimiento Oficial
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setModalDetalleOrgullo(null)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Cerrar modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-              <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-slate-950 shadow-md">
+            {/* Cuadrícula de 2 Columnas Espaciosa: Foto izquierda (aspect 3:4) y Texto derecha */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+              {/* Columna Izquierda: Fotografía o Póster a Gran Escala */}
+              <div className="md:col-span-5 relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-slate-950 shadow-xl border-2 border-slate-200 dark:border-slate-800">
                 <img
                   src={modalDetalleOrgullo.foto_url}
                   alt={modalDetalleOrgullo.titulo}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                 />
+                <div className="absolute top-3 left-3">
+                  <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-black/75 text-white backdrop-blur-md border border-white/20">
+                    {modalDetalleOrgullo.tipo_tarjeta === "afiche" ? "📜 Afiche Oficial" : modalDetalleOrgullo.tipo_tarjeta === "estudiante" ? "⭐ Reconocimiento" : "🏆 Delegación FCM"}
+                  </span>
+                </div>
               </div>
-              <div className="space-y-3 text-left">
-                <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-[#002855] dark:bg-blue-950 text-white dark:text-blue-200 border border-blue-800">
-                  {modalDetalleOrgullo.subtitulo_categoria}
-                </span>
-                <h3 className="text-xl font-bold text-[#002855] dark:text-white leading-snug">
+
+              {/* Columna Derecha: Contenido y Acciones */}
+              <div className="md:col-span-7 space-y-4 text-left">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-lg text-xs font-bold uppercase bg-[#002855] dark:bg-blue-950 text-white dark:text-blue-200 border border-blue-800 shadow-sm">
+                    {modalDetalleOrgullo.subtitulo_categoria}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-amber-500 text-slate-950 shadow-sm">
+                    Año {modalDetalleOrgullo.anio}
+                  </span>
+                </div>
+
+                <h3 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white leading-tight">
                   {modalDetalleOrgullo.titulo}
                 </h3>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  👤 <span className="font-bold text-[#002855] dark:text-blue-300">{modalDetalleOrgullo.estudiante}</span>
-                </p>
-                <p className="text-xs text-red-700 dark:text-red-400 font-semibold">
-                  🏛️ {modalDetalleOrgullo.carrera_nombre || "Facultad de Ciencias Matemáticas"} • Año {modalDetalleOrgullo.anio}
-                </p>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed pt-2 border-t border-slate-200 dark:border-slate-800">
-                  {modalDetalleOrgullo.descripcion}
-                </p>
-                {modalDetalleOrgullo.enlace_nota && (
-                  <div className="pt-2">
+
+                {/* Tarjeta de Datos del Estudiante */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1.5">
+                  <div className="flex items-center gap-2 text-sm font-bold text-[#002855] dark:text-white">
+                    <span>👤</span>
+                    <span>{modalDetalleOrgullo.estudiante}</span>
+                  </div>
+                  <div className="text-xs text-red-700 dark:text-red-400 font-semibold flex items-center gap-1.5">
+                    <span>🏛️</span>
+                    <span>{modalDetalleOrgullo.carrera_nombre || "Facultad de Ciencias Matemáticas"}</span>
+                  </div>
+                </div>
+
+                {/* Descripción Detallada */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    Impacto y Trayectoria
+                  </h4>
+                  <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line">
+                    {modalDetalleOrgullo.descripcion}
+                  </p>
+                </div>
+
+                {/* Botón de Enlace Externo Asistido / Nota de Prensa (Imagen 4) */}
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                  {modalDetalleOrgullo.enlace_nota ? (
                     <a
                       href={modalDetalleOrgullo.enlace_nota}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow transition-colors"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-lg transition-all active:scale-95 group cursor-pointer"
                     >
-                      <span>Ver Enlace Oficial / Nota de Prensa</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <Globe className="w-4 h-4 text-red-200" />
+                      <span>Ver Nota de Prensa / Enlace Oficial</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-red-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </a>
-                  </div>
-                )}
+                  ) : (
+                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                      Reconocimiento verificado por la Facultad de Ciencias Matemáticas
+                    </span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setModalDetalleOrgullo(null)}
+                    className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Cerrar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
