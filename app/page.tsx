@@ -4313,7 +4313,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </span>
                       {not.modalidad && (
-                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#002855] border border-blue-200">
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                           {not.modalidad}
                         </span>
                       )}
@@ -4772,7 +4772,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   <article
                     key={not.id}
                     onClick={() => abrirNoticiaDetalle(not.id)}
-                    className="group rounded-2xl border border-slate-200 bg-white hover:border-[#002855] shadow-sm hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all"
+                    className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-red-600 dark:hover:border-red-500 shadow-sm hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all"
                   >
                     <div>
                       <div className="relative h-52 bg-slate-900 overflow-hidden">
@@ -4793,26 +4793,26 @@ export default function PortalFacultadCienciasMatematicas() {
                         </div>
                       </div>
                       <div className="p-6 space-y-2.5">
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
                           <Calendar className="w-3.5 h-3.5 text-red-700" />
                           <span>{formatearFechaEspanol(not.fecha_publicacion)}</span>
                         </div>
-                        <h3 className="text-lg font-bold text-[#002855] dark:text-white group-hover:text-red-700 transition-colors leading-snug">
+                        <h3 className="text-lg font-bold text-[#002855] dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors leading-snug">
                           {not.titulo}
                         </h3>
-                        <p className="text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
                           {resumenLimpio}
                         </p>
                       </div>
                     </div>
 
-                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#002855] group-hover:text-red-700 flex items-center gap-1.5">
+                    <div className="px-6 py-4 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-600 dark:group-hover:text-red-400 flex items-center gap-1.5">
                         <span>Leer noticia completa</span>
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </span>
                       {not.modalidad && (
-                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#002855] border border-blue-200">
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                           {not.modalidad}
                         </span>
                       )}
@@ -6695,7 +6695,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         value={formNoticia.titulo}
                         onChange={(e) => setFormNoticia({ ...formNoticia, titulo: e.target.value })}
                         placeholder="Título de la Noticia o Evento *"
-                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs font-bold"
+                        className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -6704,14 +6704,14 @@ export default function PortalFacultadCienciasMatematicas() {
                           required
                           value={formNoticia.fecha_publicacion}
                           onChange={(e) => setFormNoticia({ ...formNoticia, fecha_publicacion: e.target.value })}
-                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                         />
                         <input
                           type="text"
                           value={formNoticia.categoria}
                           onChange={(e) => setFormNoticia({ ...formNoticia, categoria: e.target.value })}
                           placeholder="Categoría (ej. Evento, Comunicado, Becas)"
-                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                         />
                       </div>
 
@@ -6720,7 +6720,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         value={formNoticia.resumen}
                         onChange={(e) => setFormNoticia({ ...formNoticia, resumen: e.target.value })}
                         placeholder="Resumen corto para la tarjeta del Home (opcional, máx. 3 líneas)"
-                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-xs"
+                        className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3.5 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
 
                       <div className="space-y-1.5">
@@ -6741,7 +6741,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           value={formNoticia.imagen_url}
                           onChange={(e) => setFormNoticia({ ...formNoticia, imagen_url: e.target.value })}
                           placeholder="URL pública de la imagen o afiche..."
-                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                         />
                       </div>
 
@@ -6750,12 +6750,12 @@ export default function PortalFacultadCienciasMatematicas() {
                         <label className="text-xs font-bold text-[#002855] dark:text-slate-200">
                           Contenido Estructurado de la Noticia (Usa los botones para ordenar el texto) *
                         </label>
-                        <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-slate-100 border border-slate-300">
+                        <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800">
                           <button
                             type="button"
                             onClick={() => insertarFormatoNoticia("bold")}
                             title="Negrita (**texto**)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Bold className="w-3.5 h-3.5" /> <span>Negrita</span>
                           </button>
@@ -6763,7 +6763,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             type="button"
                             onClick={() => insertarFormatoNoticia("italic")}
                             title="Cursiva (*texto*)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Italic className="w-3.5 h-3.5" /> <span>Cursiva</span>
                           </button>
@@ -6771,7 +6771,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             type="button"
                             onClick={() => insertarFormatoNoticia("h2")}
                             title="Subtítulo (## Título)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Heading2 className="w-3.5 h-3.5" /> <span>Subtítulo</span>
                           </button>
@@ -6779,7 +6779,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             type="button"
                             onClick={() => insertarFormatoNoticia("ul")}
                             title="Lista con viñetas (- item)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <List className="w-3.5 h-3.5" /> <span>Viñetas</span>
                           </button>
@@ -6787,7 +6787,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             type="button"
                             onClick={() => insertarFormatoNoticia("ol")}
                             title="Lista numerada (1. item)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <ListOrdered className="w-3.5 h-3.5" /> <span>Numerada</span>
                           </button>
@@ -6795,7 +6795,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             type="button"
                             onClick={() => insertarFormatoNoticia("link")}
                             title="Insertar enlace ([Texto](https://...))"
-                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Link2 className="w-3.5 h-3.5" /> <span>Enlace</span>
                           </button>
@@ -6803,7 +6803,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             type="button"
                             onClick={() => insertarFormatoNoticia("quote")}
                             title="Recuadro destacado (> Nota)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Quote className="w-3.5 h-3.5" /> <span>Destacado</span>
                           </button>
@@ -6811,7 +6811,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             type="button"
                             onClick={() => insertarFormatoNoticia("hr")}
                             title="Separador (---)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#002855] hover:text-white border border-slate-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Minus className="w-3.5 h-3.5" /> <span>Separador</span>
                           </button>
@@ -6824,13 +6824,13 @@ export default function PortalFacultadCienciasMatematicas() {
                           value={formNoticia.contenido}
                           onChange={(e) => setFormNoticia({ ...formNoticia, contenido: e.target.value })}
                           placeholder="Escribe aquí el cuerpo de la noticia. Usa saltos de línea, ## para subtítulos, - para listas y **negrita**..."
-                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-3 text-xs font-mono leading-relaxed"
+                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3.5 py-3 text-xs font-mono leading-relaxed focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                         />
                       </div>
 
                       {/* Campos opcionales ordenados para Eventos / Convocatorias */}
-                      <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-3">
-                        <p className="text-xs font-bold text-[#002855]">
+                      <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-slate-900/60 border border-blue-200 dark:border-slate-800 space-y-3">
+                        <p className="text-xs font-bold text-[#002855] dark:text-blue-300">
                           📌 Ficha Rápida del Evento / Convocatoria (Opcional)
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -6839,28 +6839,28 @@ export default function PortalFacultadCienciasMatematicas() {
                             value={formNoticia.fecha_evento}
                             onChange={(e) => setFormNoticia({ ...formNoticia, fecha_evento: e.target.value })}
                             placeholder="Fecha / Hora del evento (ej. Sáb. 07 Nov - 9:00 a.m.)"
-                            className="rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                            className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                           />
                           <input
                             type="text"
                             value={formNoticia.lugar}
                             onChange={(e) => setFormNoticia({ ...formNoticia, lugar: e.target.value })}
                             placeholder="Lugar / Aula (ej. Auditorio FCM / FISI)"
-                            className="rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                            className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                           />
                           <input
                             type="text"
                             value={formNoticia.modalidad}
                             onChange={(e) => setFormNoticia({ ...formNoticia, modalidad: e.target.value })}
                             placeholder="Modalidad (ej. Presencial / Equipos de 3)"
-                            className="rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                            className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                           />
                           <input
                             type="text"
                             value={formNoticia.dirigido_a}
                             onChange={(e) => setFormNoticia({ ...formNoticia, dirigido_a: e.target.value })}
                             placeholder="Dirigido a (ej. Estudiantes de Pregrado)"
-                            className="rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                            className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                           />
                         </div>
                         <input
@@ -6868,7 +6868,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           value={formNoticia.enlace_inscripcion}
                           onChange={(e) => setFormNoticia({ ...formNoticia, enlace_inscripcion: e.target.value })}
                           placeholder="URL de Inscripción o Bases Oficiales (https://forms.gle/...)"
-                          className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                         />
                       </div>
 
@@ -6970,12 +6970,12 @@ export default function PortalFacultadCienciasMatematicas() {
                                 value={formNoticia.fondo_imagen_url || ""}
                                 onChange={(e) => setFormNoticia({ ...formNoticia, fondo_imagen_url: e.target.value })}
                                 placeholder="URL de imagen de fondo (https://...)"
-                                className="flex-1 rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs"
+                                className="flex-1 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                               />
                               <button
                                 type="button"
                                 onClick={() => inputFondoNoticiaRef.current?.click()}
-                                className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#002855] text-xs font-bold cursor-pointer flex items-center gap-1.5 border border-slate-300 shrink-0"
+                                className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#002855] dark:text-blue-300 text-xs font-bold cursor-pointer flex items-center gap-1.5 border border-slate-300 dark:border-slate-700 shrink-0"
                               >
                                 <Upload className="w-3.5 h-3.5" />
                                 <span>Subir Foto</span>
@@ -6990,7 +6990,7 @@ export default function PortalFacultadCienciasMatematicas() {
                             </div>
 
                             {formNoticia.fondo_imagen_url && (
-                              <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-3">
+                              <div className="p-3 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
                                 {/* Control de Difuminado */}
                                 <div className="space-y-1">
                                   <div className="flex justify-between text-xs font-bold text-slate-700">
@@ -7049,7 +7049,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         Destacar como &ldquo;Importante&rdquo;
                       </label>
 
-                      <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer">
+                      <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] dark:bg-red-700 hover:bg-blue-900 dark:hover:bg-red-800 text-white text-xs font-bold cursor-pointer transition-colors shadow-xs">
                         {formNoticia.id ? "Guardar Cambios en Supabase" : "Publicar Noticia en Supabase"}
                       </button>
                     </form>
@@ -7224,7 +7224,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <select
                         value={formDocente.grado_academico}
                         onChange={(e) => setFormDocente({ ...formDocente, grado_academico: e.target.value as Docente["grado_academico"] })}
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs font-bold"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs font-bold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       >
                         <option value="Dr.">Dr.</option>
                         <option value="Dra.">Dra.</option>
@@ -7237,7 +7237,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         value={formDocente.nombre_completo}
                         onChange={(e) => setFormDocente({ ...formDocente, nombre_completo: e.target.value })}
                         placeholder="Apellidos y Nombres *"
-                        className="col-span-2 rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs font-bold"
+                        className="col-span-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs font-bold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
                     </div>
 
@@ -7245,7 +7245,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <select
                         value={formDocente.carrera_id}
                         onChange={(e) => setFormDocente({ ...formDocente, carrera_id: e.target.value as CarreraId })}
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-2.5 py-2 text-xs font-semibold"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-2 text-xs font-semibold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       >
                         {carreras.map((c) => (
                           <option key={c.id} value={c.id}>{c.nombre}</option>
@@ -7254,7 +7254,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <select
                         value={formDocente.categoria_docente}
                         onChange={(e) => setFormDocente({ ...formDocente, categoria_docente: e.target.value as Docente["categoria_docente"] })}
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-2.5 py-2 text-xs font-semibold"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-2 text-xs font-semibold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       >
                         <option value="Principal">Principal</option>
                         <option value="Asociado">Asociado</option>
@@ -7263,7 +7263,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <select
                         value={formDocente.condicion}
                         onChange={(e) => setFormDocente({ ...formDocente, condicion: e.target.value as Docente["condicion"] })}
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-2.5 py-2 text-xs font-semibold"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-2 text-xs font-semibold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       >
                         <option value="Nombrado">Nombrado</option>
                         <option value="Contratado">Contratado</option>
@@ -7287,7 +7287,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         value={formDocente.foto_url}
                         onChange={(e) => setFormDocente({ ...formDocente, foto_url: e.target.value })}
                         placeholder="URL de la foto (Supabase Storage o externa)..."
-                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
                     </div>
 
@@ -7297,7 +7297,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       value={formDocente.especialidad}
                       onChange={(e) => setFormDocente({ ...formDocente, especialidad: e.target.value })}
                       placeholder="Especialidad principal (ej. Optimización Convexa, Deep Learning) *"
-                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                     />
 
                     <textarea
@@ -7305,7 +7305,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       value={formDocente.lineas_investigacion}
                       onChange={(e) => setFormDocente({ ...formDocente, lineas_investigacion: e.target.value })}
                       placeholder="Líneas de investigación activas..."
-                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                     />
 
                     <input
@@ -7313,7 +7313,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       value={formDocente.cursos_dictados_texto}
                       onChange={(e) => setFormDocente({ ...formDocente, cursos_dictados_texto: e.target.value })}
                       placeholder="Cursos que dicta separados por coma (ej. CS113 - POO II, AI264 - Deep Learning)"
-                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                     />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -7322,14 +7322,14 @@ export default function PortalFacultadCienciasMatematicas() {
                         value={formDocente.correo}
                         onChange={(e) => setFormDocente({ ...formDocente, correo: e.target.value })}
                         placeholder="Correo (@unmsm.edu.pe)"
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
                       <input
                         type="text"
                         value={formDocente.horario_asesoria}
                         onChange={(e) => setFormDocente({ ...formDocente, horario_asesoria: e.target.value })}
                         placeholder="Horario de asesoría"
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
                     </div>
 
@@ -7339,32 +7339,32 @@ export default function PortalFacultadCienciasMatematicas() {
                         value={formDocente.cti_vitae_url}
                         onChange={(e) => setFormDocente({ ...formDocente, cti_vitae_url: e.target.value })}
                         placeholder="URL CTI Vitae (CONCYTEC)"
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
                       <input
                         type="url"
                         value={formDocente.orcid_url}
                         onChange={(e) => setFormDocente({ ...formDocente, orcid_url: e.target.value })}
                         placeholder="URL ORCID"
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
                       <input
                         type="url"
                         value={formDocente.google_scholar_url}
                         onChange={(e) => setFormDocente({ ...formDocente, google_scholar_url: e.target.value })}
                         placeholder="URL Google Scholar"
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
                       <input
                         type="url"
                         value={formDocente.linkedin_url}
                         onChange={(e) => setFormDocente({ ...formDocente, linkedin_url: e.target.value })}
                         placeholder="URL LinkedIn"
-                        className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       />
                     </div>
 
-                    <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer">
+                    <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] dark:bg-red-700 hover:bg-blue-900 dark:hover:bg-red-800 text-white text-xs font-bold cursor-pointer transition-colors shadow-xs">
                       {formDocente.id ? "Guardar Cambios del Docente" : "Registrar Docente en Supabase"}
                     </button>
                   </form>
@@ -7457,7 +7457,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <select
                         value={categoriaNuevaImagen}
                         onChange={(e) => setCategoriaNuevaImagen(e.target.value as typeof categoriaNuevaImagen)}
-                        className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold"
+                        className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                       >
                         <option value="Logo Institucional">Logo Institucional Transparente (Navbar)</option>
                         <option value="Fondo Hero Home">Fondo Difuminado para el Hero del Home</option>
@@ -7517,20 +7517,20 @@ export default function PortalFacultadCienciasMatematicas() {
 
                       {/* URL de la imagen */}
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-700">URL de la Imagen de Fondo:</label>
+                        <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">URL de la Imagen de Fondo:</label>
                         <input
                           type="url"
                           value={heroBgInputUrl}
                           onChange={(e) => setHeroBgInputUrl(e.target.value)}
                           placeholder="Pega aquí la URL de la imagen de fondo para el Hero..."
-                          className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                          className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
                         />
                       </div>
 
                       {/* Control Deslizante 1: Nivel de Difuminado (Blur en px) */}
-                      <div className="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <div className="space-y-1.5 bg-slate-50 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#002855]">1. Nivel de Difuminado (Desenfoque):</span>
+                          <span className="font-bold text-[#002855] dark:text-blue-300">1. Nivel de Difuminado (Desenfoque):</span>
                           <span className="px-2 py-0.5 rounded-md bg-[#002855] text-white font-mono text-[11px] font-bold">
                             {heroBlur} px {heroBlur === 0 ? "(Nítido)" : heroBlur <= 1.5 ? "(Sutil)" : "(Intenso)"}
                           </span>
@@ -7544,7 +7544,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           onChange={(e) => setHeroBlur(Number(e.target.value))}
                           className="w-full accent-[#002855] cursor-pointer"
                         />
-                        <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
+                        <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
                           <span>0px (Sin blur)</span>
                           <span>1px (Recomendado)</span>
                           <span>4px (Medio)</span>
@@ -7553,9 +7553,9 @@ export default function PortalFacultadCienciasMatematicas() {
                       </div>
 
                       {/* Control Deslizante 2: Porcentaje de Opacidad de la Capa */}
-                      <div className="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <div className="space-y-1.5 bg-slate-50 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#002855]">2. Opacidad / Oscuridad del Fondo:</span>
+                          <span className="font-bold text-[#002855] dark:text-blue-300">2. Opacidad / Oscuridad del Fondo:</span>
                           <span className="px-2 py-0.5 rounded-md bg-red-700 text-white font-mono text-[11px] font-bold">
                             {heroOverlayOpacity}%
                           </span>
@@ -7569,7 +7569,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           onChange={(e) => setHeroOverlayOpacity(Number(e.target.value))}
                           className="w-full accent-red-700 cursor-pointer"
                         />
-                        <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
+                        <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
                           <span>0% (Imagen 100% libre)</span>
                           <span>45% (Equilibrado)</span>
                           <span>90% (Muy oscuro)</span>
@@ -7577,10 +7577,10 @@ export default function PortalFacultadCienciasMatematicas() {
                       </div>
 
                       {/* Selector 3: Color de la Capa (Normal Neutro, Negro, Gris, Azul o Libre) */}
-                      <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <div className="space-y-2 bg-slate-50 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#002855]">3. Color del Filtro / Capa:</span>
-                          <span className="font-mono text-[11px] font-bold text-slate-600">{heroOverlayColor}</span>
+                          <span className="font-bold text-[#002855] dark:text-blue-300">3. Color del Filtro / Capa:</span>
+                          <span className="font-mono text-[11px] font-bold text-slate-600 dark:text-slate-400">{heroOverlayColor}</span>
                         </div>
                         <div className="grid grid-cols-2 gap-1.5">
                           {[
@@ -7595,12 +7595,12 @@ export default function PortalFacultadCienciasMatematicas() {
                               onClick={() => setHeroOverlayColor(preset.hex)}
                               className={`px-2.5 py-2 rounded-lg text-[11px] font-bold flex items-center gap-2 border transition-all cursor-pointer ${
                                 heroOverlayColor.toLowerCase() === preset.hex.toLowerCase()
-                                  ? "border-[#002855] bg-blue-50 text-[#002855] ring-2 ring-[#002855]/20"
-                                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                                  ? "border-[#002855] dark:border-blue-400 bg-blue-50 dark:bg-blue-950/60 text-[#002855] dark:text-blue-300 ring-2 ring-[#002855]/20 dark:ring-blue-400/20"
+                                  : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                               }`}
                             >
                               <span
-                                className="w-3.5 h-3.5 rounded-full border border-white shadow-xs shrink-0"
+                                className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-xs shrink-0"
                                 style={{ backgroundColor: preset.hex }}
                               />
                               <span className="truncate">{preset.label}</span>
@@ -7608,12 +7608,12 @@ export default function PortalFacultadCienciasMatematicas() {
                           ))}
                         </div>
                         <div className="flex items-center justify-between pt-1">
-                          <span className="text-[11px] font-semibold text-slate-600">O elige un color personalizado:</span>
+                          <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">O elige un color personalizado:</span>
                           <input
                             type="color"
                             value={heroOverlayColor}
                             onChange={(e) => setHeroOverlayColor(e.target.value)}
-                            className="w-9 h-7 rounded cursor-pointer border border-slate-300 bg-white p-0.5"
+                            className="w-9 h-7 rounded cursor-pointer border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-0.5"
                           />
                         </div>
                       </div>
@@ -7624,14 +7624,14 @@ export default function PortalFacultadCienciasMatematicas() {
                           onClick={() =>
                             handleUsarComoFondoHero(heroBgInputUrl, heroBlur, heroOverlayOpacity, heroOverlayColor)
                           }
-                          className="flex-1 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer shadow-xs"
+                          className="flex-1 py-2.5 rounded-xl bg-[#002855] dark:bg-red-700 hover:bg-blue-900 dark:hover:bg-red-800 text-white text-xs font-bold cursor-pointer shadow-xs transition-colors"
                         >
                           Guardar Personalización del Banner
                         </button>
                         <button
                           type="button"
                           onClick={() => handleUsarComoFondoHero(HERO_BG_DEFAULT, 1, 45, "#0f172a")}
-                          className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
+                          className="px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer transition-colors"
                         >
                           Restaurar
                         </button>
