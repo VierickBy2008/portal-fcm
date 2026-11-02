@@ -341,14 +341,14 @@ function renderTextoEnriquecidoLinea(texto: string, keyPrefix: string): React.Re
     }
     if (parte.startsWith("**") && parte.endsWith("**") && parte.length > 4) {
       return (
-        <strong key={key} className="font-bold text-slate-900">
+        <strong key={key} className="font-bold text-slate-900 dark:text-white">
           {parte.slice(2, -2)}
         </strong>
       );
     }
     if (parte.startsWith("*") && parte.endsWith("*") && parte.length > 2) {
       return (
-        <em key={key} className="italic text-slate-800">
+        <em key={key} className="italic text-slate-800 dark:text-slate-200">
           {parte.slice(1, -1)}
         </em>
       );
@@ -376,7 +376,7 @@ function renderizarContenidoNoticia(contenido: string): React.ReactNode {
   const vaciarListas = (keyBase: string) => {
     if (listaViñetasActual.length > 0) {
       elementos.push(
-        <ul key={`${keyBase}-ul`} className="list-disc pl-6 space-y-2 text-slate-700 my-3">
+        <ul key={`${keyBase}-ul`} className="list-disc pl-6 space-y-2 text-slate-700 dark:text-slate-300 my-3">
           {listaViñetasActual.map((item, i) => (
             <li key={`${keyBase}-ul-${i}`} className="leading-relaxed">
               {renderTextoEnriquecidoLinea(item, `${keyBase}-uli-${i}`)}
@@ -388,7 +388,7 @@ function renderizarContenidoNoticia(contenido: string): React.ReactNode {
     }
     if (listaNumeradaActual.length > 0) {
       elementos.push(
-        <ol key={`${keyBase}-ol`} className="list-decimal pl-6 space-y-2 text-slate-700 my-3">
+        <ol key={`${keyBase}-ol`} className="list-decimal pl-6 space-y-2 text-slate-700 dark:text-slate-300 my-3">
           {listaNumeradaActual.map((item, i) => (
             <li key={`${keyBase}-ol-${i}`} className="leading-relaxed">
               {renderTextoEnriquecidoLinea(item, `${keyBase}-oli-${i}`)}
@@ -436,7 +436,7 @@ function renderizarContenidoNoticia(contenido: string): React.ReactNode {
       elementos.push(
         <blockquote
           key={key}
-          className="my-4 border-l-4 border-red-700 bg-blue-50/70 px-4 py-3.5 rounded-r-2xl text-slate-800 text-xs sm:text-sm font-medium leading-relaxed"
+          className="my-4 border-l-4 border-red-700 bg-blue-50/70 dark:bg-slate-800/60 px-4 py-3.5 rounded-r-2xl text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-medium leading-relaxed"
         >
           {renderTextoEnriquecidoLinea(linea.slice(2), key)}
         </blockquote>
@@ -457,7 +457,7 @@ function renderizarContenidoNoticia(contenido: string): React.ReactNode {
 
     vaciarListas(key);
     elementos.push(
-      <p key={key} className="text-slate-700 text-sm sm:text-base leading-relaxed my-3">
+      <p key={key} className="text-slate-700 dark:text-slate-200 text-sm sm:text-base leading-relaxed my-3">
         {renderTextoEnriquecidoLinea(linea, key)}
       </p>
     );
@@ -5368,7 +5368,7 @@ export default function PortalFacultadCienciasMatematicas() {
           </div>
 
           {/* Contenedor Principal del Artículo */}
-          <article className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+          <article className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             {/* Portada adaptable: muestra afiches verticales o banners completos sin recortarlos bruscamente */}
             <div className="relative bg-slate-950 flex items-center justify-center overflow-hidden min-h-[260px] max-h-[540px]">
               <img
@@ -5386,7 +5386,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
             <div className="p-6 sm:p-10">
               <div className="max-w-4xl mx-auto space-y-6">
-                <div className="space-y-3 border-b border-slate-200 pb-6">
+                <div className="space-y-3 border-b border-slate-200 dark:border-slate-800 pb-6">
                   <div className="flex flex-wrap items-center gap-2.5">
                     <span className="px-3 py-1 rounded-lg text-xs font-bold bg-[#002855] text-white">
                       {noticiaActiva.categoria}
@@ -5396,7 +5396,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         <Star className="w-3.5 h-3.5 fill-white" /> Destacado FCM
                       </span>
                     )}
-                    <span className="text-xs text-slate-500 font-semibold flex items-center gap-1.5 ml-auto">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5 ml-auto">
                       <Calendar className="w-4 h-4 text-red-700" />
                       {formatearFechaEspanol(noticiaActiva.fecha_publicacion)}
                     </span>
@@ -5407,7 +5407,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   </h1>
 
                   {noticiaActiva.resumen && (
-                    <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed">
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
                       {noticiaActiva.resumen}
                     </p>
                   )}
@@ -5434,9 +5434,9 @@ export default function PortalFacultadCienciasMatematicas() {
                     noticiaActiva.modalidad ||
                     noticiaActiva.dirigido_a ||
                     noticiaActiva.enlace_inscripcion) && (
-                    <aside className="lg:col-span-4 rounded-2xl bg-slate-50 border-2 border-[#002855]/15 p-5 space-y-4">
-                      <div className="border-b border-slate-200 pb-2.5">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-red-700">
+                    <aside className="lg:col-span-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border-2 border-[#002855]/15 dark:border-slate-800 p-5 space-y-4">
+                      <div className="border-b border-slate-200 dark:border-slate-800 pb-2.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
                           Ficha Oficial del Evento / Comunicado
                         </span>
                         <h3 className="text-sm font-bold text-[#002855] dark:text-white">Datos Clave</h3>
@@ -5445,37 +5445,37 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className="space-y-3 text-xs">
                         {noticiaActiva.fecha_evento && (
                           <div className="flex items-start gap-2.5">
-                            <Calendar className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                            <Calendar className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-bold text-slate-500 uppercase text-[10px]">Fecha / Cronograma</p>
-                              <p className="font-bold text-slate-900">{noticiaActiva.fecha_evento}</p>
+                              <p className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[10px]">Fecha / Cronograma</p>
+                              <p className="font-bold text-slate-900 dark:text-white">{noticiaActiva.fecha_evento}</p>
                             </div>
                           </div>
                         )}
                         {noticiaActiva.lugar && (
                           <div className="flex items-start gap-2.5">
-                            <MapPin className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                            <MapPin className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-bold text-slate-500 uppercase text-[10px]">Lugar / Sede</p>
-                              <p className="font-bold text-slate-900">{noticiaActiva.lugar}</p>
+                              <p className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[10px]">Lugar / Sede</p>
+                              <p className="font-bold text-slate-900 dark:text-white">{noticiaActiva.lugar}</p>
                             </div>
                           </div>
                         )}
                         {noticiaActiva.modalidad && (
                           <div className="flex items-start gap-2.5">
-                            <Globe className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                            <Globe className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-bold text-slate-500 uppercase text-[10px]">Modalidad</p>
-                              <p className="font-bold text-slate-900">{noticiaActiva.modalidad}</p>
+                              <p className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[10px]">Modalidad</p>
+                              <p className="font-bold text-slate-900 dark:text-white">{noticiaActiva.modalidad}</p>
                             </div>
                           </div>
                         )}
                         {noticiaActiva.dirigido_a && (
                           <div className="flex items-start gap-2.5">
-                            <Users className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                            <Users className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-bold text-slate-500 uppercase text-[10px]">Dirigido a</p>
-                              <p className="font-bold text-slate-900">{noticiaActiva.dirigido_a}</p>
+                              <p className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[10px]">Dirigido a</p>
+                              <p className="font-bold text-slate-900 dark:text-white">{noticiaActiva.dirigido_a}</p>
                             </div>
                           </div>
                         )}
@@ -5520,21 +5520,21 @@ export default function PortalFacultadCienciasMatematicas() {
                     <div
                       key={rel.id}
                       onClick={() => abrirNoticiaDetalle(rel.id)}
-                      className="group rounded-2xl border border-slate-200 bg-white hover:border-[#002855] overflow-hidden shadow-xs hover:shadow-md cursor-pointer transition-all flex flex-col justify-between"
+                      className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-red-600 dark:hover:border-red-500 overflow-hidden shadow-xs hover:shadow-md cursor-pointer transition-all flex flex-col justify-between"
                     >
                       <div>
                         <div className="h-36 bg-slate-900 overflow-hidden">
                           <img src={rel.imagen_url} alt={rel.titulo} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform" />
                         </div>
                         <div className="p-4 space-y-1.5">
-                          <span className="text-[10px] font-bold uppercase text-red-700">{rel.categoria}</span>
-                          <h3 className="text-xs sm:text-sm font-bold text-[#002855] dark:text-white group-hover:text-red-700 line-clamp-2">
+                          <span className="text-[10px] font-bold uppercase text-red-700 dark:text-red-400">{rel.categoria}</span>
+                          <h3 className="text-xs sm:text-sm font-bold text-[#002855] dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 line-clamp-2">
                             {rel.titulo}
                           </h3>
                         </div>
                       </div>
-                      <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-[#002855]">
-                        <span>{rel.fecha_publicacion}</span>
+                      <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-bold text-[#002855] dark:text-blue-300">
+                        <span className="text-slate-500 dark:text-slate-400">{rel.fecha_publicacion}</span>
                         <span>Leer →</span>
                       </div>
                     </div>
@@ -5784,17 +5784,17 @@ export default function PortalFacultadCienciasMatematicas() {
                                 <div className="flex items-center justify-between gap-2">
                                   <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded border ${temaActivo.badgeSoft}`}>{cur.codigo}</span>
                                   <div className="flex items-center gap-1.5">
-                                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${cur.tipo_curso === "O" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700 border border-slate-300"}`}>
+                                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${cur.tipo_curso === "O" ? "bg-slate-900 text-white dark:bg-slate-800 dark:text-slate-100 dark:border dark:border-slate-700" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700"}`}>
                                       {cur.tipo_curso === "O" ? "Obligatorio" : "Electivo"}
                                     </span>
-                                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800">{cur.creditos.toFixed(1)} cr.</span>
+                                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">{cur.creditos.toFixed(1)} cr.</span>
                                   </div>
                                 </div>
-                                <h4 className="font-bold text-xs sm:text-sm text-slate-900 leading-snug">{cur.nombre_curso}</h4>
+                                <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">{cur.nombre_curso}</h4>
                               </div>
-                              <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                                <span className="text-slate-600">
-                                  Pre-req: <strong className="text-slate-900 font-mono">{cur.prerequisitos.length > 0 ? cur.prerequisitos.join(", ") : "Ninguno"}</strong>
+                              <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                                <span className="text-slate-600 dark:text-slate-400">
+                                  Pre-req: <strong className="text-slate-900 dark:text-slate-200 font-mono">{cur.prerequisitos.length > 0 ? cur.prerequisitos.join(", ") : "Ninguno"}</strong>
                                 </span>
                                 <button
                                   onClick={() => {
@@ -5822,19 +5822,19 @@ export default function PortalFacultadCienciasMatematicas() {
                   const cursosCiclo = cursosDeCarreraActiva.filter((c) => c.ciclo === numCiclo);
                   const totalCred = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
                   return (
-                    <div key={numCiclo} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+                    <div key={numCiclo} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden flex flex-col">
                       <div className={`${temaActivo.cycleBtn} text-white px-4 py-2.5 flex items-center justify-between border-b-2 ${temaActivo.borderAccent}`}>
                         <span className="text-xs font-bold">CICLO {numCiclo}</span>
                         <span className="text-[11px] font-mono text-white/90">{totalCred.toFixed(0)} cr.</span>
                       </div>
-                      <div className="p-3 space-y-2.5 flex-1 bg-slate-50/50">
+                      <div className="p-3 space-y-2.5 flex-1 bg-slate-50/50 dark:bg-slate-950/40">
                         {cursosCiclo.map((cur) => (
-                          <div key={cur.id} className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-1">
+                          <div key={cur.id} className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-xs space-y-1">
                             <div className="flex items-center justify-between text-[10px]">
                               <span className={`font-mono font-bold ${temaActivo.textAccent}`}>{cur.codigo}</span>
-                              <span className="font-semibold text-slate-600">{cur.creditos.toFixed(1)} cr.</span>
+                              <span className="font-semibold text-slate-600 dark:text-slate-400">{cur.creditos.toFixed(1)} cr.</span>
                             </div>
-                            <p className="text-xs font-bold text-slate-900 leading-tight">{cur.nombre_curso}</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{cur.nombre_curso}</p>
                           </div>
                         ))}
                       </div>
@@ -6096,7 +6096,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
             <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
               <FileText className="w-4 h-4 text-red-700 dark:text-red-400" />
-              <span>188 Documentos Normativos Registrados</span>
+              <span>{documentosTransparencia.length} Documentos Normativos Registrados</span>
             </div>
           </div>
 
@@ -6121,14 +6121,14 @@ export default function PortalFacultadCienciasMatematicas() {
               {/* Tarjeta de Estadísticas y Resumen Oficial (Imagen 5) */}
               <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 shrink-0 grid grid-cols-2 gap-4 text-center min-w-[280px]">
                 <div className="border-r border-white/15 pr-3">
-                  <span className="text-3xl font-extrabold text-white block">188</span>
+                  <span className="text-3xl font-extrabold text-white block">{documentosTransparencia.length}</span>
                   <span className="text-[11px] font-bold text-red-300 uppercase tracking-wider block mt-0.5">
                     Docs Oficiales
                   </span>
                   <span className="text-[10px] text-blue-200 block mt-1">Digitalizados PDF</span>
                 </div>
                 <div className="pl-3">
-                  <span className="text-3xl font-extrabold text-amber-400 block">8</span>
+                  <span className="text-3xl font-extrabold text-amber-400 block">{new Set(documentosTransparencia.map((d) => d.categoria)).size || 1}</span>
                   <span className="text-[11px] font-bold text-blue-200 uppercase tracking-wider block mt-0.5">
                     Categorías
                   </span>
@@ -6552,33 +6552,33 @@ export default function PortalFacultadCienciasMatematicas() {
 
               {tabAdmin === "dashboard" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div onClick={() => setTabAdmin("carreras_cms")} className="rounded-2xl border-2 border-blue-200 bg-white p-5 cursor-pointer hover:border-[#002855]">
-                    <p className="text-xs text-[#002855] font-bold uppercase">Gestión de Carreras</p>
-                    <p className="text-3xl font-bold text-[#002855] mt-2">4 Escuelas</p>
+                  <div onClick={() => setTabAdmin("carreras_cms")} className="rounded-2xl border-2 border-blue-200 dark:border-blue-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-[#002855] dark:hover:border-blue-400 transition-all">
+                    <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">Gestión de Carreras</p>
+                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">4 Escuelas</p>
                   </div>
-                  <div onClick={() => setTabAdmin("noticias")} className="rounded-2xl border-2 border-red-200 bg-white p-5 cursor-pointer hover:border-red-600">
-                    <p className="text-xs text-red-700 font-bold uppercase">Noticias Activas</p>
-                    <p className="text-3xl font-bold text-[#002855] mt-2">{noticias.length}</p>
+                  <div onClick={() => setTabAdmin("noticias")} className="rounded-2xl border-2 border-red-200 dark:border-red-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-red-600 dark:hover:border-red-400 transition-all">
+                    <p className="text-xs text-red-700 dark:text-red-400 font-bold uppercase">Noticias Activas</p>
+                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{noticias.length}</p>
                   </div>
-                  <div onClick={() => setTabAdmin("docentes_cms")} className="rounded-2xl border-2 border-emerald-200 bg-white p-5 cursor-pointer hover:border-emerald-700">
-                    <p className="text-xs text-emerald-700 font-bold uppercase">Plana Docente</p>
-                    <p className="text-3xl font-bold text-[#002855] mt-2">{docentes.length}</p>
+                  <div onClick={() => setTabAdmin("docentes_cms")} className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-emerald-700 dark:hover:border-emerald-400 transition-all">
+                    <p className="text-xs text-emerald-700 dark:text-emerald-400 font-bold uppercase">Plana Docente</p>
+                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{docentes.length}</p>
                   </div>
-                  <div onClick={() => setTabAdmin("moderacion")} className="rounded-2xl border border-slate-200 bg-white p-5 cursor-pointer hover:border-[#002855]">
-                    <p className="text-xs text-[#002855] font-bold uppercase">Archivos Pendientes</p>
-                    <p className="text-3xl font-bold text-[#002855] mt-2">{materialesPendientes.length}</p>
+                  <div onClick={() => setTabAdmin("moderacion")} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-[#002855] dark:hover:border-blue-400 transition-all">
+                    <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">Archivos Pendientes</p>
+                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{materialesPendientes.length}</p>
                   </div>
-                  <div onClick={() => setTabAdmin("storage")} className="rounded-2xl border border-slate-200 bg-white p-5 cursor-pointer hover:border-[#002855]">
-                    <p className="text-xs text-[#002855] font-bold uppercase">Supabase Storage & Logo</p>
-                    <p className="text-3xl font-bold text-[#002855] mt-2">{imagenesStorage.length}</p>
+                  <div onClick={() => setTabAdmin("storage")} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-[#002855] dark:hover:border-blue-400 transition-all">
+                    <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">Supabase Storage & Logo</p>
+                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{imagenesStorage.length}</p>
                   </div>
                 </div>
               )}
 
               {tabAdmin === "carreras_cms" && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 space-y-5">
-                    <h3 className="text-lg font-bold text-[#002855] dark:text-white border-b border-slate-200 pb-3">
+                  <div className="lg:col-span-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-5">
+                    <h3 className="text-lg font-bold text-[#002855] dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3">
                       Actualizar Imagen Referencial, Tríptico y Póster de Estudios por Carrera
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -6587,7 +6587,7 @@ export default function PortalFacultadCienciasMatematicas() {
                           key={c.id}
                           type="button"
                           onClick={() => handleSeleccionarCarreraEnAdmin(c.id)}
-                          className={`px-3 py-2.5 rounded-xl text-xs font-bold border ${adminCarreraEditId === c.id ? "bg-[#002855] text-white border-[#002855]" : "bg-slate-50 text-slate-700 border-slate-300"}`}
+                          className={`px-3 py-2.5 rounded-xl text-xs font-bold border transition-colors ${adminCarreraEditId === c.id ? "bg-[#002855] text-white border-[#002855] dark:bg-blue-600 dark:border-blue-600" : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700"}`}
                         >
                           {c.nombre}
                         </button>
@@ -6595,54 +6595,54 @@ export default function PortalFacultadCienciasMatematicas() {
                     </div>
 
                     <form onSubmit={handleGuardarDatosCarreraAdmin} className="space-y-5">
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
                         <div className="flex items-center justify-between">
                           <label className="text-xs font-bold text-[#002855] dark:text-slate-200">Imagen Referencial de {carreraAdminSeleccionada.nombre}</label>
-                          <button type="button" onClick={() => inputImagenCarreraRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
+                          <button type="button" onClick={() => inputImagenCarreraRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] hover:bg-blue-900 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
                             <Upload className="w-3.5 h-3.5" /> {subiendoAssetCarrera ? "Subiendo..." : "Subir Imagen (Storage)"}
                           </button>
                           <input ref={inputImagenCarreraRef} type="file" accept="image/*" onChange={handleSubirImagenCarreraStorage} className="hidden" />
                         </div>
-                        <input type="url" value={urlImagenCarreraInput} onChange={(e) => setUrlImagenCarreraInput(e.target.value)} placeholder="URL pública de la imagen referencial..." className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs" />
+                        <input type="url" value={urlImagenCarreraInput} onChange={(e) => setUrlImagenCarreraInput(e.target.value)} placeholder="URL pública de la imagen referencial..." className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white" />
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-red-50/40 border border-red-200 space-y-3">
+                      <div className="p-4 rounded-2xl bg-red-50/40 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold text-red-800">Archivo PDF del Tríptico de {carreraAdminSeleccionada.nombre}</label>
-                          <button type="button" onClick={() => inputTripticoPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-red-700 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
+                          <label className="text-xs font-bold text-red-800 dark:text-red-300">Archivo PDF del Tríptico de {carreraAdminSeleccionada.nombre}</label>
+                          <button type="button" onClick={() => inputTripticoPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-red-700 hover:bg-red-800 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
                             <Upload className="w-3.5 h-3.5" /> Subir PDF (Storage)
                           </button>
                           <input ref={inputTripticoPdfRef} type="file" accept="application/pdf" onChange={handleSubirTripticoPdfStorage} className="hidden" />
                         </div>
-                        <input type="url" value={urlTripticoCarreraInput} onChange={(e) => setUrlTripticoCarreraInput(e.target.value)} placeholder="URL del PDF del Tríptico en Supabase Storage..." className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs" />
+                        <input type="url" value={urlTripticoCarreraInput} onChange={(e) => setUrlTripticoCarreraInput(e.target.value)} placeholder="URL del PDF del Tríptico en Supabase Storage..." className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white" />
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-blue-50/40 border border-blue-200 space-y-3">
+                      <div className="p-4 rounded-2xl bg-blue-50/40 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold text-blue-900">Archivo PDF del Póster de Estudios de {carreraAdminSeleccionada.nombre}</label>
-                          <button type="button" onClick={() => inputPosterPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
+                          <label className="text-xs font-bold text-blue-900 dark:text-blue-300">Archivo PDF del Póster de Estudios de {carreraAdminSeleccionada.nombre}</label>
+                          <button type="button" onClick={() => inputPosterPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] hover:bg-blue-900 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
                             <Upload className="w-3.5 h-3.5" /> Subir PDF (Storage)
                           </button>
                           <input ref={inputPosterPdfRef} type="file" accept="application/pdf" onChange={handleSubirPosterPdfStorage} className="hidden" />
                         </div>
-                        <input type="url" value={urlPosterCarreraInput} onChange={(e) => setUrlPosterCarreraInput(e.target.value)} placeholder="URL del PDF del Póster en Supabase Storage..." className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs" />
+                        <input type="url" value={urlPosterCarreraInput} onChange={(e) => setUrlPosterCarreraInput(e.target.value)} placeholder="URL del PDF del Póster en Supabase Storage..." className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white" />
                       </div>
 
                       <div className="flex gap-3">
-                        <button type="submit" className="flex-1 py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold">
+                        <button type="submit" className="flex-1 py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer">
                           Guardar en Supabase ({carreraAdminSeleccionada.nombre})
                         </button>
-                        <button type="button" onClick={() => navegarACarrera(adminCarreraEditId)} className="px-4 py-3 rounded-xl bg-slate-100 text-xs font-bold text-[#002855]">
+                        <button type="button" onClick={() => navegarACarrera(adminCarreraEditId)} className="px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-[#002855] dark:text-blue-300 cursor-pointer">
                           Ver Carrera →
                         </button>
                       </div>
                     </form>
                   </div>
 
-                  <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 space-y-4 h-fit">
-                    <h4 className="text-xs font-bold uppercase text-slate-500">Vista Previa ({carreraAdminSeleccionada.nombre})</h4>
-                    <img src={carreraAdminSeleccionada.imagen_referencial_url} alt={carreraAdminSeleccionada.nombre} className="w-full h-60 object-cover rounded-xl shadow-md border border-slate-200" />
-                    <p className="text-xs text-slate-600">{carreraAdminSeleccionada.vision_carrera}</p>
+                  <div className="lg:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4 h-fit">
+                    <h4 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Vista Previa ({carreraAdminSeleccionada.nombre})</h4>
+                    <img src={carreraAdminSeleccionada.imagen_referencial_url} alt={carreraAdminSeleccionada.nombre} className="w-full h-60 object-cover rounded-xl shadow-md border border-slate-200 dark:border-slate-800" />
+                    <p className="text-xs text-slate-600 dark:text-slate-300">{carreraAdminSeleccionada.vision_carrera}</p>
                   </div>
                 </div>
               )}
@@ -6651,8 +6651,8 @@ export default function PortalFacultadCienciasMatematicas() {
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     {/* Columna Izquierda: Editor Enriquecido con Barra de Herramientas */}
-                    <form onSubmit={handleGuardarNoticia} className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <form onSubmit={handleGuardarNoticia} className="lg:col-span-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                         <h3 className="font-bold text-base text-[#002855] dark:text-white">
                           {formNoticia.id ? "✏️ Editar Noticia / Comunicado" : "➕ Publicar Nueva Noticia Estructurada"}
                         </h3>
@@ -7055,7 +7055,7 @@ export default function PortalFacultadCienciasMatematicas() {
                     </form>
 
                     {/* Columna Derecha: Vista Previa en Vivo */}
-                    <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs sticky top-20">
+                    <div className="lg:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs sticky top-20">
                       <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
                         <span className="text-xs font-bold uppercase tracking-wider">👁️ Vista Previa en Vivo</span>
                         <span className="text-[10px] font-mono text-blue-200">Así lo leerán los alumnos</span>
@@ -7091,9 +7091,9 @@ export default function PortalFacultadCienciasMatematicas() {
                     <h4 className="text-sm font-bold text-[#002855] dark:text-white">Noticias Publicadas ({noticias.length})</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {noticias.map((n) => (
-                        <div key={n.id} className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-4">
+                        <div key={n.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3.5">
-                            <img src={n.imagen_url} alt={n.titulo} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0" />
+                            <img src={n.imagen_url} alt={n.titulo} className="w-16 h-16 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
                             <div>
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span className="text-[11px] font-bold text-red-700">{n.categoria} • {n.fecha_publicacion}</span>
@@ -7185,8 +7185,8 @@ export default function PortalFacultadCienciasMatematicas() {
               {/* PESTAÑA CMS: GESTIÓN DE PLANA DOCENTE (CRUD COMPLETO + SUPABASE) */}
               {tabAdmin === "docentes_cms" && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  <form onSubmit={handleGuardarDocente} className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 space-y-3.5">
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                  <form onSubmit={handleGuardarDocente} className="lg:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3.5">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                       <h3 className="font-bold text-base text-[#002855] dark:text-white">
                         {formDocente.id ? "✏️ Editar Ficha de Docente" : "👨‍🏫 Registrar Docente en la Facultad"}
                       </h3>
@@ -7370,12 +7370,12 @@ export default function PortalFacultadCienciasMatematicas() {
                   </form>
 
                   <div className="lg:col-span-7 space-y-4">
-                    <div className="flex flex-wrap gap-2 bg-white border border-slate-200 p-3 rounded-2xl">
+                    <div className="flex flex-wrap gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
                       <button
                         type="button"
                         onClick={() => setAdminFiltroCarreraDocentes("TODAS")}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                          adminFiltroCarreraDocentes === "TODAS" ? "bg-[#002855] text-white" : "bg-slate-100 text-slate-700"
+                          adminFiltroCarreraDocentes === "TODAS" ? "bg-[#002855] text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                         }`}
                       >
                         Todas ({docentes.length})
@@ -7400,10 +7400,10 @@ export default function PortalFacultadCienciasMatematicas() {
                         .map((doc) => {
                           const temaD = TEMA_CARRERA[doc.carrera_id];
                           return (
-                            <div key={doc.id} className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-3">
+                            <div key={doc.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex items-center justify-between gap-3">
                               <div className="flex items-center gap-3 min-w-0">
                                 {doc.foto_url ? (
-                                  <img src={doc.foto_url} alt={doc.nombre_completo} className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0" />
+                                  <img src={doc.foto_url} alt={doc.nombre_completo} className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
                                 ) : (
                                   <div className={`w-14 h-14 rounded-xl ${temaD.headerBg} text-white font-bold text-sm flex items-center justify-center shrink-0`}>
                                     {obtenerInicialesDocente(doc.nombre_completo)}
@@ -7423,14 +7423,14 @@ export default function PortalFacultadCienciasMatematicas() {
                                 <button
                                   type="button"
                                   onClick={() => handleEditarDocenteEnAdmin(doc)}
-                                  className="p-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-[#002855] cursor-pointer"
+                                  className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 text-[#002855] dark:text-blue-300 cursor-pointer"
                                 >
                                   <Edit3 className="w-4 h-4" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleEliminarDocenteEnAdmin(doc.id)}
-                                  className="p-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-700 hover:text-white cursor-pointer"
+                                  className="p-2 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 hover:bg-red-700 hover:text-white cursor-pointer"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -7446,8 +7446,8 @@ export default function PortalFacultadCienciasMatematicas() {
               {tabAdmin === "storage" && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-5 space-y-6 h-fit">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-5">
-                      <div className="flex items-center gap-2.5 border-b border-slate-200 pb-3">
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-5">
+                      <div className="flex items-center gap-2.5 border-b border-slate-200 dark:border-slate-800 pb-3">
                         <ImageIcon className="w-5 h-5 text-red-700" />
                         <div>
                           <h3 className="font-bold text-sm text-[#002855] dark:text-white">Subir Imagen a Supabase Storage</h3>
@@ -7466,10 +7466,10 @@ export default function PortalFacultadCienciasMatematicas() {
                       </select>
                       <div
                         onClick={() => fileInputRef.current?.click()}
-                        className="rounded-2xl border-2 border-dashed border-blue-900/40 hover:border-red-600 bg-slate-50 p-6 text-center cursor-pointer space-y-2"
+                        className="rounded-2xl border-2 border-dashed border-blue-900/40 dark:border-blue-700/50 hover:border-red-600 dark:hover:border-red-500 bg-slate-50 dark:bg-slate-950/60 p-6 text-center cursor-pointer space-y-2"
                       >
-                        <Upload className="w-8 h-8 text-[#002855] mx-auto" />
-                        <p className="text-xs font-bold text-[#002855]">
+                        <Upload className="w-8 h-8 text-[#002855] dark:text-blue-300 mx-auto" />
+                        <p className="text-xs font-bold text-[#002855] dark:text-blue-300">
                           {subiendoStorage ? "Subiendo imagen..." : "Haz clic aquí para elegir una imagen de tu PC"}
                         </p>
                         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleSubirArchivoStorage} className="hidden" />
@@ -7477,8 +7477,8 @@ export default function PortalFacultadCienciasMatematicas() {
                     </div>
 
                     {/* Configuración directa del Fondo Difuminado, Opacidad y Color del Hero */}
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
-                      <div className="border-b border-slate-200 pb-2.5">
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
+                      <div className="border-b border-slate-200 dark:border-slate-800 pb-2.5">
                         <h3 className="font-bold text-sm text-[#002855] dark:text-white">
                           🖼️ Personalización del Fondo Hero (Difuminado, Opacidad y Color)
                         </h3>
@@ -7641,18 +7641,18 @@ export default function PortalFacultadCienciasMatematicas() {
 
                   <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 h-fit">
                     {imagenesStorage.map((img) => (
-                      <div key={img.id} className="rounded-2xl border border-slate-200 bg-white overflow-hidden flex flex-col justify-between">
+                      <div key={img.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex flex-col justify-between">
                         <div>
-                          <div className="relative h-36 bg-slate-100 border-b border-slate-200">
+                          <div className="relative h-36 bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
                             <img src={img.url_publica} alt={img.nombre_archivo} className="w-full h-full object-cover" />
                             <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded bg-[#002855] text-white text-[10px] font-bold">{img.categoria}</span>
                           </div>
                           <div className="p-3.5">
-                            <p className="text-xs font-bold text-[#002855] truncate">{img.nombre_archivo}</p>
-                            <p className="text-[10px] text-slate-400">{img.tamano_kb} • {img.fecha_subida}</p>
+                            <p className="text-xs font-bold text-[#002855] dark:text-white truncate">{img.nombre_archivo}</p>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500">{img.tamano_kb} • {img.fecha_subida}</p>
                           </div>
                         </div>
-                        <div className="p-3 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-1.5">
+                        <div className="p-3 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-1.5">
                           <button
                             type="button"
                             onClick={() => {
@@ -7668,14 +7668,14 @@ export default function PortalFacultadCienciasMatematicas() {
                           <button
                             type="button"
                             onClick={() => handleUsarComoFondoHero(img.url_publica)}
-                            className="py-1.5 px-2.5 rounded-lg bg-blue-100 hover:bg-[#002855] hover:text-white text-[#002855] text-[11px] font-bold transition-colors cursor-pointer"
+                            className="py-1.5 px-2.5 rounded-lg bg-blue-100 dark:bg-blue-950 hover:bg-[#002855] hover:text-white text-[#002855] dark:text-blue-300 text-[11px] font-bold transition-colors cursor-pointer"
                           >
                             Usar en Hero
                           </button>
                           <button
                             type="button"
                             onClick={() => handleUsarComoLogo(img.url_publica)}
-                            className="py-1.5 px-2.5 rounded-lg bg-slate-200 hover:bg-red-700 hover:text-white text-slate-800 text-[11px] font-bold transition-colors cursor-pointer"
+                            className="py-1.5 px-2.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-red-700 hover:text-white text-slate-800 dark:text-slate-200 text-[11px] font-bold transition-colors cursor-pointer"
                           >
                             Usar como Logo
                           </button>
@@ -7689,7 +7689,7 @@ export default function PortalFacultadCienciasMatematicas() {
               {tabAdmin === "moderacion" && (
                 <div className="space-y-8">
                   {/* SECCIÓN 1: MODERACIÓN DE RESEÑAS Y CALIFICACIONES DE DOCENTES */}
-                  <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
                     <div className="bg-[#002855] text-white px-5 py-4 flex flex-wrap items-center justify-between gap-2 border-b-2 border-red-700">
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
@@ -7711,7 +7711,7 @@ export default function PortalFacultadCienciasMatematicas() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse text-xs">
                           <thead>
-                            <tr className="bg-slate-100 text-slate-700 uppercase text-[10px] border-b border-slate-200">
+                            <tr className="bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
                               <th className="py-3 px-4">Docente Evaluado</th>
                               <th className="py-3 px-4">Calificación</th>
                               <th className="py-3 px-4">Curso / Autor</th>
@@ -7720,14 +7720,14 @@ export default function PortalFacultadCienciasMatematicas() {
                               <th className="py-3 px-4 text-right">Acciones</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-200">
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                             {resenasDocentes.map((resena) => {
                               const docInfo = docentes.find((d) => d.id === resena.docente_id);
                               return (
-                                <tr key={resena.id} className="hover:bg-slate-50/80">
-                                  <td className="py-3.5 px-4 font-bold text-[#002855]">
+                                <tr key={resena.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                                  <td className="py-3.5 px-4 font-bold text-[#002855] dark:text-blue-300">
                                     {docInfo ? `${docInfo.grado_academico} ${docInfo.nombre_completo}` : resena.docente_id}
-                                    <div className="text-[10px] font-normal text-slate-400">{resena.fecha}</div>
+                                    <div className="text-[10px] font-normal text-slate-400 dark:text-slate-500">{resena.fecha}</div>
                                   </td>
                                   <td className="py-3.5 px-4">
                                     <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 font-bold text-amber-800">
@@ -7736,19 +7736,19 @@ export default function PortalFacultadCienciasMatematicas() {
                                     </div>
                                   </td>
                                   <td className="py-3.5 px-4">
-                                    <div className="font-bold text-slate-800">{resena.curso}</div>
-                                    <div className="text-[11px] text-slate-500">Por: {resena.autor_alias}</div>
+                                    <div className="font-bold text-slate-800 dark:text-white">{resena.curso}</div>
+                                    <div className="text-[11px] text-slate-500 dark:text-slate-400">Por: {resena.autor_alias}</div>
                                   </td>
                                   <td className="py-3.5 px-4 max-w-md">
-                                    <p className="text-slate-700 leading-relaxed line-clamp-3">{resena.comentario}</p>
+                                    <p className="text-slate-700 dark:text-slate-200 leading-relaxed line-clamp-3">{resena.comentario}</p>
                                   </td>
                                   <td className="py-3.5 px-4">
                                     {resena.estado === "aprobado" ? (
-                                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase">
+                                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold uppercase">
                                         Pública
                                       </span>
                                     ) : (
-                                      <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase">
+                                      <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-bold uppercase">
                                         Oculta / Pendiente
                                       </span>
                                     )}
@@ -7766,7 +7766,7 @@ export default function PortalFacultadCienciasMatematicas() {
                                       <button
                                         type="button"
                                         onClick={() => handleCambiarEstadoResenaAdmin(resena.id, "pendiente")}
-                                        className="px-2.5 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold cursor-pointer"
+                                        className="px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold cursor-pointer"
                                       >
                                         ⏸️ Ocultar
                                       </button>
@@ -7774,7 +7774,7 @@ export default function PortalFacultadCienciasMatematicas() {
                                     <button
                                       type="button"
                                       onClick={() => handleEliminarResenaDocenteAdmin(resena.id)}
-                                      className="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-700 text-red-700 hover:text-white text-[11px] font-bold transition-colors cursor-pointer"
+                                      className="px-2.5 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/40 hover:bg-red-700 text-red-700 dark:text-red-400 hover:text-white text-[11px] font-bold transition-colors cursor-pointer"
                                     >
                                       🗑️ Eliminar
                                     </button>
@@ -7789,54 +7789,54 @@ export default function PortalFacultadCienciasMatematicas() {
                   </div>
 
                   {/* SECCIÓN 2: MODERACIÓN DE ARCHIVOS DEL REPOSITORIO PENDIENTES */}
-                  <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-                    <div className="bg-slate-100 px-5 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+                    <div className="bg-slate-100 dark:bg-slate-950 px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="text-sm font-bold text-[#002855] dark:text-white">
                         Archivos del Repositorio Pendientes de Aprobación ({materialesPendientes.length})
                       </h3>
-                      <span className="text-[11px] text-slate-500">
-                        Sincronizado en <code className="font-bold text-[#002855]">portal_config.materiales_data</code>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Sincronizado en <code className="font-bold text-[#002855] dark:text-blue-300">portal_config.materiales_data</code>
                       </span>
                     </div>
                     {materialesPendientes.length === 0 ? (
                       <div className="p-10 text-center space-y-2">
                         <CheckCircle2 className="w-9 h-9 text-emerald-600 mx-auto" />
-                        <h3 className="text-sm font-bold text-slate-900">No hay archivos pendientes de moderación</h3>
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">No hay archivos pendientes de moderación</h3>
                       </div>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse text-xs">
                           <thead>
-                            <tr className="bg-[#002855] text-white uppercase text-[11px]">
+                            <tr className="bg-[#002855] dark:bg-slate-950 text-white uppercase text-[11px] border-b dark:border-slate-800">
                               <th className="py-3.5 px-4">Material</th>
                               <th className="py-3.5 px-4">Carrera / Curso</th>
                               <th className="py-3.5 px-4">Docente / Autor</th>
                               <th className="py-3.5 px-4 text-right">Acciones</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-200">
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                             {materialesPendientes.map((m) => {
                               const curso = malla.find((c) => c.id === m.curso_id);
                               const carrera = carreras.find((ca) => ca.id === m.carrera_id);
                               return (
-                                <tr key={m.id}>
+                                <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
                                   <td className="py-4 px-4">
-                                    <p className="font-bold text-[#002855]">{m.titulo}</p>
+                                    <p className="font-bold text-[#002855] dark:text-blue-300">{m.titulo}</p>
                                     <a
                                       href={m.url_archivo}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-[11px] text-red-700 hover:underline font-mono"
+                                      className="text-[11px] text-red-700 dark:text-red-400 hover:underline font-mono"
                                     >
                                       Ver enlace del archivo ↗
                                     </a>
                                   </td>
-                                  <td className="py-4 px-4">
+                                  <td className="py-4 px-4 text-slate-700 dark:text-slate-300">
                                     {carrera?.nombre} • [{curso?.codigo || m.curso_id}] {curso?.nombre_curso || `Ciclo ${m.ciclo}`}
                                   </td>
                                   <td className="py-4 px-4">
-                                    <div className="font-semibold text-slate-800">{m.docente}</div>
-                                    <div className="text-[10px] text-slate-500">Por: {m.autor_alias} ({m.fecha_subida})</div>
+                                    <div className="font-semibold text-slate-800 dark:text-white">{m.docente}</div>
+                                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Por: {m.autor_alias} ({m.fecha_subida})</div>
                                   </td>
                                   <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
                                     <button
@@ -7912,21 +7912,21 @@ export default function PortalFacultadCienciasMatematicas() {
 
               {tabAdmin === "malla" && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  <form onSubmit={handleGuardarCursoMalla} className="lg:col-span-4 rounded-2xl border border-slate-200 bg-white p-5 space-y-3 h-fit">
+                  <form onSubmit={handleGuardarCursoMalla} className="lg:col-span-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 h-fit">
                     <h3 className="font-bold text-sm text-[#002855] dark:text-white">Añadir Asignatura a la Malla</h3>
                     <select
                       value={formCursoMalla.carrera_id}
                       onChange={(e) => setFormCursoMalla({ ...formCursoMalla, carrera_id: e.target.value as CarreraId })}
-                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs"
+                      className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs"
                     >
                       {carreras.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                     </select>
                     <div className="grid grid-cols-2 gap-2">
-                      <input type="number" min={1} max={10} value={formCursoMalla.ciclo} onChange={(e) => setFormCursoMalla({ ...formCursoMalla, ciclo: Number(e.target.value) })} className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs" />
-                      <input type="text" required value={formCursoMalla.codigo} onChange={(e) => setFormCursoMalla({ ...formCursoMalla, codigo: e.target.value })} placeholder="Código (ej. CS399)" className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs" />
+                      <input type="number" min={1} max={10} value={formCursoMalla.ciclo} onChange={(e) => setFormCursoMalla({ ...formCursoMalla, ciclo: Number(e.target.value) })} className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs" />
+                      <input type="text" required value={formCursoMalla.codigo} onChange={(e) => setFormCursoMalla({ ...formCursoMalla, codigo: e.target.value })} placeholder="Código (ej. CS399)" className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs" />
                     </div>
-                    <input type="text" required value={formCursoMalla.nombre_curso} onChange={(e) => setFormCursoMalla({ ...formCursoMalla, nombre_curso: e.target.value })} placeholder="Nombre de la asignatura *" className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs" />
-                    <button type="submit" className="w-full py-2.5 rounded-xl bg-[#002855] text-white text-xs font-bold">Guardar en la Malla</button>
+                    <input type="text" required value={formCursoMalla.nombre_curso} onChange={(e) => setFormCursoMalla({ ...formCursoMalla, nombre_curso: e.target.value })} placeholder="Nombre de la asignatura *" className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs" />
+                    <button type="submit" className="w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer">Guardar en la Malla</button>
                   </form>
 
                   <div className="lg:col-span-8 space-y-3">
@@ -7935,28 +7935,28 @@ export default function PortalFacultadCienciasMatematicas() {
                         <button
                           key={c.id}
                           onClick={() => setAdminFiltroCarreraMalla(c.id)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold ${adminFiltroCarreraMalla === c.id ? "bg-[#002855] text-white" : "bg-white text-slate-700 border border-slate-300"}`}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${adminFiltroCarreraMalla === c.id ? "bg-[#002855] text-white" : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700"}`}
                         >
                           {c.nombre}
                         </button>
                       ))}
                     </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden max-h-96 overflow-y-auto">
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden max-h-96 overflow-y-auto">
                       <table className="w-full text-left border-collapse text-xs">
                         <thead>
-                          <tr className="bg-[#002855] text-white">
+                          <tr className="bg-[#002855] dark:bg-slate-950 text-white border-b dark:border-slate-800">
                             <th className="py-2.5 px-4">Ciclo</th>
                             <th className="py-2.5 px-4">Código</th>
                             <th className="py-2.5 px-4">Asignatura</th>
                             <th className="py-2.5 px-4">Créd.</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200">
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                           {malla.filter((c) => c.carrera_id === adminFiltroCarreraMalla).map((cur) => (
-                            <tr key={cur.id}>
+                            <tr key={cur.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 text-slate-900 dark:text-slate-200">
                               <td className="py-2.5 px-4">Ciclo {cur.ciclo}</td>
-                              <td className="py-2.5 px-4 font-mono font-bold text-red-700">{cur.codigo}</td>
-                              <td className="py-2.5 px-4 font-semibold">{cur.nombre_curso}</td>
+                              <td className="py-2.5 px-4 font-mono font-bold text-red-700 dark:text-red-400">{cur.codigo}</td>
+                              <td className="py-2.5 px-4 font-semibold text-slate-900 dark:text-white">{cur.nombre_curso}</td>
                               <td className="py-2.5 px-4">{cur.creditos}</td>
                             </tr>
                           ))}
@@ -8200,12 +8200,12 @@ export default function PortalFacultadCienciasMatematicas() {
               {tabAdmin === "soporte" && (
                 <div className="space-y-3">
                   {tickets.map((t) => (
-                    <div key={t.id} className="rounded-2xl border border-slate-200 bg-white p-5 flex items-center justify-between">
+                    <div key={t.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 flex items-center justify-between">
                       <div>
-                        <p className="font-bold text-sm text-[#002855]">{t.asunto}</p>
-                        <p className="text-xs text-slate-600">{t.mensaje}</p>
+                        <p className="font-bold text-sm text-[#002855] dark:text-white">{t.asunto}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">{t.mensaje}</p>
                       </div>
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700">{t.estado_atencion}</span>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/60">{t.estado_atencion}</span>
                     </div>
                   ))}
                 </div>
@@ -8218,10 +8218,10 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* MODAL DE SUBIDA AL REPOSITORIO */}
       {modalSubirAbierto && (
         <div className="fixed inset-0 z-50 bg-slate-900/75 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="max-w-xl w-full rounded-3xl border-2 border-[#002855] bg-white p-6 space-y-4 shadow-2xl">
+          <div className="max-w-xl w-full rounded-3xl border-2 border-[#002855] dark:border-blue-800 bg-white dark:bg-slate-900 p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b-2 border-red-600 pb-3">
               <h3 className="text-lg font-bold text-[#002855] dark:text-white">➕ Aportar Material al Repositorio FCM</h3>
-              <button onClick={() => setModalSubirAbierto(false)} className="text-xs font-bold text-slate-500 hover:text-red-700">✕ Cerrar</button>
+              <button onClick={() => setModalSubirAbierto(false)} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-700 dark:hover:text-red-400 cursor-pointer">✕ Cerrar</button>
             </div>
             {exitoSubidaModal ? (
               <div className="p-6 text-center space-y-4">
