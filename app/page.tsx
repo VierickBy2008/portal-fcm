@@ -3387,7 +3387,7 @@ export default function PortalFacultadCienciasMatematicas() {
                         </div>
 
                         <a
-                          href="https://posgrado.matematicas.unmsm.edu.pe"
+                          href="https://matematicas.unmsm.edu.pe/posgrado26.html"
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => setDropdownFormacionAbierto(false)}
@@ -3781,7 +3781,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
               {/* Posgrado: UPG FCM */}
               <a
-                href="https://posgrado.matematicas.unmsm.edu.pe"
+                href="https://matematicas.unmsm.edu.pe/posgrado26.html"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMenuMovilAbierto(false)}
@@ -9651,6 +9651,7 @@ function Footer({ logoUrl, onOpenAdmin }: { logoUrl: string; onOpenAdmin: () => 
             </button>
           </div>
           <div className="flex flex-wrap gap-4 text-[11px]">
+            <a href="https://matematicas.unmsm.edu.pe/posgrado26.html" target="_blank" rel="noopener noreferrer" className="hover:text-white underline decoration-red-500">Posgrado FCM</a>
             <a href="https://sum.unmsm.edu.pe/alumnoWebSum/login" target="_blank" rel="noopener noreferrer" className="hover:text-white underline decoration-red-500">SUM UNMSM</a>
             <a href="https://tramiteonline.unmsm.edu.pe/sgdfd/mat/" target="_blank" rel="noopener noreferrer" className="hover:text-white underline decoration-red-500">Módulo MAT</a>
             <a href="https://sanmarket.unmsm.edu.pe/#/" target="_blank" rel="noopener noreferrer" className="hover:text-white underline decoration-red-500">San Market</a>
