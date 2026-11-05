@@ -57,7 +57,7 @@ export function RepositorioView({
   onAbrirModalSubir,
 }: RepositorioViewProps) {
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-8">
+    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-8 view-transition-gpu">
       <div className="rounded-3xl bg-[#002855] text-white p-6 sm:p-8 border-b-4 border-red-700 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1.5">
           <span className="text-xs font-mono uppercase text-red-300 font-bold">

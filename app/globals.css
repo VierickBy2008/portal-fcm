@@ -17,13 +17,102 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* ==========================================================================
+   MOTOR DE ANIMACIONES FLUIDAS A 60/120 FPS ACELERADAS POR GPU (PILAR 1)
+   ========================================================================== */
+
+@keyframes fcmViewEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes fcmModalPop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes fcmBackdropFade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.view-transition-gpu {
+  animation: fcmViewEnter 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.modal-backdrop-gpu {
+  animation: fcmBackdropFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity;
+}
+
+.modal-panel-gpu {
+  animation: fcmModalPop 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Tarjetas interactivas con elevación magnética por GPU (sin recalcular layout) */
+.gpu-card {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform, box-shadow;
+  transition:
+    transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.22s ease,
+    opacity 0.25s ease;
+}
+
+.gpu-card:hover {
+  transform: translate3d(0, -5px, 0) scale(1.012);
+}
+
+/* Micro-interacción táctil en botones */
+.gpu-btn {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  transition:
+    transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.gpu-btn:active:not(:disabled) {
+  transform: translate3d(0, 0, 0) scale(0.96);
 }
 
 /* Micro-animaciones fluidas de revelado al hacer scroll (Scroll-Reveal Optimizado GPU) */
 .reveal-on-scroll {
   opacity: 0;
   transform: translate3d(0, 20px, 0);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+  transition:
+    opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal-on-scroll.is-visible {
@@ -32,9 +121,15 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal-on-scroll {
+  .reveal-on-scroll,
+  .view-transition-gpu,
+  .modal-backdrop-gpu,
+  .modal-panel-gpu,
+  .gpu-card,
+  .gpu-btn {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+    animation: none !important;
   }
 }

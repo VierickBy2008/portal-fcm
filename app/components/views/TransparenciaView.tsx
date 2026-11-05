@@ -55,7 +55,7 @@ export function TransparenciaView({
   );
 
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8 animate-in fade-in duration-200">
+    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8 view-transition-gpu">
       {/* Breadcrumbs y Barra Superior de Retorno */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl shadow-xs">
         <div className="flex items-center gap-2 text-xs">

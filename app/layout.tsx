@@ -13,9 +13,46 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Facultad de Ciencias Matemáticas | UNMSM - Portal Oficial",
+  metadataBase: new URL("https://matematicas.unmsm.edu.pe"),
+  title: {
+    default: "Facultad de Ciencias Matemáticas | UNMSM - Portal Oficial",
+    template: "%s | FCM - UNMSM",
+  },
   description:
-    "Portal Académico Oficial de la Facultad de Ciencias Matemáticas de la Universidad Nacional Mayor de San Marcos (UNMSM). Computación Científica, Matemática, Estadística e Investigación Operativa.",
+    "Portal Académico Oficial de la Facultad de Ciencias Matemáticas de la Universidad Nacional Mayor de San Marcos (UNMSM). Escuelas de Computación Científica, Matemática, Estadística e Investigación Operativa.",
+  keywords: [
+    "FCM UNMSM",
+    "Facultad de Ciencias Matemáticas",
+    "UNMSM",
+    "Computación Científica",
+    "Matemática UNMSM",
+    "Estadística UNMSM",
+    "Investigación Operativa UNMSM",
+    "San Marcos",
+  ],
+  openGraph: {
+    title: "Facultad de Ciencias Matemáticas | UNMSM - Portal Oficial",
+    description:
+      "Formando líderes científicos e investigadores en Computación Científica, Matemática, Estadística e Investigación Operativa en la Decana de América.",
+    siteName: "Facultad de Ciencias Matemáticas - UNMSM",
+    locale: "es_PE",
+    type: "website",
+    images: [
+      {
+        url: "/icon.png",
+        width: 512,
+        height: 512,
+        alt: "Escudo Facultad de Ciencias Matemáticas - UNMSM",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Facultad de Ciencias Matemáticas | UNMSM",
+    description:
+      "Portal Académico Oficial de la FCM - UNMSM: Mallas Curriculares 2026, Plana Docente, Repositorio Académico y Transparencia.",
+    images: ["/icon.png"],
+  },
   icons: {
     icon: [
       { url: "/icon.png?v=3", type: "image/png", sizes: "512x512" },

@@ -30,7 +30,7 @@ export function OrgulloGalleryView({
   onVolverInicio,
 }: OrgulloGalleryViewProps) {
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
+    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8 view-transition-gpu">
       {/* Barra superior de retorno */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl shadow-xs">
         <button

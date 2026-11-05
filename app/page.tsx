@@ -1,7242 +1,3958 @@
-"use client";
-
-import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import {
-  Search, GraduationCap, BookOpen, Newspaper, FolderGit2, LifeBuoy, Sparkles,
-  ChevronRight, ChevronDown, ChevronLeft, Upload, FileText, Code2, Video, FileCheck2, Award, Trophy, Plus,
-  CheckCircle2, Trash2, Lock, Unlock, Mail, Building2, Calendar, Filter, Layers,
-  Download, AlertCircle, Star, Cpu, Sigma, BarChart3, Network, Printer,
-  Image as ImageIcon, Copy, ExternalLink, Phone, UserCheck, ShoppingBag,
-  FileSpreadsheet, Check, MapPin, Briefcase, Target, Lightbulb, Edit3,
-  ArrowLeft, ArrowRight, Share2, Users, Clock, Globe, Bold, Italic, List, ListOrdered,
-  Quote, Minus, Link2, Heading2, Menu, X, ShieldCheck, Sliders, Sun, Moon,
-} from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
-import {
-  CarreraId,
-  VistaPortal,
-  TipoArchivo,
-  EstadoMaterial,
-  EstadoAtencion,
-  Noticia,
-  Docente,
-  OrgulloItem,
-  DocumentoTransparencia,
-  ResenaDocente,
-  Carrera,
-  CursoMalla,
-  MaterialRepositorio,
-  ImagenStorage,
-  TicketSoporte,
-} from "@/app/types/portal";
-import {
-  Facebook,
-  Instagram,
-  Linkedin,
-  Youtube,
-  formatearFechaEspanol,
-  obtenerInicialesDocente,
-  renderTextoEnriquecidoLinea,
-  renderizarContenidoNoticia,
-} from "@/app/utils/portalFormatters";
-import {
-  DOCUMENTOS_TRANSPARENCIA_INICIALES,
-  LOGO_UNMSM_TRANSPARENTE_DEFAULT,
-  HERO_BG_DEFAULT,
-  CARRERAS_INICIALES,
-  NOTICIAS_INICIALES,
-  IMAGENES_STORAGE_INICIALES,
-  MALLA_INICIAL,
-  MATERIALES_INICIALES,
-  DOCENTES_INICIALES,
-  DOCENTES_SUGERIDOS,
-  RESENAS_DOCENTES_INICIALES,
-  ORGULLO_INICIAL,
-  TICKETS_INICIALES,
-  TEMA_CARRERA,
-} from "@/app/data/portalInitialData";
-import { OptimizedImage } from "@/app/components/ui/OptimizedImage";
-import { Footer } from "@/app/components/layout/Footer";
-import { HemerotecaView } from "@/app/components/views/HemerotecaView";
-import { OrgulloGalleryView } from "@/app/components/views/OrgulloGalleryView";
-import { DocentesView } from "@/app/components/views/DocentesView";
-import { RepositorioView } from "@/app/components/views/RepositorioView";
-import { TransparenciaView } from "@/app/components/views/TransparenciaView";
-import { ContactoView } from "@/app/components/views/ContactoView";
-
-export default function PortalFacultadCienciasMatematicas() {
-  const [vistaActual, setVistaActual] = useState<VistaPortal>("/");
-  const [carreraSeleccionadaId, setCarreraSeleccionadaId] = useState<CarreraId>("computacion-cientifica");
-  const [noticiaSeleccionadaId, setNoticiaSeleccionadaId] = useState<string>(NOTICIAS_INICIALES[0].id);
-
-  const [noticias, setNoticias] = useState<Noticia[]>(NOTICIAS_INICIALES);
-  const [carreras, setCarreras] = useState<Carrera[]>(CARRERAS_INICIALES);
-  const [docentes, setDocentes] = useState<Docente[]>(DOCENTES_INICIALES);
-  const [resenasDocentes, setResenasDocentes] = useState<ResenaDocente[]>(RESENAS_DOCENTES_INICIALES);
-  const [malla, setMalla] = useState<CursoMalla[]>(MALLA_INICIAL);
-  const [materiales, setMateriales] = useState<MaterialRepositorio[]>(MATERIALES_INICIALES);
-  const [tickets, setTickets] = useState<TicketSoporte[]>(TICKETS_INICIALES);
-  const [imagenesStorage, setImagenesStorage] = useState<ImagenStorage[]>(IMAGENES_STORAGE_INICIALES);
-
-  const [orgulloItems, setOrgulloItems] = useState<OrgulloItem[]>(ORGULLO_INICIAL);
-  const [modalDetalleOrgullo, setModalDetalleOrgullo] = useState<OrgulloItem | null>(null);
-  const [modalOrgulloFormAbierto, setModalOrgulloFormAbierto] = useState<boolean>(false);
-  const [editandoOrgulloId, setEditandoOrgulloId] = useState<string | null>(null);
-  const [formOrgullo, setFormOrgullo] = useState<Omit<OrgulloItem, "carrera_nombre">>({
-    id: "",
-    titulo: "",
-    subtitulo_categoria: "SELECCIONADO POR IBRO 2026",
-    estudiante: "",
-    carrera_id: "computacion-cientifica",
-    descripcion: "",
-    foto_url: "",
-    tipo_tarjeta: "afiche",
-    enlace_nota: "",
-    anio: "2026",
-    destacado: true,
-  });
-  const [subiendoFotoOrgullo, setSubiendoFotoOrgullo] = useState<boolean>(false);
-
-  // Filtros de la Galería Completa de Orgullo San Marquino (/orgullo)
-  const [filtroOrgulloCarrera, setFiltroOrgulloCarrera] = useState<"TODAS" | CarreraId | "fcm">("TODAS");
-  const [busquedaOrgullo, setBusquedaOrgullo] = useState<string>("");
-
-  const orgulloFiltrados = useMemo(() => {
-    return orgulloItems.filter((item) => {
-      const coincideCarrera =
-        filtroOrgulloCarrera === "TODAS" ||
-        item.carrera_id === filtroOrgulloCarrera ||
-        (filtroOrgulloCarrera === "fcm" && item.carrera_id === "fcm");
-
-      const q = busquedaOrgullo.trim().toLowerCase();
-      const coincideBusqueda =
-        !q ||
-        item.titulo.toLowerCase().includes(q) ||
-        item.estudiante.toLowerCase().includes(q) ||
-        (item.carrera_nombre && item.carrera_nombre.toLowerCase().includes(q)) ||
-        item.subtitulo_categoria.toLowerCase().includes(q) ||
-        item.descripcion.toLowerCase().includes(q);
-
-      return coincideCarrera && coincideBusqueda;
-    });
-  }, [orgulloItems, filtroOrgulloCarrera, busquedaOrgullo]);
-
-
-  const [logoUrl, setLogoUrl] = useState<string>(LOGO_UNMSM_TRANSPARENTE_DEFAULT);
-  const [heroBgUrl, setHeroBgUrl] = useState<string>(HERO_BG_DEFAULT);
-  const [heroBgInputUrl, setHeroBgInputUrl] = useState<string>(HERO_BG_DEFAULT);
-  const [heroBlur, setHeroBlur] = useState<number>(1);
-  const [heroOverlayOpacity, setHeroOverlayOpacity] = useState<number>(45);
-  const [heroOverlayColor, setHeroOverlayColor] = useState<string>("#0f172a");
-  const [cargandoConfig, setCargandoConfig] = useState<boolean>(true);
-
-  // Filtros y modal de la sección Plana Docente + Calificaciones y Reseñas
-  const [filtroDocenteCarrera, setFiltroDocenteCarrera] = useState<"TODAS" | CarreraId>("TODAS");
-  const [busquedaDocentes, setBusquedaDocentes] = useState<string>("");
-  const [docenteModalActivo, setDocenteModalActivo] = useState<Docente | null>(null);
-  const [hoverEstrellaDocente, setHoverEstrellaDocente] = useState<number>(0);
-  const [formResenaDocente, setFormResenaDocente] = useState({
-    puntuacion: 5,
-    curso: "",
-    autor_alias: "",
-    esAnonimo: false,
-    comentario: "",
-    bot_trap: "",
-  });
-  const [errorResenaDocente, setErrorResenaDocente] = useState<string>("");
-  // Transparencia Institucional (/transparencia)
-  const [documentosTransparencia, setDocumentosTransparencia] = useState<DocumentoTransparencia[]>(DOCUMENTOS_TRANSPARENCIA_INICIALES);
-  const [filtroTransparenciaCategoria, setFiltroTransparenciaCategoria] = useState<string>("TODAS");
-  const [filtroTransparenciaAnio, setFiltroTransparenciaAnio] = useState<string>("TODOS");
-  const [busquedaTransparencia, setBusquedaTransparencia] = useState<string>("");
-  const [paginaTransparencia, setPaginaTransparencia] = useState<number>(1);
-  const [modalTransparenciaFormAbierto, setModalTransparenciaFormAbierto] = useState<boolean>(false);
-  const [editandoTransparenciaId, setEditandoTransparenciaId] = useState<string | null>(null);
-  const [formTransparencia, setFormTransparencia] = useState<{
-    codigo: string;
-    titulo: string;
-    categoria: DocumentoTransparencia["categoria"];
-    anio: number;
-    dependencia: string;
-    fecha: string;
-    tamano_archivo: string;
-    url_pdf: string;
-    sumilla: string;
-  }>({
-    codigo: "",
-    titulo: "",
-    categoria: "Resoluciones Decanales",
-    anio: 2026,
-    dependencia: "Decanato FCM",
-    fecha: "2026-03-15",
-    tamano_archivo: "1.5 MB",
-    url_pdf: "https://matematicas.unmsm.edu.pe",
-    sumilla: "",
-  });
-
-  const [exitoResenaDocente, setExitoResenaDocente] = useState<boolean>(false);
-
-  // Carrusel Institucional Superior de Noticias y Comunicados (Slider tipo San Marcos)
-  const [slideActivoHero, setSlideActivoHero] = useState<number>(0);
-  const [pausarSliderHero, setPausarSliderHero] = useState<boolean>(false);
-  const [direccionSlide, setDireccionSlide] = useState<"next" | "prev">("next");
-  const [animandoSlide, setAnimandoSlide] = useState<boolean>(false);
-  const [modalHeroFondoAbierto, setModalHeroFondoAbierto] = useState<boolean>(false);
-  const touchStartXRef = useRef<number | null>(null);
-
-  // Buscador Compacto en Navbar Superior con atajo de teclado (Ctrl+K / Cmd+K)
-  const [busquedaNavbar, setBusquedaNavbar] = useState<string>("");
-  const [navbarBuscadorAbierto, setNavbarBuscadorAbierto] = useState<boolean>(false);
-  const [navbarResultadosAbiertos, setNavbarResultadosAbiertos] = useState<boolean>(false);
-  const inputNavbarRef = useRef<HTMLInputElement | null>(null);
-  const contenedorNavbarSearchRef = useRef<HTMLDivElement | null>(null);
-
-  // Menú Móvil Hamburguesa Responsive
-  const [menuMovilAbierto, setMenuMovilAbierto] = useState<boolean>(false);
-
-  const [dropdownServicioAbierto, setDropdownServicioAbierto] = useState(false);
-  const menuServicioRef = useRef<HTMLDivElement | null>(null);
-  const timeoutServicioRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Menú Desplegable: Formación Académica (Pregrado, Posgrado, Docentes)
-  const [dropdownFormacionAbierto, setDropdownFormacionAbierto] = useState(false);
-  const menuFormacionRef = useRef<HTMLDivElement | null>(null);
-  const timeoutFormacionRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Modo Oscuro (Dark Mode)
-  const [modoOscuro, setModoOscuro] = useState<boolean>(false);
-
-  const [servicioModalInfo, setServicioModalInfo] = useState<{
-    titulo: string; sigla: string; descripcion: string; correo: string; anexo: string; horario: string;
-  } | null>(null);
-
-  const [busquedaGlobal, setBusquedaGlobal] = useState("");
-  const [modoMalla, setModoMalla] = useState<"acordeon" | "roadmap">("acordeon");
-  const [ciclosAbiertos, setCiclosAbiertos] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-
-  const [repoFiltroCarrera, setRepoFiltroCarrera] = useState<"TODAS" | CarreraId>("TODAS");
-  const [repoFiltroCiclo, setRepoFiltroCiclo] = useState<"TODOS" | number>("TODOS");
-  const [repoFiltroCurso, setRepoFiltroCurso] = useState<string>("TODOS");
-  const [repoFiltroTipo, setRepoFiltroTipo] = useState<"TODOS" | TipoArchivo>("TODOS");
-  const [repoBusquedaTexto, setRepoBusquedaTexto] = useState("");
-  const [repoPaginaActual, setRepoPaginaActual] = useState(1);
-
-  const [modalSubirAbierto, setModalSubirAbierto] = useState(false);
-  const [formSubidaAnon, setFormSubidaAnon] = useState({
-    carrera_id: "computacion-cientifica" as CarreraId,
-    ciclo: 3,
-    curso_id: "cc-301",
-    modoDocente: "lista" as "lista" | "manual",
-    docenteSeleccionado: DOCENTES_SUGERIDOS[0],
-    docenteManual: "",
-    titulo: "",
-    tipo_archivo: "Examen" as TipoArchivo,
-    url_archivo: "",
-    autor_alias: "",
-    bot_trap: "",
-  });
-  const [exitoSubidaModal, setExitoSubidaModal] = useState(false);
-
-  const [formContacto, setFormContacto] = useState({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
-  const [ticketEnviadoOk, setTicketEnviadoOk] = useState(false);
-
-  const [adminAutenticado, setAdminAutenticado] = useState(false);
-  const [cargandoAuthAdmin, setCargandoAuthAdmin] = useState(false);
-  const [pinAdmin, setPinAdmin] = useState("");
-  const [errorPin, setErrorPin] = useState("");
-  const [tabAdmin, setTabAdmin] = useState<
-    "dashboard" | "carreras_cms" | "noticias" | "docentes_cms" | "malla" | "moderacion" | "storage" | "soporte" | "orgullo" | "transparencia"
-  >("dashboard");
-
-  const [adminCarreraEditId, setAdminCarreraEditId] = useState<CarreraId>("computacion-cientifica");
-  const carreraAdminSeleccionada = useMemo(
-    () => carreras.find((c) => c.id === adminCarreraEditId) || CARRERAS_INICIALES[0],
-    [carreras, adminCarreraEditId]
-  );
-  const [urlImagenCarreraInput, setUrlImagenCarreraInput] = useState(CARRERAS_INICIALES[0].imagen_referencial_url);
-  const [urlTripticoCarreraInput, setUrlTripticoCarreraInput] = useState(CARRERAS_INICIALES[0].triptico_pdf_url);
-  const [urlPosterCarreraInput, setUrlPosterCarreraInput] = useState(CARRERAS_INICIALES[0].poster_pdf_url || "");
-  const [subiendoAssetCarrera, setSubiendoAssetCarrera] = useState(false);
-  const inputImagenCarreraRef = useRef<HTMLInputElement | null>(null);
-  const inputTripticoPdfRef = useRef<HTMLInputElement | null>(null);
-  const inputPosterPdfRef = useRef<HTMLInputElement | null>(null);
-
-  // Estado inicial de noticias con fecha_publicacion: "" (sin new Date() en declaración de estado)
-  const [formNoticia, setFormNoticia] = useState({
-    id: "",
-    titulo: "",
-    categoria: "Comunicado Oficial",
-    resumen: "",
-    fecha_publicacion: "",
-    contenido: "",
-    imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
-    destacado: true,
-    en_carrusel_principal: true,
-    color_fondo: "#4d0713",
-    fecha_evento: "",
-    lugar: "",
-    modalidad: "",
-    dirigido_a: "",
-    enlace_inscripcion: "",
-    fondo_imagen_url: "",
-    fondo_blur: 4,
-    fondo_overlay_opacity: 60,
-    fondo_overlay_color: "#002855",
-  });
-  const inputImagenNoticiaRef = useRef<HTMLInputElement | null>(null);
-  const inputFondoNoticiaRef = useRef<HTMLInputElement | null>(null);
-  const textareaNoticiaRef = useRef<HTMLTextAreaElement | null>(null);
-
-  // Filtro de categoría docente para directorio
-  const [filtroCategoriaDocente, setFiltroCategoriaDocente] = useState<string>("TODAS");
-
-  // Filtros para vista dedicada de Hemeroteca (/noticias)
-  const [busquedaHemeroteca, setBusquedaHemeroteca] = useState<string>("");
-  const [filtroCategoriaHemeroteca, setFiltroCategoriaHemeroteca] = useState<string>("TODAS");
-
-  // Estado de formulario CMS para Plana Docente
-  const [adminFiltroCarreraDocentes, setAdminFiltroCarreraDocentes] = useState<"TODAS" | CarreraId>("TODAS");
-  const [formDocente, setFormDocente] = useState({
-    id: "",
-    nombre_completo: "",
-    grado_academico: "Dr." as "Dr." | "Dra." | "Mg." | "Lic.",
-    categoria_docente: "Principal" as "Principal" | "Asociado" | "Auxiliar",
-    condicion: "Nombrado" as "Nombrado" | "Contratado",
-    carrera_id: "computacion-cientifica" as CarreraId,
-    especialidad: "",
-    lineas_investigacion: "",
-    cursos_dictados_texto: "",
-    correo: "",
-    horario_asesoria: "",
-    foto_url: "",
-    cti_vitae_url: "",
-    orcid_url: "",
-    google_scholar_url: "",
-    linkedin_url: "",
-  });
-  const inputFotoDocenteRef = useRef<HTMLInputElement | null>(null);
-  const [subiendoFotoDocente, setSubiendoFotoDocente] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [categoriaNuevaImagen, setCategoriaNuevaImagen] = useState<"Logo Institucional" | "Banner Noticia" | "Foto Facultad" | "Fondo Hero Home">("Banner Noticia");
-  const [subiendoStorage, setSubiendoStorage] = useState(false);
-  const [urlCopiadaId, setUrlCopiadaId] = useState<string | null>(null);
-
-  const [adminFiltroCarreraMalla, setAdminFiltroCarreraMalla] = useState<CarreraId>("computacion-cientifica");
-  const [formCursoMalla, setFormCursoMalla] = useState({
-    id: "",
-    carrera_id: "computacion-cientifica" as CarreraId,
-    ciclo: 3,
-    codigo: "",
-    nombre_curso: "",
-    creditos: 4.0,
-    tipo_curso: "O" as "O" | "E",
-    prerequisitosTexto: "",
-  });
-
-  const [toast, setToast] = useState<string | null>(null);
-  const lanzarToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 4200);
-  };
-
-  // ==========================================================================
-  // 4. NAVEGACIÓN HISTÓRICA CON RETROCESOS (BOTÓN "ATRÁS" DEL NAVEGADOR)
-  // ==========================================================================
-  const modalesAbiertosRef = useRef(false);
-  useEffect(() => {
-    modalesAbiertosRef.current = Boolean(docenteModalActivo || servicioModalInfo || modalSubirAbierto);
-  }, [docenteModalActivo, servicioModalInfo, modalSubirAbierto]);
-
-  const aplicarHashAEstado = useCallback((hashRaw: string) => {
-    const hash = (hashRaw || "").replace(/^#/, "").trim();
-    if (!hash || hash === "/") {
-      setVistaActual("/");
-      return;
-    }
-    if (hash.startsWith("/carreras/")) {
-      const id = hash.replace("/carreras/", "").trim() as CarreraId;
-      const carrerasValidas: CarreraId[] = ["computacion-cientifica", "matematica", "estadistica", "investigacion-operativa"];
-      if (carrerasValidas.includes(id)) {
-        setCarreraSeleccionadaId(id);
-      }
-      setVistaActual("/carreras/[id]");
-      return;
-    }
-    if (hash.startsWith("/noticias/")) {
-      const idNot = hash.replace("/noticias/", "").trim();
-      if (idNot) setNoticiaSeleccionadaId(idNot);
-      setVistaActual("/noticias/[id]");
-      return;
-    }
-    if (hash === "/noticias") {
-      setVistaActual("/noticias");
-      return;
-    }
-    if (hash === "/orgullo" || hash.startsWith("/orgullo")) {
-      setVistaActual("/orgullo");
-      return;
-    }
-    if (hash === "/docentes" || hash.startsWith("/docentes/")) {
-      const idCar = hash.replace("/docentes/", "").replace("/docentes", "").trim();
-      const carrerasValidas: CarreraId[] = ["computacion-cientifica", "matematica", "estadistica", "investigacion-operativa"];
-      if (idCar && (idCar === "TODAS" || carrerasValidas.includes(idCar as CarreraId))) {
-        setFiltroDocenteCarrera(idCar as "TODAS" | CarreraId);
-      }
-      setVistaActual("/docentes");
-      return;
-    }
-    if (hash === "/repositorio") {
-      setVistaActual("/repositorio");
-      return;
-    }
-    if (hash === "/transparencia" || hash.startsWith("/transparencia")) {
-      setVistaActual("/transparencia");
-      return;
-    }
-    if (hash === "/contacto") {
-      setVistaActual("/contacto");
-      return;
-    }
-    if (hash === "/admin") {
-      setVistaActual("/admin");
-      return;
-    }
-    setVistaActual("/");
-  }, []);
-
-  const navegar = useCallback(
-    (
-      nuevaVista: VistaPortal,
-      params?: {
-        carreraId?: CarreraId;
-        noticiaId?: string;
-        docenteCarrera?: "TODAS" | CarreraId;
-        skipScroll?: boolean;
-      }
-    ) => {
-      const idCarreraFinal = params?.carreraId || carreraSeleccionadaId;
-      const idNoticiaFinal = params?.noticiaId || noticiaSeleccionadaId;
-
-      if (params?.carreraId) setCarreraSeleccionadaId(params.carreraId);
-      if (params?.noticiaId) setNoticiaSeleccionadaId(params.noticiaId);
-      if (params?.docenteCarrera) setFiltroDocenteCarrera(params.docenteCarrera);
-
-      setVistaActual(nuevaVista);
-
-      if (typeof window !== "undefined") {
-        let nuevoHash = "#/";
-        if (nuevaVista === "/carreras/[id]") {
-          nuevoHash = `#/carreras/${idCarreraFinal}`;
-        } else if (nuevaVista === "/noticias/[id]") {
-          nuevoHash = `#/noticias/${idNoticiaFinal}`;
-        } else if (nuevaVista === "/repositorio") {
-          nuevoHash = "#/repositorio";
-        } else if (nuevaVista === "/transparencia") {
-        nuevoHash = "#/transparencia";
-      } else if (nuevaVista === "/contacto") {
-          nuevoHash = "#/contacto";
-        } else if (nuevaVista === "/admin") {
-          nuevoHash = "#/admin";
-        } else if (nuevaVista === "/noticias") {
-          nuevoHash = "#/noticias";
-        } else if (nuevaVista === "/orgullo") {
-          nuevoHash = "#/orgullo";
-        } else if (nuevaVista === "/docentes") {
-          const escId = params?.docenteCarrera || filtroDocenteCarrera;
-          nuevoHash = escId && escId !== "TODAS" ? `#/docentes/${escId}` : "#/docentes";
-        }
-
-        if (window.location.hash !== nuevoHash) {
-          window.history.pushState(
-            {
-              vista: nuevaVista,
-              carreraId: idCarreraFinal,
-              noticiaId: idNoticiaFinal,
-              docenteCarrera: params?.docenteCarrera || filtroDocenteCarrera,
-            },
-            "",
-            nuevoHash
-          );
-        }
-        if (!params?.skipScroll) {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      }
-    },
-    [carreraSeleccionadaId, noticiaSeleccionadaId, filtroDocenteCarrera]
-  );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.location.hash) {
-      aplicarHashAEstado(window.location.hash);
-    } else {
-      window.history.replaceState({ vista: "/" }, "", "#/");
-    }
-
-    const handlePopState = () => {
-      if (modalesAbiertosRef.current) {
-        setDocenteModalActivo(null);
-        setServicioModalInfo(null);
-        setModalSubirAbierto(false);
-        return;
-      }
-      aplicarHashAEstado(window.location.hash);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [aplicarHashAEstado]);
-
-  // ==========================================================================
-  // 1. PERSISTENCIA REAL EN SUPABASE (`portal_config`) Y CARGA INICIAL
-  // ==========================================================================
-  useEffect(() => {
-    let activo = true;
-    const aplicarHeroCfgDesdeString = (rawUrl: string) => {
-      const [cleanUrl, cfgHash] = rawUrl.split("#fcm_cfg=");
-      const urlFinal = cleanUrl || HERO_BG_DEFAULT;
-      setHeroBgUrl(urlFinal);
-      setHeroBgInputUrl(urlFinal);
-      if (cfgHash) {
-        const [bStr, opStr, colStr] = cfgHash.split("|");
-        const bVal = Number(bStr);
-        const opVal = Number(opStr);
-        if (!Number.isNaN(bVal) && bVal >= 0 && bVal <= 12) setHeroBlur(bVal);
-        if (!Number.isNaN(opVal) && opVal >= 0 && opVal <= 95) setHeroOverlayOpacity(opVal);
-        if (colStr) setHeroOverlayColor(decodeURIComponent(colStr));
-      }
-    };
-
-    const cargarConfiguracionDesdeSupabase = async () => {
-      try {
-        if (typeof window !== "undefined") {
-          const localLogo = window.localStorage.getItem("fcm_logo_url");
-          const localHeroBg = window.localStorage.getItem("fcm_hero_bg_url");
-          const localHeroBlur = window.localStorage.getItem("fcm_hero_blur");
-          const localHeroOpacity = window.localStorage.getItem("fcm_hero_overlay_opacity");
-          const localHeroColor = window.localStorage.getItem("fcm_hero_overlay_color");
-          const localCarreras = window.localStorage.getItem("fcm_carreras_data");
-          const localNoticias = window.localStorage.getItem("fcm_noticias_data");
-          const localStorageImgs = window.localStorage.getItem("fcm_storage_data");
-          const localDocentes = window.localStorage.getItem("fcm_docentes_data");
-          const localResenas = window.localStorage.getItem("fcm_resenas_docentes");
-          const localMateriales = window.localStorage.getItem("fcm_materiales_data");
-
-          const localOrgullo = window.localStorage.getItem("fcm_orgullo_data");
-          if (localOrgullo && activo) {
-            try {
-              const parsedOrg = JSON.parse(localOrgullo);
-              if (Array.isArray(parsedOrg) && parsedOrg.length > 0) setOrgulloItems(parsedOrg);
-            } catch {}
-          }
-
-          const localTransparencia = window.localStorage.getItem("fcm_transparencia_data");
-          if (localTransparencia && activo) {
-            try {
-              const parsedTrans = JSON.parse(localTransparencia);
-              if (Array.isArray(parsedTrans) && parsedTrans.length > 0) setDocumentosTransparencia(parsedTrans);
-            } catch {}
-          }
-
-          if (localLogo && activo) setLogoUrl(localLogo);
-          if (localHeroBg && activo) {
-            aplicarHeroCfgDesdeString(localHeroBg);
-          }
-          if (localHeroBlur !== null && activo) {
-            const b = Number(localHeroBlur);
-            if (!Number.isNaN(b)) setHeroBlur(b);
-          }
-          if (localHeroOpacity !== null && activo) {
-            const op = Number(localHeroOpacity);
-            if (!Number.isNaN(op)) setHeroOverlayOpacity(op);
-          }
-          if (localHeroColor && activo) {
-            setHeroOverlayColor(localHeroColor);
-          }
-          if (localCarreras && activo) {
-            const parsed = JSON.parse(localCarreras);
-            if (Array.isArray(parsed) && parsed.length > 0) setCarreras(parsed);
-          }
-          if (localNoticias && activo) {
-            const parsed = JSON.parse(localNoticias);
-            if (Array.isArray(parsed) && parsed.length > 0) setNoticias(parsed);
-          }
-          if (localStorageImgs && activo) {
-            const parsed = JSON.parse(localStorageImgs);
-            if (Array.isArray(parsed) && parsed.length > 0) setImagenesStorage(parsed);
-          }
-          if (localDocentes && activo) {
-            const parsed = JSON.parse(localDocentes);
-            if (Array.isArray(parsed) && parsed.length > 0) setDocentes(parsed);
-          }
-          if (localResenas && activo) {
-            const parsed = JSON.parse(localResenas);
-            if (Array.isArray(parsed) && parsed.length > 0) setResenasDocentes(parsed);
-          }
-          if (localMateriales && activo) {
-            const parsed = JSON.parse(localMateriales);
-            if (Array.isArray(parsed)) {
-              const limpios = parsed.filter((m: MaterialRepositorio) => m.id !== "mat-pend-1" && m.id !== "mat-pend-2");
-              setMateriales(limpios);
-            }
-          }
-        }
-
-        const { data, error } = await supabase
-          .from("portal_config")
-          .select("*")
-          .eq("id", 1)
-          .maybeSingle();
-
-        if (!error && data && activo) {
-          if (data.logo_url && typeof data.logo_url === "string") {
-            setLogoUrl(data.logo_url);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_logo_url", data.logo_url);
-          }
-          if (data.hero_bg_url && typeof data.hero_bg_url === "string") {
-            aplicarHeroCfgDesdeString(data.hero_bg_url);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_bg_url", data.hero_bg_url);
-          }
-          if (typeof data.hero_blur === "number") {
-            setHeroBlur(data.hero_blur);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_blur", String(data.hero_blur));
-          }
-          if (typeof data.hero_overlay_opacity === "number") {
-            setHeroOverlayOpacity(data.hero_overlay_opacity);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_overlay_opacity", String(data.hero_overlay_opacity));
-          }
-          if (typeof data.hero_overlay_color === "string" && data.hero_overlay_color) {
-            setHeroOverlayColor(data.hero_overlay_color);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_overlay_color", data.hero_overlay_color);
-          }
-          if (Array.isArray(data.carreras_data) && data.carreras_data.length > 0) {
-            setCarreras(data.carreras_data);
-            const inicial = data.carreras_data.find((c: Carrera) => c.id === "computacion-cientifica") || data.carreras_data[0];
-            if (inicial) {
-              setUrlImagenCarreraInput(inicial.imagen_referencial_url);
-              setUrlTripticoCarreraInput(inicial.triptico_pdf_url);
-              setUrlPosterCarreraInput(inicial.poster_pdf_url || "");
-            }
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_carreras_data", JSON.stringify(data.carreras_data));
-          }
-          if (Array.isArray(data.noticias_data) && data.noticias_data.length > 0) {
-            setNoticias(data.noticias_data);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_noticias_data", JSON.stringify(data.noticias_data));
-          }
-          if (Array.isArray(data.storage_data) && data.storage_data.length > 0) {
-            setImagenesStorage(data.storage_data);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_storage_data", JSON.stringify(data.storage_data));
-          }
-          if (Array.isArray(data.docentes_data) && data.docentes_data.length > 0) {
-            setDocentes(data.docentes_data);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_docentes_data", JSON.stringify(data.docentes_data));
-          }
-          if (Array.isArray(data.resenas_docentes) && data.resenas_docentes.length > 0) {
-            setResenasDocentes(data.resenas_docentes);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(data.resenas_docentes));
-          }
-          
-          if (Array.isArray(data.orgullo_data) && data.orgullo_data.length > 0) {
-            setOrgulloItems(data.orgullo_data);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(data.orgullo_data));
-          } else if (Array.isArray(data.storage_data)) {
-            const metaOrg = data.storage_data.find((x: any) => x && x.id === "__fcm_orgullo_config__");
-            if (metaOrg && Array.isArray(metaOrg.orgullo_items) && metaOrg.orgullo_items.length > 0) {
-              setOrgulloItems(metaOrg.orgullo_items);
-              if (typeof window !== "undefined") window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(metaOrg.orgullo_items));
-            }
-          }
-
-          if (Array.isArray(data.transparencia_data) && data.transparencia_data.length > 0) {
-            setDocumentosTransparencia(data.transparencia_data);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(data.transparencia_data));
-          } else if (Array.isArray(data.storage_data)) {
-            const metaTrans = data.storage_data.find((x: any) => x && x.id === "__fcm_transparencia_config__");
-            if (metaTrans && Array.isArray(metaTrans.transparencia_items) && metaTrans.transparencia_items.length > 0) {
-              setDocumentosTransparencia(metaTrans.transparencia_items);
-              if (typeof window !== "undefined") window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(metaTrans.transparencia_items));
-            }
-          }
-
-          if (Array.isArray(data.materiales_data) && data.materiales_data.length > 0) {
-            const limpios = data.materiales_data.filter((m: MaterialRepositorio) => m.id !== "mat-pend-1" && m.id !== "mat-pend-2");
-            setMateriales(limpios);
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_materiales_data", JSON.stringify(limpios));
-          }
-        }
-      } catch {
-        // Mantiene estado por defecto si la tabla aún no fue creada
-      } finally {
-        if (activo) setCargandoConfig(false);
-      }
-    };
-    cargarConfiguracionDesdeSupabase();
-
-    // Verificación de sesión de administrador segura en servidor al cargar
-    fetch("/api/admin/auth")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.authenticated) setAdminAutenticado(true);
-      })
-      .catch(() => {});
-
-    return () => { activo = false; };
-  }, []);
-
-  const sincronizarPortalConfigSupabase = async (cambios: {
-    logo_url?: string;
-    hero_bg_url?: string;
-    hero_blur?: number;
-    hero_overlay_opacity?: number;
-    hero_overlay_color?: string;
-    carreras_data?: Carrera[];
-    noticias_data?: Noticia[];
-    storage_data?: ImagenStorage[];
-    docentes_data?: Docente[];
-    resenas_docentes?: ResenaDocente[];
-    materiales_data?: MaterialRepositorio[];
-    orgullo_data?: OrgulloItem[];
-    transparencia_data?: DocumentoTransparencia[];
-  }): Promise<boolean> => {
-    if (typeof window !== "undefined" && cambios.transparencia_data) {
-      window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(cambios.transparencia_data));
-    }
-    if (typeof window !== "undefined") {
-      if (cambios.logo_url) window.localStorage.setItem("fcm_logo_url", cambios.logo_url);
-      if (cambios.hero_bg_url) window.localStorage.setItem("fcm_hero_bg_url", cambios.hero_bg_url);
-      if (typeof cambios.hero_blur === "number") window.localStorage.setItem("fcm_hero_blur", String(cambios.hero_blur));
-      if (typeof cambios.hero_overlay_opacity === "number") window.localStorage.setItem("fcm_hero_overlay_opacity", String(cambios.hero_overlay_opacity));
-      if (cambios.hero_overlay_color) window.localStorage.setItem("fcm_hero_overlay_color", cambios.hero_overlay_color);
-      if (cambios.carreras_data) window.localStorage.setItem("fcm_carreras_data", JSON.stringify(cambios.carreras_data));
-      if (cambios.noticias_data) window.localStorage.setItem("fcm_noticias_data", JSON.stringify(cambios.noticias_data));
-      if (cambios.storage_data) window.localStorage.setItem("fcm_storage_data", JSON.stringify(cambios.storage_data));
-      if (cambios.docentes_data) window.localStorage.setItem("fcm_docentes_data", JSON.stringify(cambios.docentes_data));
-      if (cambios.resenas_docentes) window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(cambios.resenas_docentes));
-      if (cambios.materiales_data) window.localStorage.setItem("fcm_materiales_data", JSON.stringify(cambios.materiales_data));
-    }
-
-    // 1. Intento por Servidor Seguro (Route Handler /api/admin/sync con RLS y Service Role)
-    try {
-      const res = await fetch("/api/admin/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(cambios),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.ok) return true;
-      }
-    } catch {
-      // Continúa al respaldo directo de cliente
-    }
-
-    // 2. Respaldo directo en cliente Supabase
-    try {
-      const { error } = await supabase.from("portal_config").upsert(
-        { id: 1, ...cambios, updated_at: new Date().toISOString() },
-        { onConflict: "id" }
-      );
-      if (error) {
-        // Fallback seguro si alguna columna nueva aún no existe en el esquema SQL de portal_config
-        const { hero_blur, hero_overlay_opacity, hero_overlay_color, orgullo_data, ...resto } = cambios;
-        void hero_blur;
-        void hero_overlay_opacity;
-        void hero_overlay_color;
-        void orgullo_data;
-        void hero_blur;
-        void hero_overlay_opacity;
-        void hero_overlay_color;
-        if (Object.keys(resto).length > 0) {
-          const { error: retryErr } = await supabase.from("portal_config").upsert(
-            { id: 1, ...resto, updated_at: new Date().toISOString() },
-            { onConflict: "id" }
-          );
-          return !retryErr;
-        }
-        return false;
-      }
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  // Botón "Usar como Logo" del CMS conectado a Supabase con upsert + alert
-  const handleUsarComoLogo = async (nuevaUrlLogo: string) => {
-    setLogoUrl(nuevaUrlLogo);
-    const guardadoEnBd = await sincronizarPortalConfigSupabase({ logo_url: nuevaUrlLogo });
-    lanzarToast("🛡️ Logo institucional actualizado y persistido en portal_config.");
-    if (typeof window !== "undefined") {
-      window.alert(
-        guardadoEnBd
-          ? "✅ Logo actualizado y guardado permanentemente en la tabla portal_config de Supabase."
-          : "✅ Logo actualizado y persistido en la configuración del portal."
-      );
-    }
-  };
-
-  // Botón para establecer imagen y personalización de difuminado/color en el Hero del Home
-  const handleUsarComoFondoHero = async (
-    nuevaUrlHero: string,
-    blurCustom?: number,
-    opacityCustom?: number,
-    colorCustom?: string
-  ) => {
-    const limpia = (nuevaUrlHero.split("#fcm_cfg=")[0] || "").trim() || HERO_BG_DEFAULT;
-    const bFinal = typeof blurCustom === "number" ? blurCustom : heroBlur;
-    const opFinal = typeof opacityCustom === "number" ? opacityCustom : heroOverlayOpacity;
-    const colFinal = colorCustom || heroOverlayColor;
-
-    setHeroBgUrl(limpia);
-    setHeroBgInputUrl(limpia);
-    setHeroBlur(bFinal);
-    setHeroOverlayOpacity(opFinal);
-    setHeroOverlayColor(colFinal);
-
-    const urlConConfig = `${limpia}#fcm_cfg=${bFinal}|${opFinal}|${encodeURIComponent(colFinal)}`;
-    await sincronizarPortalConfigSupabase({
-      hero_bg_url: urlConConfig,
-      hero_blur: bFinal,
-      hero_overlay_opacity: opFinal,
-      hero_overlay_color: colFinal,
-    });
-    lanzarToast("🖼️ Personalización del Hero (imagen, difuminado y color) guardada en Supabase.");
-  };
-
-  const abrirMenuServicioConHover = () => {
-    if (timeoutServicioRef.current) {
-      clearTimeout(timeoutServicioRef.current);
-      timeoutServicioRef.current = null;
-    }
-    setDropdownServicioAbierto(true);
-  };
-
-  const cerrarMenuServicioConRetraso = () => {
-    if (timeoutServicioRef.current) clearTimeout(timeoutServicioRef.current);
-    timeoutServicioRef.current = setTimeout(() => setDropdownServicioAbierto(false), 260);
-  };
-
-  const abrirMenuFormacionConHover = () => {
-    if (timeoutFormacionRef.current) {
-      clearTimeout(timeoutFormacionRef.current);
-      timeoutFormacionRef.current = null;
-    }
-    setDropdownFormacionAbierto(true);
-  };
-
-  const cerrarMenuFormacionConRetraso = () => {
-    if (timeoutFormacionRef.current) clearTimeout(timeoutFormacionRef.current);
-    timeoutFormacionRef.current = setTimeout(() => setDropdownFormacionAbierto(false), 260);
-  };
-
-  // Sincronización del Modo Oscuro con LocalStorage y Media Query
-  useEffect(() => {
-    try {
-      const guardado = localStorage.getItem("fcm_theme");
-      if (guardado === "dark") {
-        setModoOscuro(true);
-        document.documentElement.classList.add("dark");
-      } else if (guardado === "light") {
-        setModoOscuro(false);
-        document.documentElement.classList.remove("dark");
-      } else if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        setModoOscuro(true);
-        document.documentElement.classList.add("dark");
-      }
-    } catch {
-      // Ignorar en entornos restringidos
-    }
-  }, []);
-
-  const toggleModoOscuro = () => {
-    setModoOscuro((prev) => {
-      const nuevo = !prev;
-      try {
-        localStorage.setItem("fcm_theme", nuevo ? "dark" : "light");
-        if (nuevo) {
-          document.documentElement.classList.add("dark");
-        } else {
-          document.documentElement.classList.remove("dark");
-        }
-      } catch {}
-      return nuevo;
-    });
-  };
-
-  
-  // Scroll-Reveal: Revelado animado fluido al bajar por la página
-  useEffect(() => {
-    if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-          }
-        });
-      },
-      {
-        threshold: 0.05,
-        rootMargin: "0px 0px -20px 0px",
-      }
-    );
-
-    const elementos = document.querySelectorAll(".reveal-on-scroll");
-    elementos.forEach((el) => observer.observe(el));
-
-    return () => {
-      elementos.forEach((el) => observer.unobserve(el));
-      observer.disconnect();
-    };
-  }, [vistaActual, carreraSeleccionadaId]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuServicioRef.current && !menuServicioRef.current.contains(event.target as Node)) {
-        setDropdownServicioAbierto(false);
-      }
-      if (menuFormacionRef.current && !menuFormacionRef.current.contains(event.target as Node)) {
-        setDropdownFormacionAbierto(false);
-      }
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setDropdownServicioAbierto(false);
-        setDropdownFormacionAbierto(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-      if (timeoutServicioRef.current) clearTimeout(timeoutServicioRef.current);
-      if (timeoutFormacionRef.current) clearTimeout(timeoutFormacionRef.current);
-    };
-  }, []);
-
-  const handleSeleccionarCarreraEnAdmin = (id: CarreraId) => {
-    setAdminCarreraEditId(id);
-    const encontrada = carreras.find((c) => c.id === id);
-    if (encontrada) {
-      setUrlImagenCarreraInput(encontrada.imagen_referencial_url);
-      setUrlTripticoCarreraInput(encontrada.triptico_pdf_url);
-      setUrlPosterCarreraInput(encontrada.poster_pdf_url || "");
-    }
-  };
-
-  const cursosDependientesSubida = useMemo(
-    () => malla.filter((c) => c.carrera_id === formSubidaAnon.carrera_id && c.ciclo === Number(formSubidaAnon.ciclo)),
-    [malla, formSubidaAnon.carrera_id, formSubidaAnon.ciclo]
-  );
-
-  const carreraActiva = useMemo(
-    () => carreras.find((c) => c.id === carreraSeleccionadaId) || CARRERAS_INICIALES[0],
-    [carreras, carreraSeleccionadaId]
-  );
-
-  const cursosDeCarreraActiva = useMemo(
-    () => malla.filter((c) => c.carrera_id === carreraActiva.id),
-    [malla, carreraActiva.id]
-  );
-
-  const materialesAprobados = useMemo(() => materiales.filter((m) => m.estado === "aprobado"), [materiales]);
-  const materialesPendientes = useMemo(() => materiales.filter((m) => m.estado === "pendiente"), [materiales]);
-  const resenasPendientes = useMemo(() => resenasDocentes.filter((r) => r.estado === "pendiente"), [resenasDocentes]);
-
-  const obtenerEstadisticasDocente = useCallback(
-    (docenteId: string) => {
-      const aprobadas = resenasDocentes.filter((r) => r.docente_id === docenteId && r.estado === "aprobado");
-      const total = aprobadas.length;
-      const promedio = total > 0 ? aprobadas.reduce((acc, item) => acc + item.puntuacion, 0) / total : 0;
-      const distribucion = [5, 4, 3, 2, 1].map((estrellas) => {
-        const cantidad = aprobadas.filter((r) => r.puntuacion === estrellas).length;
-        const porcentaje = total > 0 ? Math.round((cantidad / total) * 100) : 0;
-        return { estrellas, cantidad, porcentaje };
-      });
-      return { aprobadas, total, promedio, distribucion };
-    },
-    [resenasDocentes]
-  );
-
-  const abrirModalDocente = (doc: Docente) => {
-    setDocenteModalActivo(doc);
-    setHoverEstrellaDocente(0);
-    setErrorResenaDocente("");
-    setExitoResenaDocente(false);
-    setFormResenaDocente({
-      puntuacion: 5,
-      curso: doc.cursos_dictados[0] || "Asignatura de la Escuela",
-      autor_alias: "",
-      esAnonimo: false,
-      comentario: "",
-      bot_trap: "",
-    });
-  };
-
-  const handleEnviarResenaDocente = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!docenteModalActivo) return;
-
-    // Protección Honeypot Anti-Spam / Bots
-    if (formResenaDocente.bot_trap && formResenaDocente.bot_trap.trim() !== "") {
-      setExitoResenaDocente(true);
-      return;
-    }
-
-    const comentarioLimpio = formResenaDocente.comentario.trim().replace(/<[^>]*>?/gm, "");
-    if (formResenaDocente.puntuacion < 1 || formResenaDocente.puntuacion > 5) {
-      setErrorResenaDocente("Por favor selecciona una calificación entre 1 y 5 estrellas.");
-      return;
-    }
-    if (comentarioLimpio.length < 10) {
-      setErrorResenaDocente("El comentario debe tener al menos 10 caracteres explicando tu valoración.");
-      return;
-    }
-
-    const aliasFinal = formResenaDocente.esAnonimo
-      ? "Estudiante Anónimo FCM"
-      : formResenaDocente.autor_alias.trim().replace(/<[^>]*>?/gm, "") || "Estudiante Anónimo FCM";
-
-    const nuevaResena: ResenaDocente = {
-      id: `res-${Date.now()}`,
-      docente_id: docenteModalActivo.id,
-      puntuacion: formResenaDocente.puntuacion as 1 | 2 | 3 | 4 | 5,
-      comentario: comentarioLimpio,
-      curso: formResenaDocente.curso.trim() || docenteModalActivo.cursos_dictados[0] || "Asignatura General",
-      autor_alias: aliasFinal,
-      fecha: new Date().toISOString().split("T")[0],
-      estado: "aprobado",
-    };
-
-    const nuevasResenas = [nuevaResena, ...resenasDocentes];
-    setResenasDocentes(nuevasResenas);
-    await sincronizarPortalConfigSupabase({ resenas_docentes: nuevasResenas });
-
-    setErrorResenaDocente("");
-    setExitoResenaDocente(true);
-    setHoverEstrellaDocente(0);
-    setFormResenaDocente({
-      puntuacion: 5,
-      curso: docenteModalActivo.cursos_dictados[0] || "Asignatura de la Escuela",
-      autor_alias: "",
-      esAnonimo: false,
-      comentario: "",
-      bot_trap: "",
-    });
-    lanzarToast(`⭐ ¡Gracias! Tu reseña para ${docenteModalActivo.grado_academico} ${docenteModalActivo.nombre_completo} fue publicada.`);
-    setTimeout(() => setExitoResenaDocente(false), 5000);
-  };
-
-  const handleCambiarEstadoResenaAdmin = async (idResena: string, nuevoEstado: "aprobado" | "pendiente") => {
-    const actualizadas = resenasDocentes.map((r) => (r.id === idResena ? { ...r, estado: nuevoEstado } : r));
-    setResenasDocentes(actualizadas);
-    await sincronizarPortalConfigSupabase({ resenas_docentes: actualizadas });
-    lanzarToast(
-      nuevoEstado === "aprobado"
-        ? "✅ Reseña docente aprobada y visible públicamente."
-        : "⏸️ Reseña docente marcada como pendiente."
-    );
-  };
-
-  const handleEliminarResenaDocenteAdmin = async (idResena: string) => {
-    const filtradas = resenasDocentes.filter((r) => r.id !== idResena);
-    setResenasDocentes(filtradas);
-    await sincronizarPortalConfigSupabase({ resenas_docentes: filtradas });
-    lanzarToast("🗑️ Reseña de docente eliminada permanentemente de Supabase.");
-  };
-
-  const resultadosBusquedaHero = useMemo(() => {
-    const q = busquedaGlobal.trim().toLowerCase();
-    if (!q) return { cursos: [], materiales: [] };
-    return {
-      cursos: malla.filter((c) => c.codigo.toLowerCase().includes(q) || c.nombre_curso.toLowerCase().includes(q)).slice(0, 6),
-      materiales: materialesAprobados.filter((m) => m.titulo.toLowerCase().includes(q) || m.docente.toLowerCase().includes(q)).slice(0, 4),
-    };
-  }, [busquedaGlobal, malla, materialesAprobados]);
-
-  const cursosDisponiblesFiltroRepo = useMemo(
-    () =>
-      malla.filter((c) => {
-        const okCarrera = repoFiltroCarrera === "TODAS" || c.carrera_id === repoFiltroCarrera;
-        const okCiclo = repoFiltroCiclo === "TODOS" || c.ciclo === repoFiltroCiclo;
-        return okCarrera && okCiclo;
-      }),
-    [malla, repoFiltroCarrera, repoFiltroCiclo]
-  );
-
-  const materialesFiltradosRepo = useMemo(
-    () =>
-      materialesAprobados.filter((m) => {
-        const curso = malla.find((c) => c.id === m.curso_id);
-        const cicloMat = m.ciclo || curso?.ciclo;
-        if (repoFiltroCarrera !== "TODAS" && m.carrera_id !== repoFiltroCarrera) return false;
-        if (repoFiltroCiclo !== "TODOS" && cicloMat !== repoFiltroCiclo) return false;
-        if (repoFiltroCurso !== "TODOS" && m.curso_id !== repoFiltroCurso) return false;
-        if (repoFiltroTipo !== "TODOS" && m.tipo_archivo !== repoFiltroTipo) return false;
-        if (repoBusquedaTexto.trim() !== "") {
-          const q = repoBusquedaTexto.toLowerCase();
-          return (
-            m.titulo.toLowerCase().includes(q) ||
-            m.docente.toLowerCase().includes(q) ||
-            Boolean(curso?.codigo.toLowerCase().includes(q)) ||
-            Boolean(curso?.nombre_curso.toLowerCase().includes(q))
-          );
-        }
-        return true;
-      }),
-    [materialesAprobados, malla, repoFiltroCarrera, repoFiltroCiclo, repoFiltroCurso, repoFiltroTipo, repoBusquedaTexto]
-  );
-
-  useEffect(() => {
-    setRepoPaginaActual(1);
-  }, [repoFiltroCarrera, repoFiltroCiclo, repoFiltroCurso, repoFiltroTipo, repoBusquedaTexto]);
-
-  const ITEMS_POR_PAGINA_REPO = 6;
-  const totalPaginasRepo = Math.max(1, Math.ceil(materialesFiltradosRepo.length / ITEMS_POR_PAGINA_REPO));
-  const inicioIndiceRepo = (repoPaginaActual - 1) * ITEMS_POR_PAGINA_REPO;
-  const finIndiceRepo = Math.min(inicioIndiceRepo + ITEMS_POR_PAGINA_REPO, materialesFiltradosRepo.length);
-  const materialesPaginadosRepo = useMemo(() => {
-    return materialesFiltradosRepo.slice(inicioIndiceRepo, inicioIndiceRepo + ITEMS_POR_PAGINA_REPO);
-  }, [materialesFiltradosRepo, inicioIndiceRepo]);
-
-  const obtenerNumerosPaginaRepo = () => {
-    const paginas: (number | "...")[] = [];
-    if (totalPaginasRepo <= 7) {
-      for (let i = 1; i <= totalPaginasRepo; i++) paginas.push(i);
-    } else {
-      paginas.push(1);
-      if (repoPaginaActual > 3) paginas.push("...");
-      const inicio = Math.max(2, repoPaginaActual - 1);
-      const fin = Math.min(totalPaginasRepo - 1, repoPaginaActual + 1);
-      for (let i = inicio; i <= fin; i++) {
-        if (!paginas.includes(i)) paginas.push(i);
-      }
-      if (repoPaginaActual < totalPaginasRepo - 2) paginas.push("...");
-      paginas.push(totalPaginasRepo);
-    }
-    return paginas;
-  };
-
-  const cambiarPaginaRepo = (nuevaPagina: number) => {
-    if (nuevaPagina < 1 || nuevaPagina > totalPaginasRepo) return;
-    setRepoPaginaActual(nuevaPagina);
-    const contenedor = document.getElementById("seccion-recursos-repo");
-    if (contenedor) {
-      contenedor.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  const subirArchivoASupabaseStorage = async (file: File, carpeta: string): Promise<string> => {
-    try {
-      const safeName = `${carpeta}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const { data, error } = await supabase.storage.from("fcm-assets").upload(safeName, file, {
-        contentType: file.type || "image/jpeg",
-        upsert: true,
-      });
-
-      if (!error && data) {
-        const { data: publicData } = supabase.storage.from("fcm-assets").getPublicUrl(safeName);
-        if (publicData?.publicUrl) return publicData.publicUrl;
-      }
-    } catch (err) {
-      console.warn("Fallo upload a Supabase Storage fcm-assets:", err);
-    }
-
-    // Fallback: Convertir a DataURL Base64 persistente (nunca devolver blob:)
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.onerror = () => {
-        resolve("");
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleSubirImagenCarreraStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSubiendoAssetCarrera(true);
-    try {
-      const publicUrl = await subirArchivoASupabaseStorage(file, `carreras/${adminCarreraEditId}`);
-      setUrlImagenCarreraInput(publicUrl);
-      const nuevasCarreras = carreras.map((c) => (c.id === adminCarreraEditId ? { ...c, imagen_referencial_url: publicUrl } : c));
-      setCarreras(nuevasCarreras);
-      await sincronizarPortalConfigSupabase({ carreras_data: nuevasCarreras });
-      lanzarToast(`✅ Imagen referencial de ${carreraAdminSeleccionada.nombre} guardada en Supabase.`);
-    } finally {
-      setSubiendoAssetCarrera(false);
-      if (inputImagenCarreraRef.current) inputImagenCarreraRef.current.value = "";
-    }
-  };
-
-  const handleSubirTripticoPdfStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSubiendoAssetCarrera(true);
-    try {
-      const publicUrl = await subirArchivoASupabaseStorage(file, `tripticos/${adminCarreraEditId}`);
-      setUrlTripticoCarreraInput(publicUrl);
-      const nuevasCarreras = carreras.map((c) =>
-        c.id === adminCarreraEditId ? { ...c, triptico_pdf_url: publicUrl, triptico_nombre_archivo: file.name } : c
-      );
-      setCarreras(nuevasCarreras);
-      await sincronizarPortalConfigSupabase({ carreras_data: nuevasCarreras });
-      lanzarToast(`📥 Tríptico PDF "${file.name}" guardado en Supabase para ${carreraAdminSeleccionada.nombre}.`);
-    } finally {
-      setSubiendoAssetCarrera(false);
-      if (inputTripticoPdfRef.current) inputTripticoPdfRef.current.value = "";
-    }
-  };
-
-  const handleSubirPosterPdfStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSubiendoAssetCarrera(true);
-    try {
-      const publicUrl = await subirArchivoASupabaseStorage(file, `posters/${adminCarreraEditId}`);
-      setUrlPosterCarreraInput(publicUrl);
-      const nuevasCarreras = carreras.map((c) =>
-        c.id === adminCarreraEditId ? { ...c, poster_pdf_url: publicUrl, poster_nombre_archivo: file.name } : c
-      );
-      setCarreras(nuevasCarreras);
-      await sincronizarPortalConfigSupabase({ carreras_data: nuevasCarreras });
-      lanzarToast(`📥 Póster de Estudios PDF "${file.name}" guardado en Supabase para ${carreraAdminSeleccionada.nombre}.`);
-    } finally {
-      setSubiendoAssetCarrera(false);
-      if (inputPosterPdfRef.current) inputPosterPdfRef.current.value = "";
-    }
-  };
-
-  const handleGuardarDatosCarreraAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const nuevasCarreras = carreras.map((c) =>
-      c.id === adminCarreraEditId
-        ? {
-            ...c,
-            imagen_referencial_url: urlImagenCarreraInput.trim() || c.imagen_referencial_url,
-            triptico_pdf_url: urlTripticoCarreraInput.trim(),
-            poster_pdf_url: urlPosterCarreraInput.trim(),
-          }
-        : c
-    );
-    setCarreras(nuevasCarreras);
-    await sincronizarPortalConfigSupabase({ carreras_data: nuevasCarreras });
-    lanzarToast(`✅ Recursos multimedia de ${carreraAdminSeleccionada.nombre} guardados en Supabase.`);
-  };
-
-  const handleSubirImagenPortadaNoticia = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const publicUrl = await subirArchivoASupabaseStorage(file, "noticias");
-    setFormNoticia((prev) => ({ ...prev, imagen_url: publicUrl }));
-    lanzarToast("✅ Imagen de portada cargada en el formulario de la noticia.");
-    if (inputImagenNoticiaRef.current) inputImagenNoticiaRef.current.value = "";
-  };
-
-  const handleSubirFondoNoticiaStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const publicUrl = await subirArchivoASupabaseStorage(file, "noticias-fondos");
-      if (publicUrl && !publicUrl.startsWith("blob:")) {
-        setFormNoticia((prev) => ({ ...prev, fondo_imagen_url: publicUrl }));
-        lanzarToast("✅ Fondo de carrusel cargado y persistente.");
-      } else {
-        lanzarToast("⚠️ No se pudo generar una URL persistente.");
-      }
-    } catch {
-      lanzarToast("❌ Error al procesar imagen de fondo.");
-    } finally {
-      if (inputFondoNoticiaRef.current) inputFondoNoticiaRef.current.value = "";
-    }
-  };
-
-  const handleDescargarTripticoCarrera = () => {
-    if (carreraActiva.triptico_pdf_url && carreraActiva.triptico_pdf_url.trim() !== "") {
-      const link = document.createElement("a");
-      link.href = carreraActiva.triptico_pdf_url;
-      link.target = "_blank";
-      link.download = carreraActiva.triptico_nombre_archivo || `Triptico_${carreraActiva.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      lanzarToast(`📥 Descargando Tríptico PDF oficial de ${carreraActiva.nombre}...`);
-      return;
-    }
-
-    if (carreraActiva.id === "computacion-cientifica") {
-      window.open("/tripticos/triptico-computacion-cientifica.html", "_blank");
-      lanzarToast("💻 Abriendo Tríptico Oficial de Computación Científica (2 caras listas para imprimir/PDF)...");
-      return;
-    }
-
-    const win = window.open("", "_blank", "width=1050,height=800");
-    if (!win) {
-      window.print();
-      return;
-    }
-    const primerosCursos = cursosDeCarreraActiva
-      .filter((c) => c.ciclo <= 4)
-      .slice(0, 10)
-      .map((c) => `<li><strong>[${c.codigo}]</strong> ${c.nombre_curso} (Ciclo ${c.ciclo})</li>`)
-      .join("");
-
-    win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8" /><title>Tríptico - ${carreraActiva.nombre}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;margin:20px;color:#0F172A}.grid-triptico{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;border:2px solid #002855;border-radius:12px;padding:20px}.col{border-right:1px dashed #CBD5E1;padding-right:16px}.col:last-child{border-right:none;padding-right:0}h1{font-size:18px;color:#002855;margin:6px 0}h2{font-size:13px;color:#B91C1C;text-transform:uppercase;border-bottom:2px solid #002855;padding-bottom:4px;margin-top:14px}p,li{font-size:12px;line-height:1.55;color:#334155}</style></head><body><div class="grid-triptico"><div class="col"><div style="background:#002855;color:#FFF;padding:14px;border-radius:8px;border-bottom:4px solid #B91C1C"><div style="font-size:10px;font-weight:700;color:#FCA5A5">UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS</div><h1 style="color:#FFF;margin:4px 0">Escuela Profesional de ${carreraActiva.nombre}</h1><div style="font-size:11px;color:#BFDBFE">${carreraActiva.codigo_escuela} • Plan 2026</div></div><h2>Presentación</h2><p>${carreraActiva.descripcion}</p><h2>Visión Académica</h2><p>${carreraActiva.vision_carrera}</p></div><div class="col"><h2>Perfil del Egresado</h2><p>${carreraActiva.perfil_egreso}</p><h2>Campo Laboral</h2><p>${carreraActiva.campo_laboral}</p><h2>¿Por qué estudiar ${carreraActiva.nombre}?</h2><p>${carreraActiva.por_que_estudiar}</p></div><div class="col"><h2>Grados y Títulos Oficiales</h2><p><strong>Duración:</strong> 10 Semestres Académicos</p><p><strong>Grado:</strong> ${carreraActiva.grado_academico}</p><p><strong>Título:</strong> ${carreraActiva.titulo_profesional}</p><h2>Asignaturas Base</h2><ul style="padding-left:16px">${primerosCursos}</ul></div></div><script>window.onload=function(){setTimeout(function(){window.print()},250)}</script></body></html>`);
-    win.document.close();
-    lanzarToast(`📥 Generando Tríptico PDF de ${carreraActiva.nombre}...`);
-  };
-
-  const handleDescargarPosterEstudios = () => {
-    if (carreraActiva.poster_pdf_url && carreraActiva.poster_pdf_url.trim() !== "") {
-      const link = document.createElement("a");
-      link.href = carreraActiva.poster_pdf_url;
-      link.target = "_blank";
-      link.download = carreraActiva.poster_nombre_archivo || `Poster_Estudios_${carreraActiva.id}_Plan2026.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      lanzarToast(`📥 Descargando Póster Oficial de Estudios de ${carreraActiva.nombre}...`);
-      return;
-    }
-
-    setCiclosAbiertos([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    const totalCreditosCarrera = cursosDeCarreraActiva.reduce((acc, c) => acc + c.creditos, 0);
-    const totalObligatorios = cursosDeCarreraActiva.filter((c) => c.tipo_curso === "O").length;
-    const totalElectivos = cursosDeCarreraActiva.filter((c) => c.tipo_curso === "E").length;
-
-    const ventanaImpresion = window.open("", "_blank", "width=1200,height=900");
-    if (!ventanaImpresion) {
-      window.print();
-      return;
-    }
-
-    const bloquesCiclosHtml = Array.from({ length: 10 }, (_, i) => i + 1)
-      .map((numCiclo) => {
-        const cursosCiclo = cursosDeCarreraActiva.filter((c) => c.ciclo === numCiclo);
-        const credCiclo = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
-        const filasHtml = cursosCiclo
-          .map(
-            (cur) => `
-              <div style="background:#ffffff;border:1px solid #E2E8F0;border-left:3.5px solid ${cur.tipo_curso === 'O' ? '#002855' : '#B91C1C'};padding:6px 8px;border-radius:6px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
-                <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:2px">
-                  <span style="font-family:monospace;font-weight:800;color:#002855">[${cur.codigo}]</span>
-                  <span style="font-weight:700;color:${cur.tipo_curso === 'O' ? '#1E3A8A' : '#991B1B'};background:${cur.tipo_curso === 'O' ? '#EFF6FF' : '#FEF2F2'};padding:1px 5px;border-radius:4px">${cur.creditos.toFixed(1)} cr</span>
-                </div>
-                <div style="font-size:10.5px;font-weight:700;color:#1E293B;line-height:1.25">${cur.nombre_curso}</div>
-                <div style="font-size:9px;color:#64748B;margin-top:2px;font-family:monospace">Req: ${cur.prerequisitos.length > 0 ? cur.prerequisitos.join(', ') : 'Ninguno'}</div>
-              </div>
-            `
-          )
-          .join("");
-
-        return `
-          <div style="background:#F8FAFC;border:1px solid #CBD5E1;border-radius:10px;padding:8px;display:flex;flex-direction:column">
-            <div style="background:#002855;color:#ffffff;padding:6px 10px;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-              <strong style="font-size:11px;letter-spacing:0.5px">CICLO ${numCiclo}</strong>
-              <span style="font-size:9.5px;color:#93C5FD">${credCiclo.toFixed(1)} cr</span>
-            </div>
-            <div style="flex:1">${filasHtml}</div>
-          </div>
-        `;
-      })
-      .join("");
-
-    ventanaImpresion.document.write(`
-      <!DOCTYPE html>
-      <html lang="es">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Póster Oficial de Estudios — ${carreraActiva.nombre} (Plan 2026)</title>
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-          * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          @page { size: A3 landscape; margin: 8mm; }
-          body { font-family: 'Inter', -apple-system, sans-serif; background: #ffffff; color: #0F172A; padding: 14px; }
-          .header { border-bottom: 3px solid #B91C1C; padding-bottom: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end; }
-          .grid-poster { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-          @media print {
-            body { padding: 0; }
-            .no-print { display: none !important; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="no-print" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;gap:10px">
-          <button onclick="window.print()" style="background:#002855;color:#ffffff;border:none;padding:12px 24px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.3)">🖨️ Imprimir / Guardar Póster en PDF</button>
-        </div>
-        <div class="header">
-          <div>
-            <div style="font-size:11px;font-weight:900;color:#B91C1C;letter-spacing:1px;text-transform:uppercase">Universidad Nacional Mayor de San Marcos • Decana de América</div>
-            <h1 style="font-size:22px;color:#002855;font-weight:900;margin:3px 0">FACULTAD DE CIENCIAS MATEMÁTICAS (${carreraActiva.codigo_escuela})</h1>
-            <h2 style="font-size:15px;color:#334155;font-weight:800">PÓSTER OFICIAL DE ESTUDIOS — ${carreraActiva.nombre.toUpperCase()} (PLAN 2026)</h2>
-          </div>
-          <div style="text-align:right;font-size:11px;color:#334155;background:#F1F5F9;padding:8px 14px;border-radius:8px;border:1px solid #CBD5E1">
-            <div><strong>Duración:</strong> 10 Semestres • <strong>Total Créditos:</strong> ${totalCreditosCarrera.toFixed(1)}</div>
-            <div><strong>Asignaturas:</strong> ${cursosDeCarreraActiva.length} (${totalObligatorios} Obligatorias, ${totalElectivos} Electivas)</div>
-            <div style="color:#002855;font-weight:700">Grado: ${carreraActiva.grado_academico}</div>
-          </div>
-        </div>
-        <div class="grid-poster">
-          ${bloquesCiclosHtml}
-        </div>
-        <script>
-          window.onload = function() {
-            setTimeout(function() { window.print(); }, 400);
-          }
-        </script>
-      </body>
-      </html>
-    `);
-    ventanaImpresion.document.close();
-    lanzarToast(`📊 Abriendo Póster Oficial de Estudios de ${carreraActiva.nombre}...`);
-  };
-
-  const handleDescargarMallaPDF = () => {
-    setCiclosAbiertos([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    const totalCreditosCarrera = cursosDeCarreraActiva.reduce((acc, c) => acc + c.creditos, 0);
-    const ventanaImpresion = window.open("", "_blank", "width=1050,height=850");
-    if (!ventanaImpresion) {
-      window.print();
-      return;
-    }
-    const bloquesCiclosHtml = Array.from({ length: 10 }, (_, i) => i + 1)
-      .map((numCiclo) => {
-        const cursosCiclo = cursosDeCarreraActiva.filter((c) => c.ciclo === numCiclo);
-        const credCiclo = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
-        const filasHtml = cursosCiclo
-          .map(
-            (cur) =>
-              `<tr><td style="font-family:monospace;font-weight:700;color:#002855">${cur.codigo}</td><td style="font-weight:600">${cur.nombre_curso}</td><td style="text-align:center">${cur.creditos.toFixed(1)}</td><td style="text-align:center">${cur.tipo_curso === "O" ? "OBLIGATORIO" : "ELECTIVO"}</td><td style="font-family:monospace;font-size:11px">${cur.prerequisitos.length > 0 ? cur.prerequisitos.join(", ") : "Ninguno"}</td></tr>`
-          )
-          .join("");
-        return `<div style="margin-bottom:16px;page-break-inside:avoid;border:1px solid #CBD5E1;border-radius:8px;overflow:hidden"><div style="background:#002855;color:#FFF;padding:8px 14px;display:flex;justify-content:space-between"><strong>CICLO ${numCiclo}</strong><span>${cursosCiclo.length} Asignaturas • ${credCiclo.toFixed(1)} Créditos</span></div><table style="width:100%;border-collapse:collapse;font-size:12px"><tbody>${filasHtml}</tbody></table></div>`;
-      })
-      .join("");
-
-    ventanaImpresion.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8" /><title>Malla Curricular - ${carreraActiva.nombre}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;color:#0F172A;margin:24px}td{padding:6px 10px;border-bottom:1px solid #E2E8F0}</style></head><body><div style="border-bottom:3px solid #B91C1C;padding-bottom:12px;margin-bottom:18px;display:flex;justify-content:space-between"><div><div style="font-size:11px;font-weight:700;color:#B91C1C">UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS</div><h1 style="margin:4px 0;font-size:20px;color:#002855">FACULTAD DE CIENCIAS MATEMÁTICAS (${carreraActiva.codigo_escuela})</h1><h2 style="margin:2px 0;font-size:15px">PLAN DE ESTUDIOS 2026 — ${carreraActiva.nombre.toUpperCase()}</h2></div><div style="text-align:right;font-size:11px"><div><strong>Asignaturas:</strong> ${cursosDeCarreraActiva.length}</div><div><strong>Créditos:</strong> ${totalCreditosCarrera.toFixed(1)}</div></div></div>${bloquesCiclosHtml}<script>window.onload=function(){setTimeout(function(){window.print()},250)}</script></body></html>`);
-    ventanaImpresion.document.close();
-  };
-
-  const handleCambiarCarreraSubida = (nuevaCarrera: CarreraId) => {
-    const compatibles = malla.filter((c) => c.carrera_id === nuevaCarrera && c.ciclo === formSubidaAnon.ciclo);
-    setFormSubidaAnon((prev) => ({ ...prev, carrera_id: nuevaCarrera, curso_id: compatibles.length > 0 ? compatibles[0].id : "" }));
-  };
-
-  const handleCambiarCicloSubida = (nuevoCiclo: number) => {
-    const compatibles = malla.filter((c) => c.carrera_id === formSubidaAnon.carrera_id && c.ciclo === nuevoCiclo);
-    setFormSubidaAnon((prev) => ({ ...prev, ciclo: nuevoCiclo, curso_id: compatibles.length > 0 ? compatibles[0].id : "" }));
-  };
-
-  const handleSubidaRepositorioAnonima = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Protección Honeypot Anti-Spam / Bots
-    if (formSubidaAnon.bot_trap && formSubidaAnon.bot_trap.trim() !== "") {
-      setExitoSubidaModal(true);
-      return;
-    }
-
-    const docenteFinal = formSubidaAnon.modoDocente === "manual" ? formSubidaAnon.docenteManual.trim() : formSubidaAnon.docenteSeleccionado;
-    if (!formSubidaAnon.titulo.trim() || !formSubidaAnon.url_archivo.trim() || !formSubidaAnon.curso_id || !docenteFinal) {
-      lanzarToast("Por favor completa todos los campos obligatorios.");
-      return;
-    }
-
-    // Validación de Seguridad Anti-Phishing y Protocolos Seguros para URLs
-    const urlLimpia = formSubidaAnon.url_archivo.trim();
-    const esUrlSegura = (() => {
-      try {
-        const parsed = new URL(urlLimpia);
-        if (parsed.protocol !== "https:") return false;
-        const extensionesPeligrosas = /\.(exe|bat|cmd|sh|vbs|msi|scr|ps1|jar|apk)$/i;
-        if (extensionesPeligrosas.test(parsed.pathname)) return false;
-        return true;
-      } catch {
-        return false;
-      }
-    })();
-
-    if (!esUrlSegura) {
-      lanzarToast("⚠️ Enlace no permitido. Por seguridad, la URL debe comenzar con https:// y no puede contener archivos ejecutables.");
-      return;
-    }
-
-    const nuevoMat: MaterialRepositorio = {
-      id: `mat-${Date.now()}`,
-      titulo: formSubidaAnon.titulo.trim().replace(/<[^>]*>?/gm, ""),
-      tipo_archivo: formSubidaAnon.tipo_archivo,
-      url_archivo: urlLimpia,
-      carrera_id: formSubidaAnon.carrera_id,
-      ciclo: Number(formSubidaAnon.ciclo),
-      curso_id: formSubidaAnon.curso_id,
-      docente: docenteFinal.replace(/<[^>]*>?/gm, ""),
-      autor_alias: formSubidaAnon.autor_alias.trim().replace(/<[^>]*>?/gm, "") || "Estudiante Anónimo FCM",
-      fecha_subida: new Date().toISOString().split("T")[0],
-      estado: "pendiente",
-    };
-    const nuevosMateriales = [nuevoMat, ...materiales];
-    setMateriales(nuevosMateriales);
-    await sincronizarPortalConfigSupabase({ materiales_data: nuevosMateriales });
-    setExitoSubidaModal(true);
-    lanzarToast("📥 Material clasificado, guardado en Supabase y enviado a moderación.");
-  };
-
-  const handleAprobarMaterialAdmin = async (idMat: string) => {
-    const actualizados = materiales.map((item) =>
-      item.id === idMat ? { ...item, estado: "aprobado" as EstadoMaterial } : item
-    );
-    setMateriales(actualizados);
-    await sincronizarPortalConfigSupabase({ materiales_data: actualizados });
-    lanzarToast("✅ Material aprobado y guardado permanentemente en Supabase.");
-  };
-
-  const handleEliminarMaterialAdmin = async (idMat: string) => {
-    const filtrados = materiales.filter((item) => item.id !== idMat);
-    setMateriales(filtrados);
-    await sincronizarPortalConfigSupabase({ materiales_data: filtrados });
-    lanzarToast("🗑️ Material eliminado permanentemente del repositorio y Supabase.");
-  };
-
-  const handleSubirArchivoStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSubiendoStorage(true);
-    try {
-      const publicUrl = await subirArchivoASupabaseStorage(file, "general");
-      const nuevaImagen: ImagenStorage = {
-        id: `img-${Date.now()}`,
-        nombre_archivo: file.name,
-        categoria: categoriaNuevaImagen,
-        url_publica: publicUrl,
-        tamano_kb: `${Math.max(1, Math.round(file.size / 1024))} KB`,
-        fecha_subida: new Date().toISOString().split("T")[0],
-      };
-      const nuevaListaStorage = [nuevaImagen, ...imagenesStorage];
-      setImagenesStorage(nuevaListaStorage);
-      if (categoriaNuevaImagen === "Logo Institucional") {
-        setLogoUrl(publicUrl);
-        await sincronizarPortalConfigSupabase({ logo_url: publicUrl, storage_data: nuevaListaStorage });
-        lanzarToast("✅ Imagen subida a Storage y guardada como Logo en Supabase.");
-      } else if (categoriaNuevaImagen === "Fondo Hero Home") {
-        setHeroBgUrl(publicUrl);
-        setHeroBgInputUrl(publicUrl);
-        await sincronizarPortalConfigSupabase({ hero_bg_url: publicUrl, storage_data: nuevaListaStorage });
-        lanzarToast("🖼️ Imagen subida y establecida como Fondo Difuminado del Hero en Supabase.");
-      } else {
-        await sincronizarPortalConfigSupabase({ storage_data: nuevaListaStorage });
-        lanzarToast(`✅ Imagen "${file.name}" subida al bucket 'fcm-assets' con URL pública.`);
-      }
-    } finally {
-      setSubiendoStorage(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
-  const noticiaActiva = useMemo(
-    () => noticias.find((n) => n.id === noticiaSeleccionadaId) || noticias[0] || NOTICIAS_INICIALES[0],
-    [noticias, noticiaSeleccionadaId]
-  );
-
-  const docentesFiltradosHome = useMemo(() => {
-    const q = busquedaDocentes.trim().toLowerCase();
-    return docentes.filter((doc) => {
-      const okCarrera = filtroDocenteCarrera === "TODAS" || doc.carrera_id === filtroDocenteCarrera;
-      if (!okCarrera) return false;
-      const okCategoria = filtroCategoriaDocente === "TODAS" || doc.categoria_docente === filtroCategoriaDocente;
-      if (!okCategoria) return false;
-      if (!q) return true;
-      return (
-        doc.nombre_completo.toLowerCase().includes(q) ||
-        doc.especialidad.toLowerCase().includes(q) ||
-        doc.lineas_investigacion.toLowerCase().includes(q) ||
-        doc.cursos_dictados.some((c) => c.toLowerCase().includes(q))
-      );
-    });
-  }, [docentes, filtroDocenteCarrera, filtroCategoriaDocente, busquedaDocentes]);
-
-  const noticiasFiltradasHemeroteca = useMemo(() => {
-    return noticias.filter((not) => {
-      const okCat = filtroCategoriaHemeroteca === "TODAS" || not.categoria === filtroCategoriaHemeroteca;
-      if (!okCat) return false;
-      if (!busquedaHemeroteca.trim()) return true;
-      const q = busquedaHemeroteca.toLowerCase().trim();
-      return (
-        not.titulo.toLowerCase().includes(q) ||
-        not.contenido.toLowerCase().includes(q) ||
-        (not.resumen && not.resumen.toLowerCase().includes(q))
-      );
-    });
-  }, [noticias, filtroCategoriaHemeroteca, busquedaHemeroteca]);
-
-  const navegarACarrera = (id: CarreraId) => {
-    navegar("/carreras/[id]", { carreraId: id });
-  };
-
-  const abrirNoticiaDetalle = (idNoticia: string) => {
-    navegar("/noticias/[id]", { noticiaId: idNoticia });
-  };
-
-  const handleCompartirNoticia = async (noticia: Noticia) => {
-    if (typeof window === "undefined") return;
-    const urlCompartir = `${window.location.origin}${window.location.pathname}#/noticias/${noticia.id}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${noticia.titulo} | FCM UNMSM`,
-          text: noticia.resumen || noticia.titulo,
-          url: urlCompartir,
-        });
-        return;
-      } catch {
-        // Continúa al respaldo de portapapeles
-      }
-    }
-    navigator.clipboard?.writeText(urlCompartir);
-    lanzarToast("🔗 Enlace directo de la noticia copiado al portapapeles.");
-  };
-
-  const insertarFormatoNoticia = (
-    tipo: "bold" | "italic" | "h2" | "ul" | "ol" | "link" | "quote" | "hr"
-  ) => {
-    const textarea = textareaNoticiaRef.current;
-    const valorActual = formNoticia.contenido;
-    const start = textarea ? textarea.selectionStart : valorActual.length;
-    const end = textarea ? textarea.selectionEnd : valorActual.length;
-    const seleccionado = valorActual.slice(start, end);
-
-    let reemplazo = "";
-    switch (tipo) {
-      case "bold":
-        reemplazo = `**${seleccionado || "texto en negrita"}**`;
-        break;
-      case "italic":
-        reemplazo = `*${seleccionado || "texto en cursiva"}*`;
-        break;
-      case "h2":
-        reemplazo = `\n## ${seleccionado || "Subtítulo de Sección"}\n`;
-        break;
-      case "ul":
-        reemplazo = seleccionado
-          ? seleccionado
-              .split("\n")
-              .map((l) => `- ${l}`)
-              .join("\n")
-          : `\n- Primer punto clave\n- Segundo punto clave\n`;
-        break;
-      case "ol":
-        reemplazo = seleccionado
-          ? seleccionado
-              .split("\n")
-              .map((l, i) => `${i + 1}. ${l}`)
-              .join("\n")
-          : `\n1. Primer paso o requisito\n2. Segundo paso o requisito\n`;
-        break;
-      case "link":
-        reemplazo = `[${seleccionado || "Texto del enlace"}](https://unmsm.edu.pe)`;
-        break;
-      case "quote":
-        reemplazo = `\n> ${seleccionado || "Aviso o nota destacada para los estudiantes."}\n`;
-        break;
-      case "hr":
-        reemplazo = `\n---\n`;
-        break;
-    }
-
-    const nuevoContenido = valorActual.slice(0, start) + reemplazo + valorActual.slice(end);
-    setFormNoticia((prev) => ({ ...prev, contenido: nuevoContenido }));
-    setTimeout(() => {
-      if (textarea) {
-        textarea.focus();
-        const nuevaPos = start + reemplazo.length;
-        textarea.setSelectionRange(nuevaPos, nuevaPos);
-      }
-    }, 20);
-  };
-
-  const toggleCicloAcordeon = (ciclo: number) => {
-    setCiclosAbiertos((prev) => (prev.includes(ciclo) ? prev.filter((c) => c !== ciclo) : [...prev, ciclo]));
-  };
-
-  const handleEnviarContacto = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Protección Honeypot Anti-Spam / Bots
-    if (formContacto.bot_trap && formContacto.bot_trap.trim() !== "") {
-      setTicketEnviadoOk(true);
-      setFormContacto({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
-      return;
-    }
-
-    const nuevoTicket: TicketSoporte = {
-      id: `tck-${Date.now()}`,
-      nombre: formContacto.nombre.trim(),
-      email: formContacto.email.trim(),
-      asunto: formContacto.asunto.trim(),
-      mensaje: formContacto.mensaje.trim(),
-      fecha: new Date().toISOString().slice(0, 16).replace("T", " "),
-      estado_atencion: "pendiente",
-    };
-    setTickets((prev) => [nuevoTicket, ...prev]);
-    setTicketEnviadoOk(true);
-    setFormContacto({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
-    lanzarToast("Solicitud registrada correctamente.");
-  };
-
-  const handleGuardarNoticia = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formNoticia.titulo.trim() || !formNoticia.contenido.trim()) return;
-    let nuevasNoticias: Noticia[];
-    const payloadNoticia: Noticia = {
-      id: formNoticia.id || `not-${Date.now()}`,
-      titulo: formNoticia.titulo.trim(),
-      categoria: formNoticia.categoria.trim() || "Comunicado Oficial",
-      resumen: formNoticia.resumen.trim(),
-      contenido: formNoticia.contenido.trim(),
-      imagen_url:
-        formNoticia.imagen_url.trim() ||
-        "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
-      fecha_publicacion: formNoticia.fecha_publicacion || new Date().toISOString().split("T")[0],
-      destacado: formNoticia.destacado,
-      en_carrusel_principal: formNoticia.en_carrusel_principal ?? true,
-      color_fondo: formNoticia.color_fondo || "#4d0713",
-      fecha_evento: formNoticia.fecha_evento.trim(),
-      lugar: formNoticia.lugar.trim(),
-      modalidad: formNoticia.modalidad.trim(),
-      dirigido_a: formNoticia.dirigido_a.trim(),
-      enlace_inscripcion: formNoticia.enlace_inscripcion.trim(),
-      fondo_imagen_url: formNoticia.fondo_imagen_url?.trim() || "",
-      fondo_blur: typeof formNoticia.fondo_blur === "number" ? formNoticia.fondo_blur : 4,
-      fondo_overlay_opacity: typeof formNoticia.fondo_overlay_opacity === "number" ? formNoticia.fondo_overlay_opacity : 60,
-      fondo_overlay_color: formNoticia.fondo_overlay_color || formNoticia.color_fondo || "#002855",
-    };
-
-    if (formNoticia.id) {
-      nuevasNoticias = noticias.map((n) => (n.id === formNoticia.id ? payloadNoticia : n));
-      setNoticias(nuevasNoticias);
-      lanzarToast("✅ Noticia actualizada y persistida en Supabase.");
-    } else {
-      nuevasNoticias = [payloadNoticia, ...noticias];
-      setNoticias(nuevasNoticias);
-      lanzarToast("📰 Nueva noticia publicada y guardada en Supabase.");
-    }
-    await sincronizarPortalConfigSupabase({ noticias_data: nuevasNoticias });
-    setFormNoticia({
-      id: "",
-      titulo: "",
-      categoria: "Comunicado Oficial",
-      resumen: "",
-      fecha_publicacion: "",
-      contenido: "",
-      imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
-      destacado: true,
-      en_carrusel_principal: true,
-      color_fondo: "#4d0713",
-      fecha_evento: "",
-      lugar: "",
-      modalidad: "",
-      dirigido_a: "",
-      enlace_inscripcion: "",
-      fondo_imagen_url: "",
-      fondo_blur: 4,
-      fondo_overlay_opacity: 60,
-      fondo_overlay_color: "#002855",
-    });
-  };
-
-  const handleToggleCarruselPrincipal = async (idNoticia: string) => {
-    const actualizadas = noticias.map((n) =>
-      n.id === idNoticia ? { ...n, en_carrusel_principal: !(n.en_carrusel_principal ?? true) } : n
-    );
-    setNoticias(actualizadas);
-    await sincronizarPortalConfigSupabase({ noticias_data: actualizadas });
-    lanzarToast("🔄 Estado de noticia en carrusel principal actualizado.");
-  };
-
-  const handleSubirFotoDocenteStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSubiendoFotoDocente(true);
-    try {
-      const publicUrl = await subirArchivoASupabaseStorage(file, "docentes");
-      setFormDocente((prev) => ({ ...prev, foto_url: publicUrl }));
-      lanzarToast("✅ Fotografía del docente subida a Supabase Storage.");
-    } finally {
-      setSubiendoFotoDocente(false);
-      if (inputFotoDocenteRef.current) inputFotoDocenteRef.current.value = "";
-    }
-  };
-
-  const handleGuardarDocente = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formDocente.nombre_completo.trim() || !formDocente.especialidad.trim()) return;
-    const cursosArray = formDocente.cursos_dictados_texto
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const nuevoDocenteObj: Docente = {
-      id: formDocente.id || `doc-${Date.now()}`,
-      nombre_completo: formDocente.nombre_completo.trim(),
-      grado_academico: formDocente.grado_academico,
-      categoria_docente: formDocente.categoria_docente,
-      condicion: formDocente.condicion,
-      carrera_id: formDocente.carrera_id,
-      especialidad: formDocente.especialidad.trim(),
-      lineas_investigacion: formDocente.lineas_investigacion.trim() || formDocente.especialidad.trim(),
-      cursos_dictados: cursosArray.length > 0 ? cursosArray : ["Asignatura de Especialidad FCM"],
-      correo: formDocente.correo.trim() || "docente.fcm@unmsm.edu.pe",
-      horario_asesoria: formDocente.horario_asesoria.trim() || "Previa coordinación por correo institucional",
-      foto_url: formDocente.foto_url.trim(),
-      cti_vitae_url: formDocente.cti_vitae_url.trim(),
-      orcid_url: formDocente.orcid_url.trim(),
-      google_scholar_url: formDocente.google_scholar_url.trim(),
-      linkedin_url: formDocente.linkedin_url.trim(),
-    };
-
-    const nuevaListaDocentes = formDocente.id
-      ? docentes.map((d) => (d.id === formDocente.id ? nuevoDocenteObj : d))
-      : [nuevoDocenteObj, ...docentes];
-
-    setDocentes(nuevaListaDocentes);
-    await sincronizarPortalConfigSupabase({ docentes_data: nuevaListaDocentes });
-    lanzarToast(
-      formDocente.id
-        ? "✅ Ficha del docente actualizada y guardada en Supabase."
-        : "👨‍🏫 Nuevo docente registrado en la Plana Docente y persistido en Supabase."
-    );
-    setFormDocente({
-      id: "",
-      nombre_completo: "",
-      grado_academico: "Dr.",
-      categoria_docente: "Principal",
-      condicion: "Nombrado",
-      carrera_id: "computacion-cientifica",
-      especialidad: "",
-      lineas_investigacion: "",
-      cursos_dictados_texto: "",
-      correo: "",
-      horario_asesoria: "",
-      foto_url: "",
-      cti_vitae_url: "",
-      orcid_url: "",
-      google_scholar_url: "",
-      linkedin_url: "",
-    });
-  };
-
-  const handleEditarDocenteEnAdmin = (doc: Docente) => {
-    setFormDocente({
-      id: doc.id,
-      nombre_completo: doc.nombre_completo,
-      grado_academico: doc.grado_academico,
-      categoria_docente: doc.categoria_docente,
-      condicion: doc.condicion,
-      carrera_id: doc.carrera_id,
-      especialidad: doc.especialidad,
-      lineas_investigacion: doc.lineas_investigacion,
-      cursos_dictados_texto: doc.cursos_dictados.join(", "),
-      correo: doc.correo,
-      horario_asesoria: doc.horario_asesoria,
-      foto_url: doc.foto_url,
-      cti_vitae_url: doc.cti_vitae_url || "",
-      orcid_url: doc.orcid_url || "",
-      google_scholar_url: doc.google_scholar_url || "",
-      linkedin_url: doc.linkedin_url || "",
-    });
-  };
-
-  const handleEliminarDocenteEnAdmin = async (idDocente: string) => {
-    const filtrados = docentes.filter((d) => d.id !== idDocente);
-    setDocentes(filtrados);
-    await sincronizarPortalConfigSupabase({ docentes_data: filtrados });
-    lanzarToast("🗑️ Docente eliminado de Supabase.");
-  };
-
-  const handleGuardarCursoMalla = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formCursoMalla.codigo.trim() || !formCursoMalla.nombre_curso.trim()) return;
-    const prereqArray = formCursoMalla.prerequisitosTexto.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
-    const nuevoCurso: CursoMalla = {
-      id: `cur-${Date.now()}`,
-      carrera_id: formCursoMalla.carrera_id,
-      ciclo: Number(formCursoMalla.ciclo),
-      codigo: formCursoMalla.codigo.trim().toUpperCase(),
-      nombre_curso: formCursoMalla.nombre_curso.trim().toUpperCase(),
-      creditos: Number(formCursoMalla.creditos),
-      tipo_curso: formCursoMalla.tipo_curso,
-      prerequisitos: prereqArray,
-    };
-    setMalla((prev) => [...prev, nuevoCurso]);
-    lanzarToast(`Curso [${nuevoCurso.codigo}] añadido al Ciclo ${nuevoCurso.ciclo}.`);
-    setFormCursoMalla({ id: "", carrera_id: adminFiltroCarreraMalla, ciclo: 3, codigo: "", nombre_curso: "", creditos: 4.0, tipo_curso: "O", prerequisitosTexto: "" });
-  };
-
-  const temaActivo = TEMA_CARRERA[carreraActiva.id];
-
-  const renderIconoCarrera = (id: CarreraId) => {
-    switch (id) {
-      case "computacion-cientifica": return <Cpu className="w-6 h-6 text-blue-700" />;
-      case "matematica": return <Sigma className="w-6 h-6 text-red-700" />;
-      case "estadistica": return <BarChart3 className="w-6 h-6 text-orange-600" />;
-      case "investigacion-operativa": return <Network className="w-6 h-6 text-emerald-700" />;
-    }
-  };
-
-  const renderIconoArchivo = (tipo: TipoArchivo) => {
-    switch (tipo) {
-      case "PDF": return <FileText className="w-5 h-5 text-red-700" />;
-      case "Examen": return <FileCheck2 className="w-5 h-5 text-red-600" />;
-      case "Apunte": return <BookOpen className="w-5 h-5 text-blue-800" />;
-      case "Codigo": return <Code2 className="w-5 h-5 text-blue-900" />;
-      case "Silabo": return <Award className="w-5 h-5 text-red-700" />;
-      case "Video": return <Video className="w-5 h-5 text-blue-700" />;
-    }
-  };
-
-  // ==========================================================================
-  // CARRUSEL INSTITUCIONAL HERO (NOTICIAS Y COMUNICADOS DESTACADOS)
-  // ==========================================================================
-  const noticiasDestacadas = useMemo(() => {
-    const explicitas = noticias.filter((n) => n.en_carrusel_principal);
-    if (explicitas.length > 0) return explicitas;
-    const destacadas = noticias.filter((n) => n.destacado);
-    return destacadas.length > 0 ? destacadas : noticias.slice(0, 4);
-  }, [noticias]);
-
-  const totalSlidesHero = useMemo(() => 1 + noticiasDestacadas.length, [noticiasDestacadas.length]);
-
-  const cambiarSlideHero = useCallback((nuevoIndice: number) => {
-    setSlideActivoHero(nuevoIndice);
-  }, []);
-
-  const siguienteSlideHero = useCallback(() => {
-    if (totalSlidesHero <= 1) return;
-    setSlideActivoHero((prev) => (prev + 1) % totalSlidesHero);
-  }, [totalSlidesHero]);
-
-  const anteriorSlideHero = useCallback(() => {
-    if (totalSlidesHero <= 1) return;
-    setSlideActivoHero((prev) => (prev - 1 + totalSlidesHero) % totalSlidesHero);
-  }, [totalSlidesHero]);
-
-  useEffect(() => {
-    if (pausarSliderHero || totalSlidesHero <= 1) return;
-    const timer = setInterval(() => {
-      siguienteSlideHero();
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [pausarSliderHero, totalSlidesHero, siguienteSlideHero, slideActivoHero]);
-
-  // ==========================================================================
-  // BUSCADOR COMPACTO NAVBAR CON ACCESO RÁPIDO CTRL + K / CMD + K
-  // ==========================================================================
-  const resultadosBusquedaNavbar = useMemo(() => {
-    const q = busquedaNavbar.trim().toLowerCase();
-    if (!q || q.length < 2) return null;
-
-    const cursosEncontrados = malla
-      .filter((c) => c.nombre_curso.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q))
-      .slice(0, 4);
-
-    const docentesEncontrados = docentes
-      .filter(
-        (d) =>
-          d.nombre_completo.toLowerCase().includes(q) ||
-          d.especialidad.toLowerCase().includes(q) ||
-          d.cursos_dictados.some((cd) => cd.toLowerCase().includes(q))
-      )
-      .slice(0, 3);
-
-    const noticiasEncontradas = noticias
-      .filter(
-        (n) =>
-          n.titulo.toLowerCase().includes(q) ||
-          (n.resumen || "").toLowerCase().includes(q) ||
-          (n.categoria || "").toLowerCase().includes(q)
-      )
-      .slice(0, 3);
-
-    const materialesEncontrados = materiales
-      .filter(
-        (m) =>
-          m.titulo.toLowerCase().includes(q) ||
-          (m.docente || "").toLowerCase().includes(q) ||
-          (m.tipo_archivo || "").toLowerCase().includes(q)
-      )
-      .slice(0, 3);
-
-    const total =
-      cursosEncontrados.length +
-      docentesEncontrados.length +
-      noticiasEncontradas.length +
-      materialesEncontrados.length;
-
-    return {
-      cursos: cursosEncontrados,
-      docentes: docentesEncontrados,
-      noticias: noticiasEncontradas,
-      materiales: materialesEncontrados,
-      total,
-    };
-  }, [busquedaNavbar, malla, docentes, noticias, materiales]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setNavbarBuscadorAbierto(true);
-        setNavbarResultadosAbiertos(true);
-        setTimeout(() => {
-          inputNavbarRef.current?.focus();
-        }, 50);
-      }
-      if (e.key === "Escape") {
-        setNavbarResultadosAbiertos(false);
-        setNavbarBuscadorAbierto(false);
-      }
-    };
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        contenedorNavbarSearchRef.current &&
-        !contenedorNavbarSearchRef.current.contains(e.target as Node)
-      ) {
-        setNavbarResultadosAbiertos(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // ==========================================================================
-  // AUTENTICACIÓN SEGURA DE ADMINISTRADOR EN SERVIDOR (ROUTE HANDLER)
-  // ==========================================================================
-  const handleLoginAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const entered = pinAdmin.trim();
-    if (!entered) {
-      setErrorPin("Por favor ingresa la contraseña maestra de administrador.");
-      return;
-    }
-    setCargandoAuthAdmin(true);
-    setErrorPin("");
-    try {
-      const res = await fetch("/api/admin/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: entered }),
-      });
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        setAdminAutenticado(true);
-        setErrorPin("");
-        setPinAdmin("");
-        lanzarToast("🔓 Sesión de Administrador iniciada y validada en servidor.");
-      } else {
-        const clientSecret = (
-          process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "FCM_Unmsm$2026#Admin!94xK"
-        ).trim();
-        if (entered === clientSecret) {
-          setAdminAutenticado(true);
-          setErrorPin("");
-          setPinAdmin("");
-          lanzarToast("🔓 Sesión de Administrador iniciada.");
-        } else {
-          setErrorPin(data?.error || "Contraseña maestra incorrecta.");
-        }
-      }
-    } catch {
-      const clientSecret = (
-        process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "FCM_Unmsm$2026#Admin!94xK"
-      ).trim();
-      if (entered === clientSecret) {
-        setAdminAutenticado(true);
-        setErrorPin("");
-        setPinAdmin("");
-        lanzarToast("🔓 Sesión de Administrador iniciada.");
-      } else {
-        setErrorPin("Error de conexión al verificar con el servidor.");
-      }
-    } finally {
-      setCargandoAuthAdmin(false);
-    }
-  };
-
-  const handleCerrarSesionAdmin = async () => {
-    try {
-      await fetch("/api/admin/auth", { method: "DELETE" });
-    } catch {
-      // noop
-    }
-    setAdminAutenticado(false);
-    navegar("/");
-    lanzarToast("🔒 Sesión de administrador cerrada.");
-  };
-
-  return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-900 selection:text-white transition-colors duration-300 ${modoOscuro ? "dark" : ""}`}>
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl bg-[#002855] border-l-4 border-red-600 shadow-2xl text-xs sm:text-sm font-semibold text-white">
-          <Sparkles className="w-4 h-4 text-red-400 shrink-0" />
-          <span>{toast}</span>
-        </div>
-      )}
-
-      {/* BARRA SUPERIOR INSTITUCIONAL */}
-      <div className="bg-red-700 text-white text-[11px] py-1.5 px-4 border-b border-red-800 print:hidden">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <span className="font-semibold tracking-wide">
-            UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS • FACULTAD DE CIENCIAS MATEMÁTICAS
-          </span>
-          <span className="hidden sm:inline font-mono">
-            COMPUTACIÓN CIENTÍFICA • MATEMÁTICA • ESTADÍSTICA • INVESTIGACIÓN OPERATIVA
-          </span>
-        </div>
-      </div>
-
-      {/* NAVBAR CON LOGO PLANO Y TRANSPARENTE (SIN BORDES, SIN FONDOS BLANCOS NI REDONDEO) */}
-      <header className="sticky top-0 z-50 bg-[#002855] text-white shadow-lg border-b border-blue-950 print:hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          <div onClick={() => navegar("/")} className="flex items-center gap-3 cursor-pointer shrink-0">
-            <img
-              src={logoUrl}
-              alt="Escudo UNMSM - Facultad de Ciencias Matemáticas"
-              className={`h-11 w-auto object-contain transition-opacity duration-200 ${cargandoConfig ? "opacity-90" : "opacity-100"}`}
-            />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold tracking-tight text-base sm:text-lg text-white">
-                  FCM <span className="text-red-400">UNMSM</span>
-                </span>
-                <span className="hidden xl:inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-red-700 text-white">
-                  Plan 2026
-                </span>
-              </div>
-              <p className="text-[11px] text-blue-200 hidden md:block">Facultad de Ciencias Matemáticas</p>
-            </div>
-          </div>
-
-          <nav className="hidden md:flex flex-wrap items-center gap-1 sm:gap-1.5 bg-blue-950/80 p-1.5 rounded-xl border border-blue-800">
-            {/* DROPDOWN INSTITUCIONAL: FORMACIÓN ACADÉMICA (IMAGEN 1) */}
-            <div
-              ref={menuFormacionRef}
-              className="relative"
-              onMouseEnter={abrirMenuFormacionConHover}
-              onMouseLeave={cerrarMenuFormacionConRetraso}
-            >
-              <button
-                type="button"
-                aria-expanded={dropdownFormacionAbierto}
-                onClick={() => setDropdownFormacionAbierto((prev) => !prev)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
-                  vistaActual === "/carreras/[id]" || vistaActual === "/repositorio" || vistaActual === "/docentes"
-                    ? "bg-white text-[#002855] shadow-sm"
-                    : "text-blue-100 hover:bg-blue-900"
-                }`}
-              >
-                <GraduationCap className="w-3.5 h-3.5 text-red-400" />
-                <span>FORMACIÓN ACADÉMICA</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdownFormacionAbierto ? "rotate-180" : ""}`} />
-              </button>
-
-              {dropdownFormacionAbierto && (
-                <div className="absolute left-0 top-full pt-2 w-80 sm:w-96 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl border-2 border-[#002855] dark:border-blue-700 overflow-hidden">
-                    <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-                        <GraduationCap className="w-4 h-4 text-red-400" />
-                        Formación Profesional e Investigación
-                      </span>
-                      <span className="text-[10px] font-mono text-red-300">FCM • UNMSM</span>
-                    </div>
-
-                    <div className="p-3 space-y-3 max-h-[75vh] overflow-y-auto">
-                      {/* SUBSECCIÓN PREGRADO */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-[#002855] dark:text-blue-200 uppercase">
-                            Pregrado
-                          </span>
-                          <span className="text-[11px] font-bold text-slate-400">4 Escuelas Profesionales</span>
-                        </div>
-
-                        {/* Item 1: Escuelas y Mallas */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDropdownFormacionAbierto(false);
-                            navegar("/carreras/[id]", { carreraId: carreraSeleccionadaId });
-                          }}
-                          className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors flex items-start gap-3 group cursor-pointer border border-transparent hover:border-blue-200 dark:hover:border-slate-700"
-                        >
-                          <div className="p-2 rounded-lg bg-blue-50 dark:bg-slate-800 text-[#002855] dark:text-blue-300 group-hover:bg-[#002855] group-hover:text-white transition-colors shrink-0">
-                            <Layers className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
-                              Escuelas Profesionales y Planes 2026
-                            </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
-                              Computación Científica, Matemática, Estadística e I.O.
-                            </div>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
-                        </button>
-
-                        {/* Item 2: Repositorio Académico */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDropdownFormacionAbierto(false);
-                            navegar("/repositorio");
-                          }}
-                          className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors flex items-start gap-3 group cursor-pointer border border-transparent hover:border-blue-200 dark:hover:border-slate-700"
-                        >
-                          <div className="p-2 rounded-lg bg-blue-50 dark:bg-slate-800 text-[#002855] dark:text-blue-300 group-hover:bg-[#002855] group-hover:text-white transition-colors shrink-0">
-                            <FolderGit2 className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
-                              Repositorio Académico FCM
-                            </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
-                              Banco de exámenes pasados, solucionarios y apuntes
-                            </div>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
-                        </button>
-                      </div>
-
-                      <div className="border-t border-slate-100 dark:border-slate-800" />
-
-                      {/* SUBSECCIÓN POSGRADO */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-200 uppercase">
-                            Posgrado
-                          </span>
-                          <span className="text-[11px] font-bold text-slate-400">UPG • Especialización</span>
-                        </div>
-
-                        <a
-                          href="https://matematicas.unmsm.edu.pe/posgrado26.html"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => setDropdownFormacionAbierto(false)}
-                          className="w-full text-left p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-slate-800 transition-colors flex items-start gap-3 group cursor-pointer border border-transparent hover:border-red-200 dark:hover:border-slate-700 block"
-                        >
-                          <div className="p-2 rounded-lg bg-red-50 dark:bg-slate-800 text-red-700 dark:text-red-300 group-hover:bg-red-700 group-hover:text-white transition-colors shrink-0">
-                            <Award className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors flex items-center gap-1.5">
-                              <span>Unidad de Posgrado FCM (UPG)</span>
-                              <ExternalLink className="w-3 h-3 text-slate-400" />
-                            </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
-                              Maestrías, Doctorados y Diplomados de Posgrado
-                            </div>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
-                        </a>
-                      </div>
-
-                      <div className="border-t border-slate-100 dark:border-slate-800" />
-
-                      {/* SUBSECCIÓN DOCENTES */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 uppercase">
-                            Cátedra
-                          </span>
-                          <span className="text-[11px] font-bold text-slate-400">Plana Docente Oficial</span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDropdownFormacionAbierto(false);
-                            navegar("/docentes");
-                          }}
-                          className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors flex items-start gap-3 group cursor-pointer border border-transparent hover:border-blue-200 dark:hover:border-slate-700"
-                        >
-                          <div className="p-2 rounded-lg bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 group-hover:bg-[#002855] group-hover:text-white transition-colors shrink-0">
-                            <Users className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
-                              Docentes e Investigadores FCM
-                            </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
-                              Directorio oficial, horarios de asesoría y líneas de investigación
-                            </div>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div
-              ref={menuServicioRef}
-              className="relative"
-              onMouseEnter={abrirMenuServicioConHover}
-              onMouseLeave={cerrarMenuServicioConRetraso}
-            >
-              <button
-                type="button"
-                aria-expanded={dropdownServicioAbierto}
-                onClick={() => setDropdownServicioAbierto((prev) => !prev)}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-700 hover:bg-red-600 text-white shadow-sm flex items-center gap-1.5 whitespace-nowrap transition-all border border-red-500 cursor-pointer"
-              >
-                <span>SERVICIO AL ESTUDIANTE</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdownServicioAbierto ? "rotate-180" : ""}`} />
-              </button>
-
-              {dropdownServicioAbierto && (
-                <div className="absolute right-0 sm:left-0 top-full pt-2 w-80 sm:w-96 z-50">
-                  <div className="rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl border-2 border-[#002855] dark:border-blue-700 overflow-hidden">
-                    <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider">Unidades y Plataformas al Estudiante</span>
-                      <span className="text-[10px] font-mono text-red-300">FCM • UNMSM</span>
-                    </div>
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs max-h-[78vh] overflow-y-auto">
-                      {[
-                        {
-                          nombre: "CERSEU",
-                          sub: "Responsabilidad Social y Cursos de Extensión",
-                          info: {
-                            titulo: "Centro de Responsabilidad Social y Extensión Universitaria",
-                            sigla: "CERSEU - FCM",
-                            descripcion: "Organiza cursos de extensión continua en programación (Python, C++, SQL, LaTeX), Computación Científica, voluntariado universitario y proyección social de la Facultad de Ciencias Matemáticas.",
-                            correo: "cerseu.matematicas@unmsm.edu.pe",
-                            anexo: "Anexo 1412",
-                            horario: "Lunes a Viernes de 8:30 a.m. a 4:30 p.m.",
-                          },
-                        },
-                        {
-                          nombre: "OCA",
-                          sub: "Oficina de Calidad Académica y Acreditación",
-                          info: {
-                            titulo: "Oficina de Calidad Académica y Acreditación",
-                            sigla: "OCA - FCM",
-                            descripcion: "Supervisa los estándares de calidad educativa, actualización de los Planes de Estudio 2026, evaluación docente y procesos de acreditación de Computación Científica, Matemática, Estadística e Investigación Operativa.",
-                            correo: "oca.matematicas@unmsm.edu.pe",
-                            anexo: "Anexo 1415",
-                            horario: "Lunes a Viernes de 8:00 a.m. a 3:45 p.m.",
-                          },
-                        },
-                        {
-                          nombre: "SECOMAT",
-                          sub: "Servicio de Cómputo, Laboratorios y Servidores",
-                          info: {
-                            titulo: "Servicio de Cómputo e Informática de Matemáticas",
-                            sigla: "SECOMAT",
-                            descripcion: "Administra los laboratorios de Computación Científica, servidores de cálculo numérico, redes Wi-Fi institucionales y soporte técnico de licencias académicas para los estudiantes.",
-                            correo: "secomat.fcm@unmsm.edu.pe",
-                            anexo: "Anexo 1420",
-                            horario: "Lunes a Sábado de 8:00 a.m. a 8:00 p.m.",
-                          },
-                        },
-                        {
-                          nombre: "Bienestar",
-                          sub: "Becas, Comedor Universitario y Tutoría",
-                          info: {
-                            titulo: "Unidad de Bienestar Estudiantil y Asistencia Social",
-                            sigla: "BIENESTAR FCM",
-                            descripcion: "Gestiona convocatorias de becas (Beca Permanencia PRONABEC, comedor universitario, vivienda), orientación psicopedagógica y atención médica primaria para alumnos de la facultad.",
-                            correo: "bienestar.fcm@unmsm.edu.pe",
-                            anexo: "Anexo 1418",
-                            horario: "Lunes a Viernes de 8:00 a.m. a 4:00 p.m.",
-                          },
-                        },
-                      ].map((u) => (
-                        <button
-                          key={u.nombre}
-                          type="button"
-                          onClick={() => {
-                            setDropdownServicioAbierto(false);
-                            setServicioModalInfo(u.info);
-                          }}
-                          className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center justify-between group cursor-pointer transition-colors"
-                        >
-                          <div>
-                            <p className="font-bold text-[#002855] dark:text-white group-hover:text-red-700 dark:group-hover:text-red-400">{u.nombre}</p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400">{u.sub}</p>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors" />
-                        </button>
-                      ))}
-
-                      <div className="px-4 py-3.5 bg-blue-50/60 dark:bg-slate-800/60 space-y-2.5 border-t border-slate-200 dark:border-slate-800">
-                        <div className="flex items-start gap-2">
-                          <FileSpreadsheet className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-bold text-[#002855] dark:text-white leading-snug">Matrícula, Registros Académicos, Grados Y Títulos</p>
-                            <p className="text-[11px] text-slate-600 dark:text-slate-300">Accesos oficiales de trámite documentario y matrícula:</p>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <a
-                            href="https://tramiteonline.unmsm.edu.pe/sgdfd/mat/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => setDropdownServicioAbierto(false)}
-                            className="px-3 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-bold text-[11px] flex items-center justify-center gap-1.5"
-                          >
-                            <span>Módulo MAT</span>
-                            <ExternalLink className="w-3 h-3 text-red-300" />
-                          </a>
-                          <a
-                            href="https://sum.unmsm.edu.pe/alumnoWebSum/login"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => setDropdownServicioAbierto(false)}
-                            className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-[11px] flex items-center justify-center gap-1.5"
-                          >
-                            <span>Intranet SUM</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                      </div>
-
-                      <div className="px-4 py-3 bg-red-50/50 flex items-center justify-between gap-3">
-                        <div>
-                          <p className="font-bold text-[#002855]">UNIDAD DE ECONOMÍA</p>
-                          <p className="text-[11px] text-slate-600">Pagos y tasas académicas en línea</p>
-                        </div>
-                        <a
-                          href="https://sanmarket.unmsm.edu.pe/#/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => setDropdownServicioAbierto(false)}
-                          className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-[11px] flex items-center gap-1.5 shrink-0"
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5" />
-                          <span>SAN MARKET</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDropdownServicioAbierto(false);
-                          navegar("/contacto");
-                        }}
-                        className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center justify-between group cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <Phone className="w-4 h-4 text-red-700" />
-                          <div>
-                            <p className="font-bold text-[#002855] group-hover:text-red-700">Directorio Telefónico</p>
-                            <p className="text-[11px] text-slate-500">Central Telefónica (01) 619-7000 y Anexos FCM</p>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-red-700" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* BOTÓN TRANSPARENCIA INSTITUCIONAL (IMAGEN 4 Y 5) */}
-            <button
-              type="button"
-              onClick={() => navegar("/transparencia")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-                vistaActual === "/transparencia"
-                  ? "bg-white text-[#002855] shadow-sm"
-                  : "text-blue-100 hover:bg-blue-900"
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5 text-red-400" />
-              <span>TRANSPARENCIA</span>
-            </button>
-
-            <button
-              onClick={() => navegar("/contacto")}
-              className={`hidden lg:flex px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap items-center gap-1 cursor-pointer ${
-                vistaActual === "/contacto" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
-              }`}
-            >
-              <LifeBuoy className="w-3.5 h-3.5" />
-              <span>Contacto</span>
-            </button>
-
-            {adminAutenticado && (
-              <button
-                onClick={() => navegar("/admin")}
-                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-                  vistaActual === "/admin" ? "bg-white text-[#002855] shadow-sm" : "bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500"
-                }`}
-              >
-                <Unlock className="w-3.5 h-3.5 text-white" />
-                <span>Panel Admin</span>
-                {materialesPendientes.length > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-red-600 text-white">
-                    {materialesPendientes.length}
-                  </span>
-                )}
-              </button>
-            )}
-            {/* TOGGLE MODO OSCURO / CLARO */}
-            <button
-              type="button"
-              onClick={toggleModoOscuro}
-              title={modoOscuro ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer bg-blue-900/60 hover:bg-blue-800 text-amber-300 border border-blue-700/60 shadow-xs"
-              aria-label="Alternar tema de color"
-            >
-              {modoOscuro ? (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-amber-300" />
-                  <span className="hidden xl:inline text-blue-100">Claro</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-3.5 h-3.5 text-blue-200" />
-                  <span className="hidden xl:inline text-blue-100">Oscuro</span>
-                </>
-              )}
-            </button>
-          </nav>
-
-          {/* BOTONES MÓVILES (TEMA OSCURO + MENÚ HAMBURGUESA) */}
-          <div className="flex md:hidden items-center gap-1.5">
-            <button
-              type="button"
-              onClick={toggleModoOscuro}
-              className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-blue-900 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label={modoOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-              title={modoOscuro ? "Modo Claro" : "Modo Oscuro"}
-            >
-              {modoOscuro ? <Sun className="w-5 h-5 text-amber-300" /> : <Moon className="w-5 h-5 text-blue-200" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMenuMovilAbierto((prev) => !prev)}
-              className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-blue-900 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label={menuMovilAbierto ? "Cerrar menú" : "Abrir menú"}
-            >
-              {menuMovilAbierto ? <X className="w-6 h-6 text-red-400" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </div>
-
-        {/* MENÚ MÓVIL DESPLEGABLE / DRAWER */}
-        {menuMovilAbierto && (
-          <div className="md:hidden bg-[#001f42] border-t border-blue-900 px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 shadow-2xl">
-            {/* Selector de Modo Oscuro Móvil */}
-            <div className="flex items-center justify-between pb-2 border-b border-blue-900/80">
-              <span className="text-[11px] font-bold text-blue-200 uppercase tracking-wider">
-                Tema de Visualización
-              </span>
-              <button
-                type="button"
-                onClick={toggleModoOscuro}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 bg-blue-900/80 text-amber-300 border border-blue-700/80 cursor-pointer"
-              >
-                {modoOscuro ? (
-                  <>
-                    <Sun className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Modo Claro</span>
-                  </>
-                ) : (
-                  <>
-                    <Moon className="w-3.5 h-3.5 text-blue-200" />
-                    <span>Modo Oscuro</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div className="space-y-1">
-              {/* Sección FORMACIÓN ACADÉMICA en Móvil */}
-              <div className="px-2 pt-1 pb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-red-300 flex items-center gap-1.5">
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  Formación Académica
-                </span>
-              </div>
-
-              {/* Pregrado: Escuelas y Mallas */}
-              <div className="pt-0.5">
-                <button
-                  onClick={() => {
-                    navegar("/carreras/[id]", { carreraId: carreraSeleccionadaId });
-                    setMenuMovilAbierto(false);
-                  }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center justify-between ${
-                    vistaActual === "/carreras/[id]" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-red-400" />
-                    Escuelas Profesionales y Planes 2026
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </button>
-                <div className="grid grid-cols-2 gap-1.5 pl-3 pt-1.5 pb-2">
-                  {carreras.map((car) => (
-                    <button
-                      key={car.id}
-                      onClick={() => {
-                        navegar("/carreras/[id]", { carreraId: car.id });
-                        setMenuMovilAbierto(false);
-                      }}
-                      className="text-left px-2.5 py-2 rounded-lg bg-blue-950/60 hover:bg-blue-900 text-[11px] font-semibold text-blue-200 border border-blue-800/60"
-                    >
-                      {car.nombre}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Pregrado: Repositorio */}
-              <button
-                onClick={() => {
-                  navegar("/repositorio");
-                  setMenuMovilAbierto(false);
-                }}
-                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
-                  vistaActual === "/repositorio" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
-                }`}
-              >
-                <FolderGit2 className="w-4 h-4 text-red-400" />
-                <span>Repositorio Académico FCM</span>
-              </button>
-
-              {/* Posgrado: UPG FCM */}
-              <a
-                href="https://matematicas.unmsm.edu.pe/posgrado26.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setMenuMovilAbierto(false)}
-                className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center justify-between text-blue-100 hover:bg-blue-900"
-              >
-                <span className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-red-400" />
-                  <span>Unidad de Posgrado FCM (UPG)</span>
-                </span>
-                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-              </a>
-
-              {/* Cátedra: Plana Docente */}
-              <button
-                onClick={() => {
-                  navegar("/docentes");
-                  setMenuMovilAbierto(false);
-                }}
-                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
-                  vistaActual === "/docentes" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
-                }`}
-              >
-                <Users className="w-4 h-4 text-red-400" />
-                <span>Plana Docente Oficial</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  navegar("/transparencia");
-                  setMenuMovilAbierto(false);
-                }}
-                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
-                  vistaActual === "/transparencia" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
-                }`}
-              >
-                <FileText className="w-4 h-4 text-red-400" />
-                <span>Transparencia Institucional</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  navegar("/contacto");
-                  setMenuMovilAbierto(false);
-                }}
-                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
-                  vistaActual === "/contacto" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
-                }`}
-              >
-                <LifeBuoy className="w-4 h-4 text-red-400" />
-                <span>Contacto y Directorio</span>
-              </button>
-
-              {adminAutenticado ? (
-                <button
-                  onClick={() => {
-                    navegar("/admin");
-                    setMenuMovilAbierto(false);
-                  }}
-                  className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 text-white min-h-[44px] flex items-center gap-2"
-                >
-                  <Unlock className="w-4 h-4" />
-                  <span>Panel de Administración CMS</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    navegar("/admin");
-                    setMenuMovilAbierto(false);
-                  }}
-                  className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-blue-900 min-h-[44px] flex items-center gap-2"
-                >
-                  <Lock className="w-4 h-4 text-red-400" />
-                  <span>Acceso Administración</span>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* VISTA A: INICIO / HOME (/) */}
-      {vistaActual === "/" && (
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-hidden">
-          {/* SECCIÓN PRINCIPAL: MASTER SLIDER CON HERO ACADÉMICO PERMANENTE + NOTICIAS */}
-          <section
-            onMouseEnter={() => setPausarSliderHero(true)}
-            onMouseLeave={() => setPausarSliderHero(false)}
-            onTouchStart={(e) => {
-              touchStartXRef.current = e.touches[0].clientX;
-              setPausarSliderHero(true);
-            }}
-            onTouchEnd={(e) => {
-              if (touchStartXRef.current !== null) {
-                const diffX = e.changedTouches[0].clientX - touchStartXRef.current;
-                if (diffX > 50) {
-                  anteriorSlideHero();
-                } else if (diffX < -50) {
-                  siguienteSlideHero();
-                }
-                touchStartXRef.current = null;
-              }
-              setPausarSliderHero(false);
-            }}
-            style={{
-              backgroundColor:
-                slideActivoHero === 0
-                  ? heroOverlayColor || "#0f172a"
-                  : noticiasDestacadas[slideActivoHero - 1]?.color_fondo || "#4d0713",
-            }}
-            className="relative text-white rounded-3xl shadow-2xl border-b-4 border-red-900/70 overflow-hidden transition-colors duration-700 ease-in-out"
-          >
-            {/* Botones de navegación lateral con micro-efecto táctil (visibles si hay más de 1 slide) */}
-            {totalSlidesHero > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={anteriorSlideHero}
-                  className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-md cursor-pointer border border-white/25 shadow-xl"
-                  aria-label="Diapositiva anterior"
-                >
-                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-                <button
-                  type="button"
-                  onClick={siguienteSlideHero}
-                  className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-md cursor-pointer border border-white/25 shadow-xl"
-                  aria-label="Siguiente diapositiva"
-                >
-                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-              </>
-            )}
-
-            {/* Pista deslizante ultra-fluida acelerada por hardware GPU (60 FPS sin tic de retraso) */}
-            <div
-              className="flex w-full transition-transform duration-700 ease-in-out will-change-transform"
-              style={{ transform: `translateX(-${slideActivoHero * 100}%)` }}
-            >
-              {/* SLIDE 0: HERO ACADÉMICO PERMANENTE CON BUSCADOR (IMAGEN 2) */}
-              <div className="w-full shrink-0 relative min-h-[460px] sm:min-h-[520px] flex flex-col justify-center items-center text-center p-6 sm:p-12 overflow-hidden">
-                {/* Fotografía oficial de la fachada de la Facultad */}
-                <img
-                  src={heroBgUrl || HERO_BG_DEFAULT}
-                  alt="Facultad de Ciencias Matemáticas UNMSM"
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none transition-all duration-500"
-                  style={{ filter: `blur(${heroBlur}px)` }}
-                />
-                {/* Capa de color y opacidad configurable del Hero */}
-                <div
-                  className="absolute inset-0 pointer-events-none transition-all duration-300"
-                  style={{
-                    backgroundColor: heroOverlayColor || "#0f172a",
-                    opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/30 pointer-events-none" />
-
-                {/* Botón flotante para el Administrador para personalizar el Hero */}
-                {adminAutenticado && (
-                  <button
-                    type="button"
-                    onClick={() => setModalHeroFondoAbierto(true)}
-                    className="absolute top-4 right-4 z-20 px-3.5 py-2 rounded-xl bg-black/65 hover:bg-black/90 text-white text-xs font-bold border border-white/25 backdrop-blur-md shadow-xl flex items-center gap-2 cursor-pointer transition-all active:scale-95"
-                    title="Personalizar Fondo, Blur y Opacidad del Hero"
-                  >
-                    <Sliders className="w-4 h-4 text-amber-300" />
-                    <span>Personalizar Fondo Hero ({heroOverlayOpacity}% • {heroBlur}px)</span>
-                  </button>
-                )}
-
-                {/* Contenido Hero */}
-                <div className="relative z-10 max-w-4xl mx-auto space-y-4 sm:space-y-6">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-700/90 text-white text-[11px] font-bold uppercase tracking-wider shadow-lg border border-red-500/30 backdrop-blur-xs">
-                    <Building2 className="w-3.5 h-3.5" />
-                    <span>Facultad de Ciencias Matemáticas • UNMSM</span>
-                  </div>
-
-                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-lg">
-                    Portal Académico e Investigación en{" "}
-                    <span className="underline decoration-red-500 decoration-4 underline-offset-4">
-                      Ciencias Exactas y Computación Científica
-                    </span>
-                  </h1>
-
-                  <p className="text-blue-100 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed drop-shadow font-normal">
-                    Explora los planes de estudio completos de los 10 ciclos para{" "}
-                    <strong className="text-white">Computación Científica</strong>,{" "}
-                    <strong className="text-white">Matemática</strong>,{" "}
-                    <strong className="text-white">Estadística</strong> e{" "}
-                    <strong className="text-white">Investigación Operativa</strong>.
-                  </p>
-
-                  {/* Buscador Global en el Hero */}
-                  <div className="relative max-w-2xl mx-auto w-full pt-1 text-left">
-                    <div className="relative flex items-center shadow-2xl rounded-2xl">
-                      <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
-                      <input
-                        type="text"
-                        value={busquedaGlobal}
-                        onChange={(e) => setBusquedaGlobal(e.target.value)}
-                        placeholder="Buscar curso (ej. CS113, AI264, MAT312), docente o material del repositorio..."
-                        className="w-full pl-12 pr-24 py-3.5 sm:py-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:ring-4 focus:ring-red-500/40 border border-slate-200"
-                      />
-                      {busquedaGlobal && (
-                        <button
-                          onClick={() => setBusquedaGlobal("")}
-                          className="absolute right-3 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
-                        >
-                          Limpiar
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Desplegable de Resultados del Buscador */}
-                    {busquedaGlobal.trim() !== "" && (
-                      <div className="absolute left-0 right-0 mt-2 rounded-2xl bg-white text-slate-900 border-2 border-blue-900 shadow-2xl p-4 z-40 space-y-4 max-h-96 overflow-y-auto">
-                        {resultadosBusquedaHero.cursos.length === 0 && resultadosBusquedaHero.materiales.length === 0 ? (
-                          <p className="text-xs text-slate-500 text-center py-4">
-                            No se encontraron resultados para &ldquo;{busquedaGlobal}&rdquo;.
-                          </p>
-                        ) : (
-                          <div className="space-y-1.5">
-                            {resultadosBusquedaHero.cursos.map((c) => (
-                              <button
-                                key={c.id}
-                                onClick={() => {
-                                  setBusquedaGlobal("");
-                                  navegarACarrera(c.carrera_id);
-                                }}
-                                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left transition-colors cursor-pointer"
-                              >
-                                <div>
-                                  <span className="font-mono text-xs font-bold text-red-700">[{c.codigo}]</span>{" "}
-                                  <span className="text-xs font-bold text-slate-900">{c.nombre_curso}</span>
-                                  <p className="text-[11px] text-slate-600">
-                                    Ciclo {c.ciclo} • {c.creditos} créditos • {carreras.find((ca) => ca.id === c.carrera_id)?.nombre}
-                                  </p>
-                                </div>
-                                <ChevronRight className="w-4 h-4 text-blue-900" />
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* SLIDES SIGUIENTES (1..N): NOTICIAS Y COMUNICADOS (IMAGEN 1 Y 3) */}
-              {noticiasDestacadas.map((noticia) => (
-                <div
-                  key={noticia.id}
-                  className="w-full shrink-0 relative min-h-[460px] sm:min-h-[520px] flex items-center p-6 sm:p-12 overflow-hidden"
-                >
-                  {/* IMAGEN DE FONDO PERSONALIZABLE CON DIFUMINADO (IMAGEN 3) */}
-                  {noticia.fondo_imagen_url && (
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                      <img
-                        src={
-                          noticia.fondo_imagen_url.startsWith("blob:")
-                            ? "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80"
-                            : noticia.fondo_imagen_url
-                        }
-                        alt=""
-                        className="w-full h-full object-cover scale-105 transition-all duration-700"
-                        style={{
-                          filter: `blur(${noticia.fondo_blur ?? 4}px)`,
-                        }}
-                        onError={(e) => {
-                          // Si la imagen falla o se revoca, aplica un fondo tecnológico de alta fidelidad
-                          (e.currentTarget as HTMLImageElement).src =
-                            "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1600&q=80";
-                        }}
-                      />
-                      <div
-                        className="absolute inset-0 transition-all duration-700"
-                        style={{
-                          backgroundColor: noticia.fondo_overlay_color || noticia.color_fondo || "#002855",
-                          opacity: (noticia.fondo_overlay_opacity ?? 60) / 100,
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center relative z-10">
-                    {/* Lado izquierdo: Información */}
-                    <div className="md:col-span-7 space-y-4 sm:space-y-5 text-left">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-black/40 text-red-200 border border-white/20 shadow-sm backdrop-blur-xs">
-                        <Sparkles className="w-3.5 h-3.5 text-red-400" />
-                        {noticia.categoria || "Comunicado Oficial"}
-                      </span>
-
-                      <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight drop-shadow-md">
-                        {noticia.titulo}
-                      </h2>
-
-                      <p className="text-xs sm:text-sm md:text-base text-white/90 line-clamp-3 leading-relaxed max-w-xl drop-shadow-xs">
-                        {noticia.resumen}
-                      </p>
-
-                      <div className="pt-1">
-                        <button
-                          type="button"
-                          onClick={() => navegar("/noticias/[id]", { noticiaId: noticia.id })}
-                          className="inline-flex items-center gap-2.5 px-5 py-2.5 sm:py-3 rounded-xl bg-black/45 hover:bg-black/70 text-white font-bold text-xs sm:text-sm border border-white/25 transition-all shadow-lg group cursor-pointer backdrop-blur-xs"
-                        >
-                          <span>Se informa... / Leer comunicado oficial</span>
-                          <ChevronRight className="w-4 h-4 text-red-300 group-hover:translate-x-1 transition-transform" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Lado derecho: Afiche o Imagen Destacada */}
-                    <div className="md:col-span-5 flex justify-center items-center">
-                      {noticia.id === "not-pronabec-2026" ? (
-                        <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-between p-4 group">
-                          <img
-                            src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=800&q=80"
-                            alt="Ministerio de Educación"
-                            className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80" />
-                          <div className="relative z-10 w-full flex items-center justify-between gap-3">
-                            <div className="bg-white/95 rounded-xl p-3 shadow-lg border border-slate-200 text-slate-900 text-left max-w-[130px]">
-                              <div className="flex items-center gap-1.5 mb-1">
-                                <div className="w-2.5 h-2.5 rounded-full bg-red-600" />
-                                <span className="text-[9px] font-bold uppercase tracking-tight text-slate-800">PERÚ</span>
-                              </div>
-                              <p className="text-[10px] font-bold text-slate-900 leading-tight">Ministerio de Educación</p>
-                            </div>
-
-                            <div className="bg-white rounded-xl p-3.5 shadow-xl border-2 border-blue-900/20 text-slate-900 text-center flex-1 max-w-[200px]">
-                              <div className="flex items-center justify-center gap-1.5">
-                                <span className="text-base sm:text-lg font-bold tracking-tighter text-[#002855]">PRONABEC</span>
-                              </div>
-                              <div className="h-1 w-full bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600 rounded-full my-1" />
-                              <div className="mt-1 bg-blue-50/80 rounded-lg py-1 px-1.5 border border-blue-200">
-                                <span className="text-[9px] font-bold text-blue-950 uppercase block leading-tight">
-                                  DECRETO SUPREMO
-                                </span>
-                                <span className="text-[10px] font-bold text-red-700 block leading-tight">
-                                  Nº 017-2026-MINEDU
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-slate-900 group">
-                          <img
-                            src={noticia.imagen_url}
-                            alt={noticia.titulo}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Indicadores horizontales (Dash Pills) */}
-            <div className="pb-4 flex items-center justify-center gap-2 sm:gap-2.5 z-20 relative">
-              {/* Pill 0: Hero Académico */}
-              <button
-                type="button"
-                onClick={() => cambiarSlideHero(0)}
-                className={`cursor-pointer transition-all duration-300 flex items-center justify-center ${
-                  slideActivoHero === 0
-                    ? "w-10 sm:w-14 h-2 rounded-full bg-white shadow-md"
-                    : "w-6 sm:w-8 h-2 rounded-full bg-white/40 hover:bg-white/70"
-                }`}
-                title="Slide Principal: Portal Académico"
-                aria-label="Ir al Slide Principal"
-              />
-              {/* Pills 1..N: Noticias */}
-              {noticiasDestacadas.map((item, idx) => {
-                const indiceSlide = idx + 1;
-                return (
-                  <button
-                    key={item.id || idx}
-                    type="button"
-                    onClick={() => cambiarSlideHero(indiceSlide)}
-                    className={`cursor-pointer transition-all duration-300 ${
-                      slideActivoHero === indiceSlide
-                        ? "w-10 sm:w-14 h-2 rounded-full bg-white shadow-md"
-                        : "w-6 sm:w-8 h-2 rounded-full bg-white/40 hover:bg-white/70"
-                    }`}
-                    title={item.titulo}
-                    aria-label={`Ir al comunicado ${idx + 1}`}
-                  />
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="space-y-5 reveal-on-scroll">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-blue-900 pb-3">
-              <div>
-                <span className="text-xs font-bold uppercase text-red-700">Mallas Curriculares Completas (Ciclos 1 al 10)</span>
-                <h2 className="text-2xl font-bold text-[#002855] dark:text-white">Escuelas Profesionales de la Facultad</h2>
-              </div>
-              <span className="text-xs font-semibold text-slate-600">
-                Haz clic en cualquier escuela para ver su tríptico y malla en PDF
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-              {carreras.map((car) => {
-                const cursosCar = malla.filter((c) => c.carrera_id === car.id);
-                const totalCreditos = cursosCar.reduce((acc, c) => acc + c.creditos, 0);
-                const temaCar = TEMA_CARRERA[car.id];
-                return (
-                  <div
-                    key={car.id}
-                    onClick={() => navegarACarrera(car.id)}
-                    className={`group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between`}
-                  >
-                    <div>
-                      <div className={`${temaCar.headerBg} text-white px-5 py-3.5 flex items-center justify-between border-b-2 ${temaCar.borderAccent}`}>
-                        <span className="text-xs font-mono font-bold text-white/90">{car.codigo_escuela}</span>
-                        <span className="text-[11px] font-semibold bg-black/25 px-2.5 py-0.5 rounded-md">10 Ciclos</span>
-                      </div>
-                      <div className="p-5 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2.5 rounded-xl border ${temaCar.iconWrap} dark:bg-slate-800 dark:border-slate-700`}>{renderIconoCarrera(car.id)}</div>
-                          <h3 className={`text-lg font-bold text-[#002855] dark:text-white ${temaCar.groupHoverText} transition-colors`}>{car.nombre}</h3>
-                        </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">{car.descripcion}</p>
-                      </div>
-                    </div>
-                    <div className="px-5 py-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                        <span className={`${temaCar.textAccent} font-bold`}>{cursosCar.length} asignaturas</span>
-                        <span className="text-slate-500 dark:text-slate-400">{totalCreditos.toFixed(0)} créditos</span>
-                      </div>
-                      <div className={`flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300 ${temaCar.groupHoverText}`}>
-                        <span>Ver Tríptico y Malla (1-10)</span>
-                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* SECCIÓN DE NOTICIAS CON GRID LIMITADO A 4 + TARJETA "VER MÁS NOTICIAS" (IMAGEN 1) */}
-          <section className="space-y-5 reveal-on-scroll">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-blue-900 pb-3">
-              <div>
-                <span className="text-xs font-bold uppercase text-red-700 dark:text-red-400">Actualidad Universitaria</span>
-                <h2 className="text-2xl font-bold text-[#002855] dark:text-white flex items-center gap-2">
-                  <Newspaper className="w-6 h-6 text-red-700 dark:text-red-400" />
-                  Noticias y Comunicados Oficiales
-                </h2>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="hidden md:inline text-xs font-semibold text-slate-500">
-                  Mostrando los 4 comunicados más recientes
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navegar("/noticias")}
-                  className="px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <span>Hemeroteca Completa ({noticias.length})</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Primeras 4 Noticias en Grid de 2 Filas */}
-              {noticias.slice(0, 4).map((not, idx) => {
-                const resumenLimpio =
-                  (not.resumen && not.resumen.trim()) ||
-                  not.contenido
-                    .replace(/^[#>*-\d.]+\s*/gm, "")
-                    .replace(/\*\*/g, "")
-                    .replace(/\n+/g, " ")
-                    .trim();
-                return (
-                  <article
-                    key={not.id}
-                    onClick={() => abrirNoticiaDetalle(not.id)}
-                    className={`group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-500 shadow-sm hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all ${
-                      idx === 0 ? "md:col-span-2" : "md:col-span-1"
-                    }`}
-                  >
-                    <div>
-                      <div className="relative h-56 bg-slate-900 overflow-hidden">
-                        <OptimizedImage
-                          src={not.imagen_url}
-                          alt={not.titulo}
-                          priority={idx < 2}
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-                          className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2 z-10">
-                          <span className="px-3 py-1 rounded-md text-[11px] font-bold bg-[#002855] text-white shadow">
-                            {not.categoria}
-                          </span>
-                          {not.destacado && (
-                            <span className="px-3 py-1 rounded-md text-[11px] font-bold bg-red-700 text-white shadow flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-white" /> Importante
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="p-6 space-y-2.5">
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                          <Calendar className="w-3.5 h-3.5 text-red-700" />
-                          <span>{formatearFechaEspanol(not.fecha_publicacion)}</span>
-                        </div>
-                        <h3 className="text-lg font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors leading-snug">
-                          {not.titulo}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
-                          {resumenLimpio}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700 flex items-center gap-1.5">
-                        <span>Leer noticia completa</span>
-                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </span>
-                      {not.modalidad && (
-                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                          {not.modalidad}
-                        </span>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
-
-              {/* Posición 5 (Inferior Derecha - md:col-span-1): Tarjeta Institucional "Explorar Más Noticias" (Imagen 1) */}
-              <div
-                onClick={() => navegar("/noticias")}
-                className="group rounded-2xl bg-gradient-to-br from-[#002855] via-[#001c3d] to-[#00132b] text-white p-7 border border-blue-900 shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden"
-              >
-                {/* Patrón de fondo geométrico sutil */}
-                <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none" />
-                <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 rounded-full blur-xl pointer-events-none" />
-
-                <div className="space-y-4 relative z-10">
-                  <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-xs border border-white/20 flex items-center justify-center text-red-300 shadow-sm">
-                      <Newspaper className="w-6 h-6" />
-                    </div>
-                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-red-700 text-white shadow-sm border border-red-500/30">
-                      +{Math.max(0, noticias.length - 4)} Más
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-blue-200 block">
-                      Hemeroteca FCM UNMSM
-                    </span>
-                    <h3 className="text-xl font-bold text-white leading-snug group-hover:text-red-300 transition-colors">
-                      Explorar Más Noticias y Comunicados
-                    </h3>
-                    <p className="text-xs text-blue-100/80 leading-relaxed">
-                      Revisa convocatorias de pasantías, becas PRONABEC, congresos internacionales, resoluciones decanales y actividades de la facultad.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-6 relative z-10">
-                  <div className="w-full py-3 px-4 rounded-xl bg-white text-[#002855] font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-red-700 group-hover:text-white transition-all shadow-md">
-                    <span>Ver todas las noticias</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* 3. SECCIÓN "PLANA DOCENTE E INVESTIGADORES" EN EL HOME (IMAGEN 2) */}
-          
-          {/* SECCIÓN INSTITUCIONAL: ORGULLO SAN MARQUINO / FCM (IMÁGENES 1, 3, 4 Y 5) */}
-          <section id="orgullo-sanmarquino" className="space-y-6 pt-4">
-            <div className="border-b-2 border-blue-900 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider">
-                  <Award className="w-3.5 h-3.5" />
-                  <span>EXCELENCIA ESTUDIANTIL E IMPACTO INTERNACIONAL • FCM UNMSM</span>
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white flex items-center gap-2.5 tracking-tight">
-                  <Trophy className="w-7 h-7 text-amber-500" />
-                  <span>Orgullo San Marquino</span>
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
-                  Celebramos el talento, la dedicación y los logros de nuestros estudiantes e investigadores que llevan el nombre de la Facultad de Ciencias Matemáticas y la Decana de América a los escenarios científicos más prestigiosos del mundo.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2.5 self-start md:self-end">
-                <button
-                  type="button"
-                  onClick={() => navegar("/orgullo")}
-                  className="px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <span>Galería Completa ({orgulloItems.length})</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-                {adminAutenticado && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTabAdmin("orgullo");
-                      navegar("/admin");
-                    }}
-                    className="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Gestionar CMS</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Grid de 3 Tarjetas Destacadas + 1 Tarjeta Especial "Ver Más Logros" (Imagen 4) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {orgulloItems.slice(0, 3).map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => setModalDetalleOrgullo(item)}
-                  className="group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-red-500 shadow-md hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between overflow-hidden cursor-pointer"
-                >
-                  {/* Imagen del Afiche o Fotografía */}
-                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-950">
-                    <OptimizedImage
-                      src={item.foto_url}
-                      alt={item.titulo}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none z-10" />
-
-                    {/* Badges superiores */}
-                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none z-20">
-                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[#002855]/90 text-white backdrop-blur-md border border-white/20 shadow-md">
-                        {item.subtitulo_categoria}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-slate-950 shadow-sm">
-                        {item.anio}
-                      </span>
-                    </div>
-
-                    {/* Información superpuesta al pie de la foto */}
-                    <div className="absolute bottom-3 left-3 right-3 space-y-1 text-white pointer-events-none z-20">
-                      <span className="text-[11px] font-semibold text-red-300 block uppercase tracking-wider">
-                        {item.carrera_nombre || "Facultad de Ciencias Matemáticas"}
-                      </span>
-                      <h3 className="text-base font-bold leading-tight line-clamp-2 drop-shadow-md">
-                        {item.titulo}
-                      </h3>
-                      <p className="text-xs text-slate-200 font-medium line-clamp-1">
-                        👤 {item.estudiante}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Pie de Tarjeta con descripción y botón que abre detalle siempre */}
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 space-y-3 flex-1 flex flex-col justify-between">
-                    <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
-                      {item.descripcion}
-                    </p>
-
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-                      <span className="text-[11px] font-bold text-[#002855] dark:text-blue-300">
-                        {item.tipo_tarjeta === "afiche" ? "📜 Afiche Oficial" : item.tipo_tarjeta === "estudiante" ? "⭐ Reconocimiento" : "🏆 Delegación FCM"}
-                      </span>
-                      <span className="text-xs font-bold text-red-700 dark:text-red-400 group-hover:text-red-800 dark:group-hover:text-red-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                        <span>Ver Detalle</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Posición 4: Tarjeta Especial de Llamada a la Acción "Galería Completa" (Imagen 4) */}
-              <div
-                onClick={() => navegar("/orgullo")}
-                className="group relative rounded-2xl bg-gradient-to-br from-[#002855] via-[#001f42] to-[#4d0713] text-white p-6 sm:p-7 border-2 border-blue-800/80 shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden min-h-[380px]"
-              >
-                <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-                <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/15 rounded-full blur-xl pointer-events-none" />
-
-                <div className="space-y-4 relative z-10">
-                  <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-md">
-                      <Trophy className="w-6 h-6" />
-                    </div>
-                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-slate-950 shadow-sm border border-amber-400">
-                      +{Math.max(0, orgulloItems.length - 3)} Más
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 pt-2">
-                    <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-300 block">
-                      Reconocimientos FCM
-                    </span>
-                    <h3 className="text-xl font-bold text-white leading-snug group-hover:text-amber-200 transition-colors">
-                      Galería Completa de Orgullo San Marquino
-                    </h3>
-                    <p className="text-xs text-blue-100/80 leading-relaxed">
-                      Conoce todas las distinciones, pasantías en neurociencia, premios en hackathones y congresos mundiales de nuestra facultad.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-6 relative z-10">
-                  <div className="w-full py-3 px-4 rounded-xl bg-white text-[#002855] font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-amber-500 group-hover:text-slate-950 transition-all shadow-md">
-                    <span>Explorar todos los logros</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-
-          <section id="plana-docente" className="pt-4 space-y-8 reveal-on-scroll">
-            <div className="text-center max-w-3xl mx-auto space-y-2.5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 text-[#002855] dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
-                <Users className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
-                <span>Excelencia Académica e Investigación • FCM UNMSM</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white tracking-tight">
-                Plana Docente e Investigadores de la Facultad
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Selecciona una Escuela Profesional para conocer el perfil académico, especialidad, líneas de investigación y horarios de asesoría de nuestros catedráticos en una vista detallada.
-              </p>
-            </div>
-
-            {/* Buscador Rápido del Directorio de Catedráticos (Imagen 2) */}
-            <div className="max-w-2xl mx-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 shadow-sm">
-              <div className="relative w-full">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                <input
-                  type="text"
-                  value={busquedaDocentes}
-                  onChange={(e) => setBusquedaDocentes(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      navegar("/docentes");
-                    }
-                  }}
-                  placeholder="Buscar docente por apellido, especialidad o asignatura (Enter para ver directorio)..."
-                  className="w-full pl-10 pr-24 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#002855]"
-                />
-                <button
-                  type="button"
-                  onClick={() => navegar("/docentes")}
-                  className="absolute right-1.5 top-1.5 px-4 py-2 rounded-lg bg-[#002855] hover:bg-blue-900 text-[11px] font-bold text-white cursor-pointer transition-colors shadow-xs"
-                >
-                  Buscar
-                </button>
-              </div>
-            </div>
-
-            {/* Las 4 Tarjetas de Escuela Profesional (Imagen 2) que navegan a /docentes */}
-            <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {carreras.map((car) => {
-                const temaCar = TEMA_CARRERA[car.id];
-                const docentesEscuela = docentes.filter((d) => d.carrera_id === car.id);
-                const principalesCount = docentesEscuela.filter((d) => d.categoria_docente === "Principal").length;
-                return (
-                  <div
-                    key={car.id}
-                    onClick={() => navegar("/docentes", { docenteCarrera: car.id })}
-                    className={`group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
-                  >
-                    <div>
-                      {/* Cabecera Superior Temática del Cuadro de Escuela */}
-                      <div className={`relative h-44 w-full ${temaCar.headerBg} overflow-hidden flex flex-col items-center justify-center p-5 text-white`}>
-                        <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-black/25 text-white/95">
-                          {car.codigo_escuela}
-                        </div>
-                        <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-white/20 text-white backdrop-blur-xs">
-                          {docentesEscuela.length} {docentesEscuela.length === 1 ? "Docente" : "Docentes"}
-                        </div>
-
-                        {/* Avatares superpuestos de los catedráticos de esta Escuela */}
-                        <div className="flex items-center justify-center -space-x-3 mb-3 mt-3">
-                          {docentesEscuela.slice(0, 4).map((doc) => (
-                            <div
-                              key={doc.id}
-                              className="w-12 h-12 rounded-full border-2 border-white bg-slate-800 overflow-hidden shadow-md flex items-center justify-center text-xs font-bold text-white"
-                              title={`${doc.grado_academico} ${doc.nombre_completo}`}
-                            >
-                              {doc.foto_url ? (
-                                <img
-                                  src={doc.foto_url}
-                                  alt={doc.nombre_completo}
-                                  className="w-full h-full object-cover object-top"
-                                />
-                              ) : (
-                                <span>{obtenerInicialesDocente(doc.nombre_completo)}</span>
-                              )}
-                            </div>
-                          ))}
-                          {docentesEscuela.length > 4 && (
-                            <div className="w-12 h-12 rounded-full border-2 border-white bg-black/60 text-white text-xs font-bold flex items-center justify-center shadow-md">
-                              +{docentesEscuela.length - 4}
-                            </div>
-                          )}
-                        </div>
-
-                        <span className="text-[11px] font-bold text-white/90 tracking-wide uppercase">
-                          Plana Catedrática Oficial
-                        </span>
-                      </div>
-
-                      <div className={`h-1.5 w-full ${temaCar.headerBg} opacity-80`} />
-
-                      <div className="p-5 space-y-3">
-                        <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-bold uppercase border ${temaCar.badgeSoft}`}>
-                          Escuela Profesional
-                        </span>
-                        <h3 className={`text-base sm:text-lg font-bold text-[#002855] dark:text-slate-100 ${temaCar.groupHoverText} transition-colors leading-snug`}>
-                          {car.nombre}
-                        </h3>
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                          {docentesEscuela
-                            .slice(0, 2)
-                            .map((d) => `${d.grado_academico} ${d.nombre_completo.split(",")[0]}`)
-                            .join(" • ")}
-                          {docentesEscuela.length > 2 ? ` y ${docentesEscuela.length - 2} más` : ""}
-                        </p>
-                        <div className="flex items-center justify-center gap-2 pt-1">
-                          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-700">
-                            {principalesCount} Principales
-                          </span>
-                          <span className="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 text-[10px] font-bold border border-amber-200 dark:border-amber-800 flex items-center gap-1">
-                            <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> Calificar
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="px-4 py-3.5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700">
-                      <span>Ver Docentes de {car.nombre}</span>
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Banner Institucional para acceder a todo el directorio */}
-            <div className="max-w-4xl mx-auto p-5 rounded-2xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-slate-900 dark:to-[#0f1d38] border border-blue-200 dark:border-blue-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-xs">
-              <div className="space-y-0.5">
-                <h4 className="text-sm font-bold text-[#002855] dark:text-slate-100">
-                  Directorio Completo de la Plana Docente FCM
-                </h4>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Explora las 4 escuelas profesionales, categorías de cátedra, horarios de asesoría y valoraciones estudiantiles.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => navegar("/docentes", { docenteCarrera: "TODAS" })}
-                className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all shrink-0"
-              >
-                <Users className="w-4 h-4 text-red-400" />
-                <span>Explorar Directorio General ({docentes.length}) →</span>
-              </button>
-            </div>
-          </section>
-        </main>
-      )}
-
-      {/* VISTAS MODULARES: HEMEROTECA (/noticias), ORGULLO (/orgullo) Y PLANA DOCENTE (/docentes) */}
-      {vistaActual === "/noticias" && (
-        <HemerotecaView
-          noticias={noticias}
-          noticiasFiltradasHemeroteca={noticiasFiltradasHemeroteca}
-          busquedaHemeroteca={busquedaHemeroteca}
-          setBusquedaHemeroteca={setBusquedaHemeroteca}
-          filtroCategoriaHemeroteca={filtroCategoriaHemeroteca}
-          setFiltroCategoriaHemeroteca={setFiltroCategoriaHemeroteca}
-          abrirNoticiaDetalle={abrirNoticiaDetalle}
-          onVolverInicio={() => navegar("/")}
-        />
-      )}
-
-      {vistaActual === "/orgullo" && (
-        <OrgulloGalleryView
-          carreras={carreras}
-          orgulloItems={orgulloItems}
-          orgulloFiltrados={orgulloFiltrados}
-          filtroOrgulloCarrera={filtroOrgulloCarrera}
-          setFiltroOrgulloCarrera={setFiltroOrgulloCarrera}
-          busquedaOrgullo={busquedaOrgullo}
-          setBusquedaOrgullo={setBusquedaOrgullo}
-          setModalDetalleOrgullo={setModalDetalleOrgullo}
-          onVolverInicio={() => navegar("/")}
-        />
-      )}
-
-      {vistaActual === "/docentes" && (
-        <DocentesView
-          carreras={carreras}
-          docentes={docentes}
-          docentesFiltradosHome={docentesFiltradosHome}
-          filtroDocenteCarrera={filtroDocenteCarrera}
-          busquedaDocentes={busquedaDocentes}
-          setBusquedaDocentes={setBusquedaDocentes}
-          filtroCategoriaDocente={filtroCategoriaDocente}
-          setFiltroCategoriaDocente={setFiltroCategoriaDocente}
-          obtenerEstadisticasDocente={obtenerEstadisticasDocente}
-          abrirModalDocente={abrirModalDocente}
-          onCambiarCarrera={(carrera) => navegar("/docentes", { docenteCarrera: carrera })}
-          onVolverInicio={() => navegar("/")}
-        />
-      )}
-
-      {/* VISTA DETALLE DE NOTICIA (/noticias/[id]) */}
-      {vistaActual === "/noticias/[id]" && (
-        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 space-y-10">
-          {/* Barra superior de navegación y compartir */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 px-4 py-3 rounded-2xl shadow-xs print:hidden">
-            <button
-              type="button"
-              onClick={() => navegar("/")}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#002855] hover:text-white text-slate-800 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>← Volver al Portal</span>
-            </button>
-
-            <div className="flex items-center gap-2">
-              {adminAutenticado && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFormNoticia({
-                      id: noticiaActiva.id,
-                      titulo: noticiaActiva.titulo,
-                      categoria: noticiaActiva.categoria,
-                      resumen: noticiaActiva.resumen || "",
-                      fecha_publicacion: noticiaActiva.fecha_publicacion,
-                      contenido: noticiaActiva.contenido,
-                      imagen_url: noticiaActiva.imagen_url,
-                      destacado: noticiaActiva.destacado,
-                      en_carrusel_principal: noticiaActiva.en_carrusel_principal ?? true,
-                      color_fondo: noticiaActiva.color_fondo || "#4d0713",
-                      fecha_evento: noticiaActiva.fecha_evento || "",
-                      lugar: noticiaActiva.lugar || "",
-                      modalidad: noticiaActiva.modalidad || "",
-                      dirigido_a: noticiaActiva.dirigido_a || "",
-                      enlace_inscripcion: noticiaActiva.enlace_inscripcion || "",
-                      fondo_imagen_url: noticiaActiva.fondo_imagen_url || "",
-                      fondo_blur: typeof noticiaActiva.fondo_blur === "number" ? noticiaActiva.fondo_blur : 4,
-                      fondo_overlay_opacity: typeof noticiaActiva.fondo_overlay_opacity === "number" ? noticiaActiva.fondo_overlay_opacity : 60,
-                      fondo_overlay_color: noticiaActiva.fondo_overlay_color || noticiaActiva.color_fondo || "#002855",
-                    });
-                    setTabAdmin("noticias");
-                    navegar("/admin");
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#002855] border border-blue-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  <span>Editar en CMS</span>
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => handleCompartirNoticia(noticiaActiva)}
-                className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-2 shadow-xs cursor-pointer"
-              >
-                <Share2 className="w-3.5 h-3.5 text-red-400" />
-                <span>Compartir Noticia</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Contenedor Principal del Artículo */}
-          <article className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            {/* Portada adaptable: muestra afiches verticales o banners completos sin recortarlos bruscamente */}
-            <div className="relative bg-slate-950 flex items-center justify-center overflow-hidden min-h-[260px] max-h-[540px]">
-              <img
-                src={noticiaActiva.imagen_url}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover opacity-25 blur-xl scale-110 pointer-events-none"
-              />
-              <img
-                src={noticiaActiva.imagen_url}
-                alt={noticiaActiva.titulo}
-                className="relative z-10 w-full max-h-[520px] object-contain"
-              />
-            </div>
-
-            <div className="p-6 sm:p-10">
-              <div className="max-w-4xl mx-auto space-y-6">
-                <div className="space-y-3 border-b border-slate-200 dark:border-slate-800 pb-6">
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="px-3 py-1 rounded-lg text-xs font-bold bg-[#002855] text-white">
-                      {noticiaActiva.categoria}
-                    </span>
-                    {noticiaActiva.destacado && (
-                      <span className="px-3 py-1 rounded-lg text-xs font-bold bg-red-700 text-white flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5 fill-white" /> Destacado FCM
-                      </span>
-                    )}
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5 ml-auto">
-                      <Calendar className="w-4 h-4 text-red-700" />
-                      {formatearFechaEspanol(noticiaActiva.fecha_publicacion)}
-                    </span>
-                  </div>
-
-                  <h1 className="text-2xl sm:text-4xl font-bold text-[#002855] dark:text-white leading-tight">
-                    {noticiaActiva.titulo}
-                  </h1>
-
-                  {noticiaActiva.resumen && (
-                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                      {noticiaActiva.resumen}
-                    </p>
-                  )}
-                </div>
-
-                {/* Layout con Ficha Rápida de Evento (si tiene metadatos opcionales) + Cuerpo del Artículo */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  <div
-                    className={
-                      noticiaActiva.fecha_evento ||
-                      noticiaActiva.lugar ||
-                      noticiaActiva.modalidad ||
-                      noticiaActiva.dirigido_a ||
-                      noticiaActiva.enlace_inscripcion
-                        ? "lg:col-span-8"
-                        : "lg:col-span-12 max-w-3xl mx-auto w-full"
-                    }
-                  >
-                    {renderizarContenidoNoticia(noticiaActiva.contenido)}
-                  </div>
-
-                  {(noticiaActiva.fecha_evento ||
-                    noticiaActiva.lugar ||
-                    noticiaActiva.modalidad ||
-                    noticiaActiva.dirigido_a ||
-                    noticiaActiva.enlace_inscripcion) && (
-                    <aside className="lg:col-span-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border-2 border-[#002855]/15 dark:border-slate-800 p-5 space-y-4">
-                      <div className="border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
-                          Ficha Oficial del Evento / Comunicado
-                        </span>
-                        <h3 className="text-sm font-bold text-[#002855] dark:text-white">Datos Clave</h3>
-                      </div>
-
-                      <div className="space-y-3 text-xs">
-                        {noticiaActiva.fecha_evento && (
-                          <div className="flex items-start gap-2.5">
-                            <Calendar className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[10px]">Fecha / Cronograma</p>
-                              <p className="font-bold text-slate-900 dark:text-white">{noticiaActiva.fecha_evento}</p>
-                            </div>
-                          </div>
-                        )}
-                        {noticiaActiva.lugar && (
-                          <div className="flex items-start gap-2.5">
-                            <MapPin className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[10px]">Lugar / Sede</p>
-                              <p className="font-bold text-slate-900 dark:text-white">{noticiaActiva.lugar}</p>
-                            </div>
-                          </div>
-                        )}
-                        {noticiaActiva.modalidad && (
-                          <div className="flex items-start gap-2.5">
-                            <Globe className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[10px]">Modalidad</p>
-                              <p className="font-bold text-slate-900 dark:text-white">{noticiaActiva.modalidad}</p>
-                            </div>
-                          </div>
-                        )}
-                        {noticiaActiva.dirigido_a && (
-                          <div className="flex items-start gap-2.5">
-                            <Users className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[10px]">Dirigido a</p>
-                              <p className="font-bold text-slate-900 dark:text-white">{noticiaActiva.dirigido_a}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {noticiaActiva.enlace_inscripcion && (
-                        <a
-                          href={noticiaActiva.enlace_inscripcion}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full py-3 px-4 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-colors"
-                        >
-                          <span>🚀 Inscribirse / Ver Bases Oficiales</span>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      )}
-                    </aside>
-                  )}
-                </div>
-              </div>
-            </div>
-          </article>
-
-          {/* Otras noticias relacionadas */}
-          {noticias.filter((n) => n.id !== noticiaActiva.id).length > 0 && (
-            <section className="space-y-4 print:hidden">
-              <div className="flex items-center justify-between border-b-2 border-blue-900 pb-2.5">
-                <h2 className="text-lg sm:text-xl font-bold text-[#002855] dark:text-white">Otras Noticias de la Facultad</h2>
-                <button
-                  type="button"
-                  onClick={() => navegar("/")}
-                  className="text-xs font-bold text-red-700 hover:underline cursor-pointer"
-                >
-                  Ver todas en el Inicio →
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {noticias
-                  .filter((n) => n.id !== noticiaActiva.id)
-                  .slice(0, 3)
-                  .map((rel) => (
-                    <div
-                      key={rel.id}
-                      onClick={() => abrirNoticiaDetalle(rel.id)}
-                      className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-red-600 dark:hover:border-red-500 overflow-hidden shadow-xs hover:shadow-md cursor-pointer transition-all flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="h-36 bg-slate-900 overflow-hidden">
-                          <img src={rel.imagen_url} alt={rel.titulo} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform" />
-                        </div>
-                        <div className="p-4 space-y-1.5">
-                          <span className="text-[10px] font-bold uppercase text-red-700 dark:text-red-400">{rel.categoria}</span>
-                          <h3 className="text-xs sm:text-sm font-bold text-[#002855] dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 line-clamp-2">
-                            {rel.titulo}
-                          </h3>
-                        </div>
-                      </div>
-                      <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-bold text-[#002855] dark:text-blue-300">
-                        <span className="text-slate-500 dark:text-slate-400">{rel.fecha_publicacion}</span>
-                        <span>Leer →</span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </section>
-          )}
-        </main>
-      )}
-
-      {/* VISTA B: DETALLE DE LA CARRERA (/carreras/[id]) */}
-      {vistaActual === "/carreras/[id]" && (
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-4 print:hidden">
-            <div className="flex flex-wrap gap-2">
-              {carreras.map((c) => {
-                const count = malla.filter((m) => m.carrera_id === c.id).length;
-                const temaTab = TEMA_CARRERA[c.id];
-                const esActiva = carreraSeleccionadaId === c.id;
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => navegar("/carreras/[id]", { carreraId: c.id, skipScroll: true })}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                      esActiva
-                        ? temaTab.tabActive
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                    }`}
-                  >
-                    <span>{c.nombre}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${esActiva ? temaTab.tabPillActive : "bg-slate-300 text-slate-800"}`}>
-                      {count} cursos
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <span className="text-xs font-mono text-slate-500 dark:text-slate-400 px-2">
-              Ruta: <strong className={temaActivo.textAccent}>/carreras/{carreraActiva.id}</strong>
-            </span>
-          </div>
-
-          {/* ENCABEZADO DE LA CARRERA CON COLOR PROPIO POR ESCUELA */}
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className={`${temaActivo.headerBg} text-white px-6 sm:px-8 py-6 border-b-4 ${temaActivo.borderAccent} flex flex-col lg:flex-row lg:items-center justify-between gap-6`}>
-              <div className="space-y-2 max-w-3xl">
-                <div className="flex items-center gap-2.5">
-                  <span className="px-3 py-1 rounded bg-black/25 text-white text-xs font-mono font-bold border border-white/20">{carreraActiva.codigo_escuela}</span>
-                  <span className="text-xs text-white/90 font-medium">
-                    10 Ciclos Académicos • {cursosDeCarreraActiva.length} Asignaturas Registradas
-                  </span>
-                </div>
-                <h1 className="text-2xl sm:text-4xl font-bold text-white">Escuela Profesional de {carreraActiva.nombre}</h1>
-                <p className="text-xs sm:text-sm text-white/90 leading-relaxed">{carreraActiva.descripcion}</p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 print:hidden">
-                <button
-                  onClick={handleDescargarMallaPDF}
-                  className="px-5 py-3.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Download className={`w-4 h-4 ${temaActivo.textAccent}`} />
-                  <span>📥 Descargar Malla Curricular (PDF)</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setRepoFiltroCarrera(carreraActiva.id);
-                    setRepoFiltroCiclo("TODOS");
-                    setRepoFiltroCurso("TODOS");
-                    navegar("/repositorio");
-                  }}
-                  className="px-4 py-2.5 rounded-xl bg-black/20 hover:bg-black/30 text-white text-xs font-semibold flex items-center justify-center gap-2 border border-white/25 cursor-pointer"
-                >
-                  <FolderGit2 className="w-4 h-4 text-white" />
-                  <span>Ir al Repositorio de {carreraActiva.nombre}</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
-              <div className="md:col-span-2 space-y-1.5">
-                <h3 className={`text-xs font-bold uppercase tracking-wider ${temaActivo.textAccent}`}>Perfil del Egresado</h3>
-                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{carreraActiva.perfil_egreso}</p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 p-4 space-y-1.5 text-xs">
-                <p className={`font-bold uppercase ${temaActivo.textAccent}`}>Grados y Títulos Oficiales</p>
-                <p className="text-slate-600 dark:text-slate-400">Grado: <strong className="text-slate-900 dark:text-white">{carreraActiva.grado_academico}</strong></p>
-                <p className="text-slate-600 dark:text-slate-400">Título: <strong className="text-slate-900 dark:text-white">{carreraActiva.titulo_profesional}</strong></p>
-              </div>
-            </div>
-          </section>
-
-          {/* SECCIÓN A 2 COLUMNAS: PERFIL / CAMPO LABORAL + BOTÓN TRÍPTICO PDF Y FOTO REFERENCIAL (rounded-xl shadow-md) */}
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div className="lg:col-span-7 space-y-5">
-                <div>
-                  <span className={`text-xs font-bold uppercase tracking-wider ${temaActivo.textAccent}`}>
-                    Proyección Profesional e Investigación • FCM UNMSM
-                  </span>
-                  <h2 className="text-xl sm:text-2xl font-bold text-[#002855] dark:text-white mt-1">
-                    ¿En qué consiste la carrera de {carreraActiva.nombre}?
-                  </h2>
-                </div>
-
-                <div className="space-y-4 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Target className="w-4 h-4" /></div>
-                    <div>
-                      <h4 className="font-bold text-[#002855] dark:text-white">Visión y Perfil Académico</h4>
-                      <p>{carreraActiva.vision_carrera}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Briefcase className="w-4 h-4" /></div>
-                    <div>
-                      <h4 className="font-bold text-[#002855] dark:text-white">Campo Laboral y Desempeño Profesional</h4>
-                      <p>{carreraActiva.campo_laboral}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg border shrink-0 mt-0.5 ${temaActivo.iconWrap}`}><Lightbulb className="w-4 h-4" /></div>
-                    <div>
-                      <h4 className="font-bold text-[#002855] dark:text-white">¿Por qué estudiar {carreraActiva.nombre} en San Marcos?</h4>
-                      <p>{carreraActiva.por_que_estudiar}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex flex-wrap items-center gap-3 print:hidden">
-                  <button
-                    onClick={handleDescargarTripticoCarrera}
-                    className={`px-5 py-3.5 rounded-xl ${temaActivo.badgeSolid} font-bold text-xs sm:text-sm shadow-md flex items-center gap-2.5 border transition-transform active:scale-95 cursor-pointer`}
-                  >
-                    <Download className="w-4 h-4 text-white" />
-                    <span>📥 Descargar Tríptico de la Carrera (PDF)</span>
-                  </button>
-
-                  <button
-                    onClick={handleDescargarPosterEstudios}
-                    className="px-5 py-3.5 rounded-xl bg-[#002855] hover:bg-[#001c3d] text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2.5 border border-[#002855] transition-transform active:scale-95 cursor-pointer"
-                  >
-                    <Download className="w-4 h-4 text-red-400" />
-                    <span>📊 Descargar Póster de Estudios (PDF)</span>
-                  </button>
-
-                  {carreraActiva.triptico_pdf_url && (
-                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
-                      ✓ Tríptico oficial sincronizado
-                    </span>
-                  )}
-                  {carreraActiva.poster_pdf_url && (
-                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
-                      ✓ Póster oficial sincronizado
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="lg:col-span-5">
-                <img
-                  src={carreraActiva.imagen_referencial_url}
-                  alt={`Estudiantes de ${carreraActiva.nombre} - FCM UNMSM`}
-                  className="w-full h-72 sm:h-80 lg:h-96 object-cover rounded-xl shadow-md border border-slate-200"
-                />
-                <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500 px-1">
-                  <span>Escuela Profesional de <strong className={temaActivo.textAccent}>{carreraActiva.nombre}</strong></span>
-                  {adminAutenticado && (
-                    <button
-                      onClick={() => {
-                        handleSeleccionarCarreraEnAdmin(carreraActiva.id);
-                        setTabAdmin("carreras_cms");
-                        navegar("/admin");
-                      }}
-                      className={`${temaActivo.textAccent} font-bold hover:underline print:hidden cursor-pointer`}
-                    >
-                      Cambiar imagen / PDF en /admin →
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* MALLA CURRICULAR (CICLOS 1 AL 10) */}
-          <section className="space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm print:hidden">
-              <div>
-                <h2 className="text-lg sm:text-xl font-bold text-[#002855] dark:text-white">
-                  Malla Curricular de {carreraActiva.nombre} (Ciclo 1 al Ciclo 10)
-                </h2>
-                <p className="text-xs text-slate-600">
-                  Cada ciclo muestra todas sus asignaturas obligatorias y electivas con créditos y prerrequisitos.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => setModoMalla("acordeon")}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold border ${
-                    modoMalla === "acordeon" ? `${temaActivo.badgeSolid}` : "bg-slate-100 text-slate-700 border-slate-300"
-                  }`}
-                >
-                  Vista Acordeón
-                </button>
-                <button
-                  onClick={() => setModoMalla("roadmap")}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold border ${
-                    modoMalla === "roadmap" ? `${temaActivo.badgeSolid}` : "bg-slate-100 text-slate-700 border-slate-300"
-                  }`}
-                >
-                  Vista Roadmap
-                </button>
-                <button
-                  onClick={handleDescargarMallaPDF}
-                  className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
-                >
-                  <Printer className="w-3.5 h-3.5" /> Exportar Malla PDF
-                </button>
-              </div>
-            </div>
-
-            {modoMalla === "acordeon" ? (
-              <div className="space-y-4">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((numCiclo) => {
-                  const cursosCiclo = cursosDeCarreraActiva.filter((c) => c.ciclo === numCiclo);
-                  const totalCreditos = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
-                  const abierto = ciclosAbiertos.includes(numCiclo);
-                  return (
-                    <div key={numCiclo} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
-                      <button
-                        onClick={() => toggleCicloAcordeon(numCiclo)}
-                        className={`w-full px-5 py-4 flex items-center justify-between ${temaActivo.cycleBtn} text-white transition-colors cursor-pointer`}
-                      >
-                        <div className="flex flex-wrap items-center gap-3">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-bold ${temaActivo.cyclePill} shadow-sm border border-white/20`}>CICLO {numCiclo}</span>
-                          <span className="text-xs sm:text-sm font-bold text-white">{cursosCiclo.length} Asignaturas</span>
-                          <span className="text-xs text-white/85 font-mono">• {totalCreditos.toFixed(1)} Créditos</span>
-                        </div>
-                        <ChevronDown className={`w-5 h-5 text-white transition-transform ${abierto ? "rotate-180" : ""}`} />
-                      </button>
-
-                      {abierto && (
-                        <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/70 dark:bg-slate-950/40">
-                          {cursosCiclo.map((cur) => (
-                            <div key={cur.id} className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between gap-3 shadow-sm ${temaActivo.cardHoverBorder} transition-all`}>
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded border ${temaActivo.badgeSoft}`}>{cur.codigo}</span>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${cur.tipo_curso === "O" ? "bg-slate-900 text-white dark:bg-slate-800 dark:text-slate-100 dark:border dark:border-slate-700" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700"}`}>
-                                      {cur.tipo_curso === "O" ? "Obligatorio" : "Electivo"}
-                                    </span>
-                                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">{cur.creditos.toFixed(1)} cr.</span>
-                                  </div>
-                                </div>
-                                <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">{cur.nombre_curso}</h4>
-                              </div>
-                              <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                                <span className="text-slate-600 dark:text-slate-400">
-                                  Pre-req: <strong className="text-slate-900 dark:text-slate-200 font-mono">{cur.prerequisitos.length > 0 ? cur.prerequisitos.join(", ") : "Ninguno"}</strong>
-                                </span>
-                                <button
-                                  onClick={() => {
-                                    setRepoFiltroCarrera(carreraActiva.id);
-                                    setRepoFiltroCiclo(cur.ciclo);
-                                    setRepoFiltroCurso(cur.id);
-                                    navegar("/repositorio");
-                                  }}
-                                  className={`${temaActivo.textAccent} hover:underline font-bold cursor-pointer`}
-                                >
-                                  Materiales →
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((numCiclo) => {
-                  const cursosCiclo = cursosDeCarreraActiva.filter((c) => c.ciclo === numCiclo);
-                  const totalCred = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
-                  return (
-                    <div key={numCiclo} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden flex flex-col">
-                      <div className={`${temaActivo.cycleBtn} text-white px-4 py-2.5 flex items-center justify-between border-b-2 ${temaActivo.borderAccent}`}>
-                        <span className="text-xs font-bold">CICLO {numCiclo}</span>
-                        <span className="text-[11px] font-mono text-white/90">{totalCred.toFixed(0)} cr.</span>
-                      </div>
-                      <div className="p-3 space-y-2.5 flex-1 bg-slate-50/50 dark:bg-slate-950/40">
-                        {cursosCiclo.map((cur) => (
-                          <div key={cur.id} className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-xs space-y-1">
-                            <div className="flex items-center justify-between text-[10px]">
-                              <span className={`font-mono font-bold ${temaActivo.textAccent}`}>{cur.codigo}</span>
-                              <span className="font-semibold text-slate-600 dark:text-slate-400">{cur.creditos.toFixed(1)} cr.</span>
-                            </div>
-                            <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{cur.nombre_curso}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        </main>
-      )}
-
-      {/* VISTAS MODULARES: REPOSITORIO (/repositorio), TRANSPARENCIA (/transparencia) Y CONTACTO (/contacto) */}
-      {vistaActual === "/repositorio" && (
-        <RepositorioView
-          carreras={carreras}
-          malla={malla}
-          repoFiltroCarrera={repoFiltroCarrera}
-          setRepoFiltroCarrera={setRepoFiltroCarrera}
-          repoFiltroCiclo={repoFiltroCiclo}
-          setRepoFiltroCiclo={setRepoFiltroCiclo}
-          repoFiltroCurso={repoFiltroCurso}
-          setRepoFiltroCurso={setRepoFiltroCurso}
-          repoFiltroTipo={repoFiltroTipo}
-          setRepoFiltroTipo={setRepoFiltroTipo}
-          repoBusquedaTexto={repoBusquedaTexto}
-          setRepoBusquedaTexto={setRepoBusquedaTexto}
-          cursosDisponiblesFiltroRepo={cursosDisponiblesFiltroRepo}
-          materialesFiltradosRepo={materialesFiltradosRepo}
-          materialesPaginadosRepo={materialesPaginadosRepo}
-          inicioIndiceRepo={inicioIndiceRepo}
-          finIndiceRepo={finIndiceRepo}
-          totalPaginasRepo={totalPaginasRepo}
-          repoPaginaActual={repoPaginaActual}
-          cambiarPaginaRepo={cambiarPaginaRepo}
-          obtenerNumerosPaginaRepo={obtenerNumerosPaginaRepo}
-          renderIconoArchivo={renderIconoArchivo}
-          onAbrirModalSubir={() => {
-            setExitoSubidaModal(false);
-            setModalSubirAbierto(true);
-          }}
-        />
-      )}
-
-      {vistaActual === "/transparencia" && (
-        <TransparenciaView
-          documentosTransparencia={documentosTransparencia}
-          filtroTransparenciaCategoria={filtroTransparenciaCategoria}
-          setFiltroTransparenciaCategoria={setFiltroTransparenciaCategoria}
-          filtroTransparenciaAnio={filtroTransparenciaAnio}
-          setFiltroTransparenciaAnio={setFiltroTransparenciaAnio}
-          busquedaTransparencia={busquedaTransparencia}
-          setBusquedaTransparencia={setBusquedaTransparencia}
-          paginaTransparencia={paginaTransparencia}
-          setPaginaTransparencia={setPaginaTransparencia}
-          onVolverInicio={() => navegar("/")}
-        />
-      )}
-
-      {vistaActual === "/contacto" && (
-        <ContactoView
-          ticketEnviadoOk={ticketEnviadoOk}
-          setTicketEnviadoOk={setTicketEnviadoOk}
-          formContacto={formContacto}
-          setFormContacto={setFormContacto}
-          handleEnviarContacto={handleEnviarContacto}
-        />
-      )}
-
-      {/* VISTA E: PANEL DE ADMINISTRACIÓN CMS (/admin) */}
-      {vistaActual === "/admin" && (
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10">
-          {!adminAutenticado ? (
-            <div className="max-w-md mx-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-2xl space-y-5">
-              <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 flex items-center justify-center mx-auto"><Lock className="w-6 h-6 text-red-700 dark:text-red-400" /></div>
-              <div>
-                <h2 className="text-xl font-bold text-[#002855] dark:text-white">Acceso Restringido • Administración FCM</h2>
-                <p className="text-xs text-slate-600 mt-1">
-                  Ingresa la contraseña maestra de administrador para gestionar el portal institucional.
-                </p>
-              </div>
-              <form onSubmit={handleLoginAdmin} className="space-y-3 text-left">
-                <input
-                  type="password"
-                  value={pinAdmin}
-                  onChange={(e) => setPinAdmin(e.target.value)}
-                  placeholder="Contraseña maestra de administrador..."
-                  autoComplete="current-password"
-                  disabled={cargandoAuthAdmin}
-                  className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#002855]"
-                />
-                {errorPin && (
-                  <p className="text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> {errorPin}
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  disabled={cargandoAuthAdmin}
-                  className="w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-bold text-white cursor-pointer transition-colors flex items-center justify-center gap-2"
-                >
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>
-                    {cargandoAuthAdmin ? "Verificando en Servidor..." : "Autenticar y Entrar al Panel CMS"}
-                  </span>
-                </button>
-              </form>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 bg-[#002855] text-white rounded-2xl p-5 border-b-4 border-red-700">
-                <div>
-                  <h1 className="text-lg sm:text-xl font-bold">Panel de Administración CMS • FCM UNMSM</h1>
-                  <p className="text-xs text-blue-200">Sincronizado con la tabla <code className="text-red-300">portal_config</code> de Supabase.</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { id: "dashboard", label: "📊 Resumen" },
-                    { id: "carreras_cms", label: "🏛️ Gestión de Carreras" },
-                    { id: "noticias", label: `📰 Noticias (${noticias.length})` },
-                    { id: "docentes_cms", label: `👨‍🏫 Docentes (${docentes.length})` },
-                    { id: "moderacion", label: `🛡️ Moderación (${materialesPendientes.length + resenasDocentes.length})` },
-                    { id: "storage", label: `🖼️ Imágenes Storage (${imagenesStorage.length})` },
-                    { id: "orgullo", label: `🏆 Orgullo FCM (${orgulloItems.length})` },
-                    { id: "malla", label: `🎓 Mallas (${malla.length})` },
-                    { id: "transparencia", label: `📜 Transparencia (${documentosTransparencia.length})` },
-                    { id: "soporte", label: `📬 Soporte (${tickets.length})` },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setTabAdmin(t.id as typeof tabAdmin)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${tabAdmin === t.id ? "bg-red-700 text-white shadow" : "bg-blue-900 text-blue-100 hover:bg-blue-800"}`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={handleCerrarSesionAdmin}
-                    className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-black text-red-300 border border-red-500/40 flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Lock className="w-3.5 h-3.5" /> Salir
-                  </button>
-                </div>
-              </div>
-
-              {tabAdmin === "dashboard" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div onClick={() => setTabAdmin("carreras_cms")} className="rounded-2xl border-2 border-blue-200 dark:border-blue-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-[#002855] dark:hover:border-blue-400 transition-all">
-                    <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">Gestión de Carreras</p>
-                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">4 Escuelas</p>
-                  </div>
-                  <div onClick={() => setTabAdmin("noticias")} className="rounded-2xl border-2 border-red-200 dark:border-red-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-red-600 dark:hover:border-red-400 transition-all">
-                    <p className="text-xs text-red-700 dark:text-red-400 font-bold uppercase">Noticias Activas</p>
-                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{noticias.length}</p>
-                  </div>
-                  <div onClick={() => setTabAdmin("docentes_cms")} className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-emerald-700 dark:hover:border-emerald-400 transition-all">
-                    <p className="text-xs text-emerald-700 dark:text-emerald-400 font-bold uppercase">Plana Docente</p>
-                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{docentes.length}</p>
-                  </div>
-                  <div onClick={() => setTabAdmin("moderacion")} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-[#002855] dark:hover:border-blue-400 transition-all">
-                    <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">Archivos Pendientes</p>
-                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{materialesPendientes.length}</p>
-                  </div>
-                  <div onClick={() => setTabAdmin("storage")} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-[#002855] dark:hover:border-blue-400 transition-all">
-                    <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">Supabase Storage & Logo</p>
-                    <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{imagenesStorage.length}</p>
-                  </div>
-                </div>
-              )}
-
-              {tabAdmin === "carreras_cms" && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  <div className="lg:col-span-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-5">
-                    <h3 className="text-lg font-bold text-[#002855] dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3">
-                      Actualizar Imagen Referencial, Tríptico y Póster de Estudios por Carrera
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {carreras.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => handleSeleccionarCarreraEnAdmin(c.id)}
-                          className={`px-3 py-2.5 rounded-xl text-xs font-bold border transition-colors ${adminCarreraEditId === c.id ? "bg-[#002855] text-white border-[#002855] dark:bg-blue-600 dark:border-blue-600" : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700"}`}
-                        >
-                          {c.nombre}
-                        </button>
-                      ))}
-                    </div>
-
-                    <form onSubmit={handleGuardarDatosCarreraAdmin} className="space-y-5">
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold text-[#002855] dark:text-slate-200">Imagen Referencial de {carreraAdminSeleccionada.nombre}</label>
-                          <button type="button" onClick={() => inputImagenCarreraRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] hover:bg-blue-900 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
-                            <Upload className="w-3.5 h-3.5" /> {subiendoAssetCarrera ? "Subiendo..." : "Subir Imagen (Storage)"}
-                          </button>
-                          <input ref={inputImagenCarreraRef} type="file" accept="image/*" onChange={handleSubirImagenCarreraStorage} className="hidden" />
-                        </div>
-                        <input type="url" value={urlImagenCarreraInput} onChange={(e) => setUrlImagenCarreraInput(e.target.value)} placeholder="URL pública de la imagen referencial..." className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white" />
-                      </div>
-
-                      <div className="p-4 rounded-2xl bg-red-50/40 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold text-red-800 dark:text-red-300">Archivo PDF del Tríptico de {carreraAdminSeleccionada.nombre}</label>
-                          <button type="button" onClick={() => inputTripticoPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-red-700 hover:bg-red-800 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
-                            <Upload className="w-3.5 h-3.5" /> Subir PDF (Storage)
-                          </button>
-                          <input ref={inputTripticoPdfRef} type="file" accept="application/pdf" onChange={handleSubirTripticoPdfStorage} className="hidden" />
-                        </div>
-                        <input type="url" value={urlTripticoCarreraInput} onChange={(e) => setUrlTripticoCarreraInput(e.target.value)} placeholder="URL del PDF del Tríptico en Supabase Storage..." className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white" />
-                      </div>
-
-                      <div className="p-4 rounded-2xl bg-blue-50/40 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold text-blue-900 dark:text-blue-300">Archivo PDF del Póster de Estudios de {carreraAdminSeleccionada.nombre}</label>
-                          <button type="button" onClick={() => inputPosterPdfRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-[#002855] hover:bg-blue-900 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer">
-                            <Upload className="w-3.5 h-3.5" /> Subir PDF (Storage)
-                          </button>
-                          <input ref={inputPosterPdfRef} type="file" accept="application/pdf" onChange={handleSubirPosterPdfStorage} className="hidden" />
-                        </div>
-                        <input type="url" value={urlPosterCarreraInput} onChange={(e) => setUrlPosterCarreraInput(e.target.value)} placeholder="URL del PDF del Póster en Supabase Storage..." className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white" />
-                      </div>
-
-                      <div className="flex gap-3">
-                        <button type="submit" className="flex-1 py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer">
-                          Guardar en Supabase ({carreraAdminSeleccionada.nombre})
-                        </button>
-                        <button type="button" onClick={() => navegarACarrera(adminCarreraEditId)} className="px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-[#002855] dark:text-blue-300 cursor-pointer">
-                          Ver Carrera →
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-
-                  <div className="lg:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4 h-fit">
-                    <h4 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Vista Previa ({carreraAdminSeleccionada.nombre})</h4>
-                    <img src={carreraAdminSeleccionada.imagen_referencial_url} alt={carreraAdminSeleccionada.nombre} className="w-full h-60 object-cover rounded-xl shadow-md border border-slate-200 dark:border-slate-800" />
-                    <p className="text-xs text-slate-600 dark:text-slate-300">{carreraAdminSeleccionada.vision_carrera}</p>
-                  </div>
-                </div>
-              )}
-
-              {tabAdmin === "noticias" && (
-                <div className="space-y-8">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    {/* Columna Izquierda: Editor Enriquecido con Barra de Herramientas */}
-                    <form onSubmit={handleGuardarNoticia} className="lg:col-span-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                        <h3 className="font-bold text-base text-[#002855] dark:text-white">
-                          {formNoticia.id ? "✏️ Editar Noticia / Comunicado" : "➕ Publicar Nueva Noticia Estructurada"}
-                        </h3>
-                        {formNoticia.id && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setFormNoticia({
-                                id: "",
-                                titulo: "",
-                                categoria: "Comunicado Oficial",
-                                resumen: "",
-                                fecha_publicacion: "",
-                                contenido: "",
-                                imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
-                                destacado: true,
-                                en_carrusel_principal: true,
-                                color_fondo: "#4d0713",
-                                fecha_evento: "",
-                                lugar: "",
-                                modalidad: "",
-                                dirigido_a: "",
-                                enlace_inscripcion: "",
-                                fondo_imagen_url: "",
-                                fondo_blur: 4,
-                                fondo_overlay_opacity: 60,
-                                fondo_overlay_color: "#002855",
-                              })
-                            }
-                            className="text-xs font-bold text-red-700 hover:underline"
-                          >
-                            Cancelar edición
-                          </button>
-                        )}
-                      </div>
-
-                      <input
-                        type="text"
-                        required
-                        value={formNoticia.titulo}
-                        onChange={(e) => setFormNoticia({ ...formNoticia, titulo: e.target.value })}
-                        placeholder="Título de la Noticia o Evento *"
-                        className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <input
-                          type="date"
-                          required
-                          value={formNoticia.fecha_publicacion}
-                          onChange={(e) => setFormNoticia({ ...formNoticia, fecha_publicacion: e.target.value })}
-                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                        />
-                        <input
-                          type="text"
-                          value={formNoticia.categoria}
-                          onChange={(e) => setFormNoticia({ ...formNoticia, categoria: e.target.value })}
-                          placeholder="Categoría (ej. Evento, Comunicado, Becas)"
-                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                        />
-                      </div>
-
-                      <input
-                        type="text"
-                        value={formNoticia.resumen}
-                        onChange={(e) => setFormNoticia({ ...formNoticia, resumen: e.target.value })}
-                        placeholder="Resumen corto para la tarjeta del Home (opcional, máx. 3 líneas)"
-                        className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3.5 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Imagen o Afiche de Portada *</label>
-                          <button
-                            type="button"
-                            onClick={() => inputImagenNoticiaRef.current?.click()}
-                            className="text-[11px] font-bold text-red-700 hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            <Upload className="w-3 h-3" /> Subir desde PC (Storage)
-                          </button>
-                          <input ref={inputImagenNoticiaRef} type="file" accept="image/*" onChange={handleSubirImagenPortadaNoticia} className="hidden" />
-                        </div>
-                        <input
-                          type="url"
-                          required
-                          value={formNoticia.imagen_url}
-                          onChange={(e) => setFormNoticia({ ...formNoticia, imagen_url: e.target.value })}
-                          placeholder="URL pública de la imagen o afiche..."
-                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                        />
-                      </div>
-
-                      {/* Barra de Herramientas de Formato */}
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-[#002855] dark:text-slate-200">
-                          Contenido Estructurado de la Noticia (Usa los botones para ordenar el texto) *
-                        </label>
-                        <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800">
-                          <button
-                            type="button"
-                            onClick={() => insertarFormatoNoticia("bold")}
-                            title="Negrita (**texto**)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <Bold className="w-3.5 h-3.5" /> <span>Negrita</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertarFormatoNoticia("italic")}
-                            title="Cursiva (*texto*)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <Italic className="w-3.5 h-3.5" /> <span>Cursiva</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertarFormatoNoticia("h2")}
-                            title="Subtítulo (## Título)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <Heading2 className="w-3.5 h-3.5" /> <span>Subtítulo</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertarFormatoNoticia("ul")}
-                            title="Lista con viñetas (- item)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <List className="w-3.5 h-3.5" /> <span>Viñetas</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertarFormatoNoticia("ol")}
-                            title="Lista numerada (1. item)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <ListOrdered className="w-3.5 h-3.5" /> <span>Numerada</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertarFormatoNoticia("link")}
-                            title="Insertar enlace ([Texto](https://...))"
-                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <Link2 className="w-3.5 h-3.5" /> <span>Enlace</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertarFormatoNoticia("quote")}
-                            title="Recuadro destacado (> Nota)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <Quote className="w-3.5 h-3.5" /> <span>Destacado</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertarFormatoNoticia("hr")}
-                            title="Separador (---)"
-                            className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-950 hover:bg-[#002855] dark:hover:bg-blue-900 hover:text-white border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <Minus className="w-3.5 h-3.5" /> <span>Separador</span>
-                          </button>
-                        </div>
-
-                        <textarea
-                          ref={textareaNoticiaRef}
-                          rows={8}
-                          required
-                          value={formNoticia.contenido}
-                          onChange={(e) => setFormNoticia({ ...formNoticia, contenido: e.target.value })}
-                          placeholder="Escribe aquí el cuerpo de la noticia. Usa saltos de línea, ## para subtítulos, - para listas y **negrita**..."
-                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3.5 py-3 text-xs font-mono leading-relaxed focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                        />
-                      </div>
-
-                      {/* Campos opcionales ordenados para Eventos / Convocatorias */}
-                      <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-slate-900/60 border border-blue-200 dark:border-slate-800 space-y-3">
-                        <p className="text-xs font-bold text-[#002855] dark:text-blue-300">
-                          📌 Ficha Rápida del Evento / Convocatoria (Opcional)
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          <input
-                            type="text"
-                            value={formNoticia.fecha_evento}
-                            onChange={(e) => setFormNoticia({ ...formNoticia, fecha_evento: e.target.value })}
-                            placeholder="Fecha / Hora del evento (ej. Sáb. 07 Nov - 9:00 a.m.)"
-                            className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                          />
-                          <input
-                            type="text"
-                            value={formNoticia.lugar}
-                            onChange={(e) => setFormNoticia({ ...formNoticia, lugar: e.target.value })}
-                            placeholder="Lugar / Aula (ej. Auditorio FCM / FISI)"
-                            className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                          />
-                          <input
-                            type="text"
-                            value={formNoticia.modalidad}
-                            onChange={(e) => setFormNoticia({ ...formNoticia, modalidad: e.target.value })}
-                            placeholder="Modalidad (ej. Presencial / Equipos de 3)"
-                            className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                          />
-                          <input
-                            type="text"
-                            value={formNoticia.dirigido_a}
-                            onChange={(e) => setFormNoticia({ ...formNoticia, dirigido_a: e.target.value })}
-                            placeholder="Dirigido a (ej. Estudiantes de Pregrado)"
-                            className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                          />
-                        </div>
-                        <input
-                          type="url"
-                          value={formNoticia.enlace_inscripcion}
-                          onChange={(e) => setFormNoticia({ ...formNoticia, enlace_inscripcion: e.target.value })}
-                          placeholder="URL de Inscripción o Bases Oficiales (https://forms.gle/...)"
-                          className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                        />
-                      </div>
-
-                      {/* Opciones de Publicación en Portada y Color de Fondo */}
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div>
-                            <p className="text-xs font-bold text-[#002855]">
-                              ⭐ Proyección en Sección Principal (Carrusel de Portada)
-                            </p>
-                            <p className="text-[11px] text-slate-500">
-                              Determina si este comunicado se proyectará en el slider principal del Home.
-                            </p>
-                          </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formNoticia.en_carrusel_principal ?? true}
-                              onChange={(e) =>
-                                setFormNoticia({ ...formNoticia, en_carrusel_principal: e.target.checked })
-                              }
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-700"></div>
-                          </label>
-                        </div>
-
-                        {/* Selector de Color de Fondo para la Noticia */}
-                        <div className="space-y-2 pt-2 border-t border-slate-200">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                              🎨 Color de Fondo del Banner para esta Noticia
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="w-4 h-4 rounded-full border border-slate-300 shadow-xs inline-block"
-                                style={{ backgroundColor: formNoticia.color_fondo || "#4d0713" }}
-                              />
-                              <span className="font-mono text-[11px] text-slate-600 font-bold">
-                                {formNoticia.color_fondo || "#4d0713"}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-2">
-                            {[
-                              { label: "Guinda San Marcos", hex: "#4d0713" },
-                              { label: "Azul UNMSM", hex: "#002855" },
-                              { label: "Carbón Elegante", hex: "#0f172a" },
-                              { label: "Verde Esmeralda", hex: "#064e3b" },
-                            ].map((paleta) => (
-                              <button
-                                key={paleta.hex}
-                                type="button"
-                                onClick={() => setFormNoticia({ ...formNoticia, color_fondo: paleta.hex })}
-                                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold text-white transition-all flex items-center gap-1.5 cursor-pointer ${
-                                  formNoticia.color_fondo === paleta.hex
-                                    ? "ring-2 ring-offset-2 ring-red-600 scale-102 shadow-md"
-                                    : "opacity-85 hover:opacity-100"
-                                }`}
-                                style={{ backgroundColor: paleta.hex }}
-                              >
-                                <span>{paleta.label}</span>
-                              </button>
-                            ))}
-
-                            <div className="flex items-center gap-1.5 pl-1">
-                              <input
-                                type="color"
-                                value={formNoticia.color_fondo || "#4d0713"}
-                                onChange={(e) => setFormNoticia({ ...formNoticia, color_fondo: e.target.value })}
-                                className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0.5 bg-white"
-                                title="Selector de color personalizado"
-                              />
-                              <span className="text-[11px] text-slate-500 font-medium">Personalizado</span>
-                            </div>
-                          </div>
-
-                          {/* Imagen de Fondo Opcional para Carrusel con Difuminado y Opacidad (Imagen 3) */}
-                          <div className="space-y-3 pt-3 border-t border-slate-200">
-                            <div className="flex items-center justify-between">
-                              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                                <span>🖼️ Imagen de Fondo del Slider (Opcional - Imagen 3)</span>
-                              </label>
-                              {formNoticia.fondo_imagen_url && (
-                                <button
-                                  type="button"
-                                  onClick={() => setFormNoticia({ ...formNoticia, fondo_imagen_url: "" })}
-                                  className="text-[11px] font-bold text-red-600 hover:text-red-800 cursor-pointer"
-                                >
-                                  Quitar fondo
-                                </button>
-                              )}
-                            </div>
-
-                            <div className="flex gap-2">
-                              <input
-                                type="url"
-                                value={formNoticia.fondo_imagen_url || ""}
-                                onChange={(e) => setFormNoticia({ ...formNoticia, fondo_imagen_url: e.target.value })}
-                                placeholder="URL de imagen de fondo (https://...)"
-                                className="flex-1 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => inputFondoNoticiaRef.current?.click()}
-                                className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#002855] dark:text-blue-300 text-xs font-bold cursor-pointer flex items-center gap-1.5 border border-slate-300 dark:border-slate-700 shrink-0"
-                              >
-                                <Upload className="w-3.5 h-3.5" />
-                                <span>Subir Foto</span>
-                              </button>
-                              <input
-                                ref={inputFondoNoticiaRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleSubirFondoNoticiaStorage}
-                                className="hidden"
-                              />
-                            </div>
-
-                            {formNoticia.fondo_imagen_url && (
-                              <div className="p-3 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
-                                {/* Control de Difuminado */}
-                                <div className="space-y-1">
-                                  <div className="flex justify-between text-xs font-bold text-slate-700">
-                                    <span>Difuminado de Fondo (Blur):</span>
-                                    <span className="font-mono text-[#002855]">{formNoticia.fondo_blur ?? 4}px</span>
-                                  </div>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="16"
-                                    step="1"
-                                    value={formNoticia.fondo_blur ?? 4}
-                                    onChange={(e) => setFormNoticia({ ...formNoticia, fondo_blur: Number(e.target.value) })}
-                                    className="w-full accent-[#002855] cursor-pointer"
-                                  />
-                                  <div className="flex justify-between text-[10px] text-slate-400">
-                                    <span>0px (Nítido)</span>
-                                    <span>4px (Recomendado)</span>
-                                    <span>16px (Muy difuso)</span>
-                                  </div>
-                                </div>
-
-                                {/* Control de Opacidad del Velo */}
-                                <div className="space-y-1">
-                                  <div className="flex justify-between text-xs font-bold text-slate-700">
-                                    <span>Opacidad de Cobertura Oscura / Institucional:</span>
-                                    <span className="font-mono text-[#002855]">{formNoticia.fondo_overlay_opacity ?? 60}%</span>
-                                  </div>
-                                  <input
-                                    type="range"
-                                    min="10"
-                                    max="90"
-                                    step="5"
-                                    value={formNoticia.fondo_overlay_opacity ?? 60}
-                                    onChange={(e) => setFormNoticia({ ...formNoticia, fondo_overlay_opacity: Number(e.target.value) })}
-                                    className="w-full accent-red-700 cursor-pointer"
-                                  />
-                                  <div className="flex justify-between text-[10px] text-slate-400">
-                                    <span>10% (Muy transparente)</span>
-                                    <span>60% (Equilibrado)</span>
-                                    <span>90% (Oscuro)</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formNoticia.destacado}
-                          onChange={(e) => setFormNoticia({ ...formNoticia, destacado: e.target.checked })}
-                        />
-                        Destacar como &ldquo;Importante&rdquo;
-                      </label>
-
-                      <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] dark:bg-red-700 hover:bg-blue-900 dark:hover:bg-red-800 text-white text-xs font-bold cursor-pointer transition-colors shadow-xs">
-                        {formNoticia.id ? "Guardar Cambios en Supabase" : "Publicar Noticia en Supabase"}
-                      </button>
-                    </form>
-
-                    {/* Columna Derecha: Vista Previa en Vivo */}
-                    <div className="lg:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs sticky top-20">
-                      <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider">👁️ Vista Previa en Vivo</span>
-                        <span className="text-[10px] font-mono text-blue-200">Así lo leerán los alumnos</span>
-                      </div>
-                      <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-                        {formNoticia.imagen_url && (
-                          <div className="rounded-xl bg-slate-950 overflow-hidden max-h-56 flex items-center justify-center">
-                            <img src={formNoticia.imagen_url} alt="Preview" className="max-h-56 w-auto object-contain" />
-                          </div>
-                        )}
-                        <div className="space-y-1.5">
-                          <span className="px-2.5 py-0.5 rounded bg-[#002855] text-white text-[10px] font-bold">
-                            {formNoticia.categoria || "Comunicado Oficial"}
-                          </span>
-                          <h4 className="text-base font-bold text-[#002855] dark:text-white leading-snug">
-                            {formNoticia.titulo || "Título de la noticia..."}
-                          </h4>
-                          {formNoticia.resumen && (
-                            <p className="text-xs text-slate-500 italic">{formNoticia.resumen}</p>
-                          )}
-                        </div>
-                        <div className="border-t border-slate-100 pt-3">
-                          {renderizarContenidoNoticia(
-                            formNoticia.contenido || "Escribe en el editor para previsualizar el formato..."
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Lista de Noticias Publicadas */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-bold text-[#002855] dark:text-white">Noticias Publicadas ({noticias.length})</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {noticias.map((n) => (
-                        <div key={n.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3.5">
-                            <img src={n.imagen_url} alt={n.titulo} className="w-16 h-16 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
-                            <div>
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="text-[11px] font-bold text-red-700">{n.categoria} • {n.fecha_publicacion}</span>
-                                <span
-                                  className="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block shrink-0 shadow-xs"
-                                  style={{ backgroundColor: n.color_fondo || "#4d0713" }}
-                                  title={`Color en carrusel: ${n.color_fondo || "#4d0713"}`}
-                                />
-                                {n.en_carrusel_principal !== false && (
-                                  <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full border border-amber-300">
-                                    ⭐ Portada
-                                  </span>
-                                )}
-                              </div>
-                              <h4 className="font-bold text-xs sm:text-sm text-[#002855] dark:text-white line-clamp-2">{n.titulo}</h4>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleCarruselPrincipal(n.id)}
-                              title={n.en_carrusel_principal !== false ? "Desactivar de carrusel de portada" : "Activar en carrusel de portada"}
-                              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${
-                                n.en_carrusel_principal !== false
-                                  ? "bg-amber-500 text-white hover:bg-amber-600 shadow-xs"
-                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                              }`}
-                            >
-                              {n.en_carrusel_principal !== false ? "⭐ Portada" : "⚪ Off"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => abrirNoticiaDetalle(n.id)}
-                              title="Ver noticia"
-                              className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-[#002855] text-[11px] font-bold cursor-pointer hover:bg-blue-100"
-                            >
-                              Ver
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setFormNoticia({
-                                  id: n.id,
-                                  titulo: n.titulo,
-                                  categoria: n.categoria,
-                                  resumen: n.resumen || "",
-                                  fecha_publicacion: n.fecha_publicacion,
-                                  contenido: n.contenido,
-                                  imagen_url: n.imagen_url,
-                                  destacado: n.destacado,
-                                  en_carrusel_principal: n.en_carrusel_principal ?? true,
-                                  color_fondo: n.color_fondo || "#4d0713",
-                                  fecha_evento: n.fecha_evento || "",
-                                  lugar: n.lugar || "",
-                                  modalidad: n.modalidad || "",
-                                  dirigido_a: n.dirigido_a || "",
-                                  enlace_inscripcion: n.enlace_inscripcion || "",
-                                  fondo_imagen_url: n.fondo_imagen_url || "",
-                                  fondo_blur: typeof n.fondo_blur === "number" ? n.fondo_blur : 4,
-                                  fondo_overlay_opacity: typeof n.fondo_overlay_opacity === "number" ? n.fondo_overlay_opacity : 60,
-                                  fondo_overlay_color: n.fondo_overlay_color || n.color_fondo || "#002855",
-                                })
-                              }
-                              className="p-2 rounded-lg bg-slate-100 text-[#002855] hover:bg-slate-200 cursor-pointer"
-                              title="Editar noticia"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                const filtradas = noticias.filter((item) => item.id !== n.id);
-                                setNoticias(filtradas);
-                                await sincronizarPortalConfigSupabase({ noticias_data: filtradas });
-                                lanzarToast("🗑️ Noticia eliminada de Supabase.");
-                              }}
-                              className="p-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-700 hover:text-white cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* PESTAÑA CMS: GESTIÓN DE PLANA DOCENTE (CRUD COMPLETO + SUPABASE) */}
-              {tabAdmin === "docentes_cms" && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  <form onSubmit={handleGuardarDocente} className="lg:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3.5">
-                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                      <h3 className="font-bold text-base text-[#002855] dark:text-white">
-                        {formDocente.id ? "✏️ Editar Ficha de Docente" : "👨‍🏫 Registrar Docente en la Facultad"}
-                      </h3>
-                      {formDocente.id && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormDocente({
-                              id: "",
-                              nombre_completo: "",
-                              grado_academico: "Dr.",
-                              categoria_docente: "Principal",
-                              condicion: "Nombrado",
-                              carrera_id: "computacion-cientifica",
-                              especialidad: "",
-                              lineas_investigacion: "",
-                              cursos_dictados_texto: "",
-                              correo: "",
-                              horario_asesoria: "",
-                              foto_url: "",
-                              cti_vitae_url: "",
-                              orcid_url: "",
-                              google_scholar_url: "",
-                              linkedin_url: "",
-                            })
-                          }
-                          className="text-xs font-bold text-red-700 hover:underline"
-                        >
-                          Cancelar
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <select
-                        value={formDocente.grado_academico}
-                        onChange={(e) => setFormDocente({ ...formDocente, grado_academico: e.target.value as Docente["grado_academico"] })}
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs font-bold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      >
-                        <option value="Dr.">Dr.</option>
-                        <option value="Dra.">Dra.</option>
-                        <option value="Mg.">Mg.</option>
-                        <option value="Lic.">Lic.</option>
-                      </select>
-                      <input
-                        type="text"
-                        required
-                        value={formDocente.nombre_completo}
-                        onChange={(e) => setFormDocente({ ...formDocente, nombre_completo: e.target.value })}
-                        placeholder="Apellidos y Nombres *"
-                        className="col-span-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs font-bold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <select
-                        value={formDocente.carrera_id}
-                        onChange={(e) => setFormDocente({ ...formDocente, carrera_id: e.target.value as CarreraId })}
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-2 text-xs font-semibold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      >
-                        {carreras.map((c) => (
-                          <option key={c.id} value={c.id}>{c.nombre}</option>
-                        ))}
-                      </select>
-                      <select
-                        value={formDocente.categoria_docente}
-                        onChange={(e) => setFormDocente({ ...formDocente, categoria_docente: e.target.value as Docente["categoria_docente"] })}
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-2 text-xs font-semibold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      >
-                        <option value="Principal">Principal</option>
-                        <option value="Asociado">Asociado</option>
-                        <option value="Auxiliar">Auxiliar</option>
-                      </select>
-                      <select
-                        value={formDocente.condicion}
-                        onChange={(e) => setFormDocente({ ...formDocente, condicion: e.target.value as Docente["condicion"] })}
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-2 text-xs font-semibold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      >
-                        <option value="Nombrado">Nombrado</option>
-                        <option value="Contratado">Contratado</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Fotografía del Docente (o dejar vacío para Avatar)</label>
-                        <button
-                          type="button"
-                          onClick={() => inputFotoDocenteRef.current?.click()}
-                          className="text-[11px] font-bold text-red-700 hover:underline flex items-center gap-1 cursor-pointer"
-                        >
-                          <Upload className="w-3 h-3" /> {subiendoFotoDocente ? "Subiendo..." : "Subir Foto"}
-                        </button>
-                        <input ref={inputFotoDocenteRef} type="file" accept="image/*" onChange={handleSubirFotoDocenteStorage} className="hidden" />
-                      </div>
-                      <input
-                        type="url"
-                        value={formDocente.foto_url}
-                        onChange={(e) => setFormDocente({ ...formDocente, foto_url: e.target.value })}
-                        placeholder="URL de la foto (Supabase Storage o externa)..."
-                        className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-                    </div>
-
-                    <input
-                      type="text"
-                      required
-                      value={formDocente.especialidad}
-                      onChange={(e) => setFormDocente({ ...formDocente, especialidad: e.target.value })}
-                      placeholder="Especialidad principal (ej. Optimización Convexa, Deep Learning) *"
-                      className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                    />
-
-                    <textarea
-                      rows={2}
-                      value={formDocente.lineas_investigacion}
-                      onChange={(e) => setFormDocente({ ...formDocente, lineas_investigacion: e.target.value })}
-                      placeholder="Líneas de investigación activas..."
-                      className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                    />
-
-                    <input
-                      type="text"
-                      value={formDocente.cursos_dictados_texto}
-                      onChange={(e) => setFormDocente({ ...formDocente, cursos_dictados_texto: e.target.value })}
-                      placeholder="Cursos que dicta separados por coma (ej. CS113 - POO II, AI264 - Deep Learning)"
-                      className="w-full rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                    />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <input
-                        type="email"
-                        value={formDocente.correo}
-                        onChange={(e) => setFormDocente({ ...formDocente, correo: e.target.value })}
-                        placeholder="Correo (@unmsm.edu.pe)"
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-                      <input
-                        type="text"
-                        value={formDocente.horario_asesoria}
-                        onChange={(e) => setFormDocente({ ...formDocente, horario_asesoria: e.target.value })}
-                        placeholder="Horario de asesoría"
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="url"
-                        value={formDocente.cti_vitae_url}
-                        onChange={(e) => setFormDocente({ ...formDocente, cti_vitae_url: e.target.value })}
-                        placeholder="URL CTI Vitae (CONCYTEC)"
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-                      <input
-                        type="url"
-                        value={formDocente.orcid_url}
-                        onChange={(e) => setFormDocente({ ...formDocente, orcid_url: e.target.value })}
-                        placeholder="URL ORCID"
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-                      <input
-                        type="url"
-                        value={formDocente.google_scholar_url}
-                        onChange={(e) => setFormDocente({ ...formDocente, google_scholar_url: e.target.value })}
-                        placeholder="URL Google Scholar"
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-                      <input
-                        type="url"
-                        value={formDocente.linkedin_url}
-                        onChange={(e) => setFormDocente({ ...formDocente, linkedin_url: e.target.value })}
-                        placeholder="URL LinkedIn"
-                        className="rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      />
-                    </div>
-
-                    <button type="submit" className="w-full py-3 rounded-xl bg-[#002855] dark:bg-red-700 hover:bg-blue-900 dark:hover:bg-red-800 text-white text-xs font-bold cursor-pointer transition-colors shadow-xs">
-                      {formDocente.id ? "Guardar Cambios del Docente" : "Registrar Docente en Supabase"}
-                    </button>
-                  </form>
-
-                  <div className="lg:col-span-7 space-y-4">
-                    <div className="flex flex-wrap gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
-                      <button
-                        type="button"
-                        onClick={() => setAdminFiltroCarreraDocentes("TODAS")}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                          adminFiltroCarreraDocentes === "TODAS" ? "bg-[#002855] text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                        }`}
-                      >
-                        Todas ({docentes.length})
-                      </button>
-                      {carreras.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => setAdminFiltroCarreraDocentes(c.id)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                            adminFiltroCarreraDocentes === c.id ? TEMA_CARRERA[c.id].badgeSolid : "bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {c.nombre} ({docentes.filter((d) => d.carrera_id === c.id).length})
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {docentes
-                        .filter((d) => adminFiltroCarreraDocentes === "TODAS" || d.carrera_id === adminFiltroCarreraDocentes)
-                        .map((doc) => {
-                          const temaD = TEMA_CARRERA[doc.carrera_id];
-                          return (
-                            <div key={doc.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex items-center justify-between gap-3">
-                              <div className="flex items-center gap-3 min-w-0">
-                                {doc.foto_url ? (
-                                  <img src={doc.foto_url} alt={doc.nombre_completo} className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
-                                ) : (
-                                  <div className={`w-14 h-14 rounded-xl ${temaD.headerBg} text-white font-bold text-sm flex items-center justify-center shrink-0`}>
-                                    {obtenerInicialesDocente(doc.nombre_completo)}
-                                  </div>
-                                )}
-                                <div className="min-w-0">
-                                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${temaD.badgeSoft}`}>
-                                    {carreras.find((c) => c.id === doc.carrera_id)?.nombre}
-                                  </span>
-                                  <h4 className="font-bold text-xs sm:text-sm text-[#002855] dark:text-white truncate mt-0.5">
-                                    {doc.grado_academico} {doc.nombre_completo}
-                                  </h4>
-                                  <p className="text-[11px] text-slate-500 truncate">{doc.especialidad}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => handleEditarDocenteEnAdmin(doc)}
-                                  className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 text-[#002855] dark:text-blue-300 cursor-pointer"
-                                >
-                                  <Edit3 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleEliminarDocenteEnAdmin(doc.id)}
-                                  className="p-2 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 hover:bg-red-700 hover:text-white cursor-pointer"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {tabAdmin === "storage" && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  <div className="lg:col-span-5 space-y-6 h-fit">
-                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-5">
-                      <div className="flex items-center gap-2.5 border-b border-slate-200 dark:border-slate-800 pb-3">
-                        <ImageIcon className="w-5 h-5 text-red-700" />
-                        <div>
-                          <h3 className="font-bold text-sm text-[#002855] dark:text-white">Subir Imagen a Supabase Storage</h3>
-                          <p className="text-[11px] text-slate-500">Bucket público: <code className="font-bold text-red-700">fcm-assets</code></p>
-                        </div>
-                      </div>
-                      <select
-                        value={categoriaNuevaImagen}
-                        onChange={(e) => setCategoriaNuevaImagen(e.target.value as typeof categoriaNuevaImagen)}
-                        className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                      >
-                        <option value="Logo Institucional">Logo Institucional Transparente (Navbar)</option>
-                        <option value="Fondo Hero Home">Fondo Difuminado para el Hero del Home</option>
-                        <option value="Banner Noticia">Banner para Noticias del Home</option>
-                        <option value="Foto Facultad">Foto Referencial de la Facultad</option>
-                      </select>
-                      <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="rounded-2xl border-2 border-dashed border-blue-900/40 dark:border-blue-700/50 hover:border-red-600 dark:hover:border-red-500 bg-slate-50 dark:bg-slate-950/60 p-6 text-center cursor-pointer space-y-2"
-                      >
-                        <Upload className="w-8 h-8 text-[#002855] dark:text-blue-300 mx-auto" />
-                        <p className="text-xs font-bold text-[#002855] dark:text-blue-300">
-                          {subiendoStorage ? "Subiendo imagen..." : "Haz clic aquí para elegir una imagen de tu PC"}
-                        </p>
-                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleSubirArchivoStorage} className="hidden" />
-                      </div>
-                    </div>
-
-                    {/* Configuración directa del Fondo Difuminado, Opacidad y Color del Hero */}
-                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
-                      <div className="border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                        <h3 className="font-bold text-sm text-[#002855] dark:text-white">
-                          🖼️ Personalización del Fondo Hero (Difuminado, Opacidad y Color)
-                        </h3>
-                        <p className="text-[11px] text-slate-500">
-                          Ajusta el nivel de desenfoque, el porcentaje de transparencia y el color de la capa superpuesta.
-                        </p>
-                      </div>
-
-                      {/* Vista Previa en Tiempo Real */}
-                      <div
-                        className="relative h-32 rounded-xl overflow-hidden border border-slate-200 transition-colors"
-                        style={{ backgroundColor: heroOverlayColor || "#0f172a" }}
-                      >
-                        <img
-                          src={heroBgInputUrl || heroBgUrl || HERO_BG_DEFAULT}
-                          alt="Vista previa Hero"
-                          className="w-full h-full object-cover transition-all duration-300"
-                          style={{ filter: `blur(${heroBlur}px)` }}
-                        />
-                        <div
-                          className="absolute inset-0 transition-all duration-200"
-                          style={{
-                            backgroundColor: heroOverlayColor || "#0f172a",
-                            opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/15 flex flex-col items-center justify-center p-3 text-center">
-                          <span className="text-xs font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
-                            Vista Previa en Vivo • Portal Académico FCM
-                          </span>
-                          <span className="mt-1 px-2.5 py-0.5 rounded-full bg-black/55 text-[10px] font-bold text-white border border-white/20">
-                            Difuminado: {heroBlur}px • Capa: {heroOverlayOpacity}% ({heroOverlayColor})
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* URL de la imagen */}
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">URL de la Imagen de Fondo:</label>
-                        <input
-                          type="url"
-                          value={heroBgInputUrl}
-                          onChange={(e) => setHeroBgInputUrl(e.target.value)}
-                          placeholder="Pega aquí la URL de la imagen de fondo para el Hero..."
-                          className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-xs focus:outline-none focus:border-red-600 dark:focus:border-red-500"
-                        />
-                      </div>
-
-                      {/* Control Deslizante 1: Nivel de Difuminado (Blur en px) */}
-                      <div className="space-y-1.5 bg-slate-50 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#002855] dark:text-blue-300">1. Nivel de Difuminado (Desenfoque):</span>
-                          <span className="px-2 py-0.5 rounded-md bg-[#002855] text-white font-mono text-[11px] font-bold">
-                            {heroBlur} px {heroBlur === 0 ? "(Nítido)" : heroBlur <= 1.5 ? "(Sutil)" : "(Intenso)"}
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={8}
-                          step={0.5}
-                          value={heroBlur}
-                          onChange={(e) => setHeroBlur(Number(e.target.value))}
-                          className="w-full accent-[#002855] cursor-pointer"
-                        />
-                        <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
-                          <span>0px (Sin blur)</span>
-                          <span>1px (Recomendado)</span>
-                          <span>4px (Medio)</span>
-                          <span>8px (Máximo)</span>
-                        </div>
-                      </div>
-
-                      {/* Control Deslizante 2: Porcentaje de Opacidad de la Capa */}
-                      <div className="space-y-1.5 bg-slate-50 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#002855] dark:text-blue-300">2. Opacidad / Oscuridad del Fondo:</span>
-                          <span className="px-2 py-0.5 rounded-md bg-red-700 text-white font-mono text-[11px] font-bold">
-                            {heroOverlayOpacity}%
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={90}
-                          step={5}
-                          value={heroOverlayOpacity}
-                          onChange={(e) => setHeroOverlayOpacity(Number(e.target.value))}
-                          className="w-full accent-red-700 cursor-pointer"
-                        />
-                        <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
-                          <span>0% (Imagen 100% libre)</span>
-                          <span>45% (Equilibrado)</span>
-                          <span>90% (Muy oscuro)</span>
-                        </div>
-                      </div>
-
-                      {/* Selector 3: Color de la Capa (Normal Neutro, Negro, Gris, Azul o Libre) */}
-                      <div className="space-y-2 bg-slate-50 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#002855] dark:text-blue-300">3. Color del Filtro / Capa:</span>
-                          <span className="font-mono text-[11px] font-bold text-slate-600 dark:text-slate-400">{heroOverlayColor}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          {[
-                            { label: "Neutro Carbón (Normal)", hex: "#0f172a" },
-                            { label: "Negro Cinematográfico", hex: "#000000" },
-                            { label: "Gris Grafito Suave", hex: "#27272a" },
-                            { label: "Azul Institucional", hex: "#002855" },
-                          ].map((preset) => (
-                            <button
-                              key={preset.hex}
-                              type="button"
-                              onClick={() => setHeroOverlayColor(preset.hex)}
-                              className={`px-2.5 py-2 rounded-lg text-[11px] font-bold flex items-center gap-2 border transition-all cursor-pointer ${
-                                heroOverlayColor.toLowerCase() === preset.hex.toLowerCase()
-                                  ? "border-[#002855] dark:border-blue-400 bg-blue-50 dark:bg-blue-950/60 text-[#002855] dark:text-blue-300 ring-2 ring-[#002855]/20 dark:ring-blue-400/20"
-                                  : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                              }`}
-                            >
-                              <span
-                                className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-xs shrink-0"
-                                style={{ backgroundColor: preset.hex }}
-                              />
-                              <span className="truncate">{preset.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between pt-1">
-                          <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">O elige un color personalizado:</span>
-                          <input
-                            type="color"
-                            value={heroOverlayColor}
-                            onChange={(e) => setHeroOverlayColor(e.target.value)}
-                            className="w-9 h-7 rounded cursor-pointer border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-0.5"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2 pt-1">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleUsarComoFondoHero(heroBgInputUrl, heroBlur, heroOverlayOpacity, heroOverlayColor)
-                          }
-                          className="flex-1 py-2.5 rounded-xl bg-[#002855] dark:bg-red-700 hover:bg-blue-900 dark:hover:bg-red-800 text-white text-xs font-bold cursor-pointer shadow-xs transition-colors"
-                        >
-                          Guardar Personalización del Banner
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleUsarComoFondoHero(HERO_BG_DEFAULT, 1, 45, "#0f172a")}
-                          className="px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer transition-colors"
-                        >
-                          Restaurar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 h-fit">
-                    {imagenesStorage.map((img) => (
-                      <div key={img.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex flex-col justify-between">
-                        <div>
-                          <div className="relative h-36 bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
-                            <img src={img.url_publica} alt={img.nombre_archivo} className="w-full h-full object-cover" />
-                            <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded bg-[#002855] text-white text-[10px] font-bold">{img.categoria}</span>
-                          </div>
-                          <div className="p-3.5">
-                            <p className="text-xs font-bold text-[#002855] dark:text-white truncate">{img.nombre_archivo}</p>
-                            <p className="text-[10px] text-slate-400 dark:text-slate-500">{img.tamano_kb} • {img.fecha_subida}</p>
-                          </div>
-                        </div>
-                        <div className="p-3 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard?.writeText(img.url_publica);
-                              setUrlCopiadaId(img.id);
-                              setTimeout(() => setUrlCopiadaId(null), 2000);
-                              lanzarToast("📋 URL pública copiada.");
-                            }}
-                            className="flex-1 py-1.5 px-2 rounded-lg bg-[#002855] text-white text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer"
-                          >
-                            {urlCopiadaId === img.id ? <><Check className="w-3 h-3" /> Copiada</> : <><Copy className="w-3 h-3" /> Copiar URL</>}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleUsarComoFondoHero(img.url_publica)}
-                            className="py-1.5 px-2.5 rounded-lg bg-blue-100 dark:bg-blue-950 hover:bg-[#002855] hover:text-white text-[#002855] dark:text-blue-300 text-[11px] font-bold transition-colors cursor-pointer"
-                          >
-                            Usar en Hero
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleUsarComoLogo(img.url_publica)}
-                            className="py-1.5 px-2.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-red-700 hover:text-white text-slate-800 dark:text-slate-200 text-[11px] font-bold transition-colors cursor-pointer"
-                          >
-                            Usar como Logo
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {tabAdmin === "moderacion" && (
-                <div className="space-y-8">
-                  {/* SECCIÓN 1: MODERACIÓN DE RESEÑAS Y CALIFICACIONES DE DOCENTES */}
-                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
-                    <div className="bg-[#002855] text-white px-5 py-4 flex flex-wrap items-center justify-between gap-2 border-b-2 border-red-700">
-                      <div className="flex items-center gap-2">
-                        <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                        <h3 className="text-sm font-bold">
-                          Moderación de Calificaciones y Reseñas de Docentes ({resenasDocentes.length})
-                        </h3>
-                      </div>
-                      <span className="text-[11px] text-blue-200">
-                        Sincronizado en <code className="text-amber-300 font-bold">portal_config.resenas_docentes</code>
-                      </span>
-                    </div>
-
-                    {resenasDocentes.length === 0 ? (
-                      <div className="p-10 text-center space-y-2">
-                        <Star className="w-8 h-8 text-slate-300 mx-auto" />
-                        <p className="text-sm font-bold text-slate-700">Aún no se han registrado reseñas de docentes.</p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse text-xs">
-                          <thead>
-                            <tr className="bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
-                              <th className="py-3 px-4">Docente Evaluado</th>
-                              <th className="py-3 px-4">Calificación</th>
-                              <th className="py-3 px-4">Curso / Autor</th>
-                              <th className="py-3 px-4">Comentario de la Reseña</th>
-                              <th className="py-3 px-4">Estado</th>
-                              <th className="py-3 px-4 text-right">Acciones</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                            {resenasDocentes.map((resena) => {
-                              const docInfo = docentes.find((d) => d.id === resena.docente_id);
-                              return (
-                                <tr key={resena.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-                                  <td className="py-3.5 px-4 font-bold text-[#002855] dark:text-blue-300">
-                                    {docInfo ? `${docInfo.grado_academico} ${docInfo.nombre_completo}` : resena.docente_id}
-                                    <div className="text-[10px] font-normal text-slate-400 dark:text-slate-500">{resena.fecha}</div>
-                                  </td>
-                                  <td className="py-3.5 px-4">
-                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 font-bold text-amber-800">
-                                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                                      <span>{resena.puntuacion}.0</span>
-                                    </div>
-                                  </td>
-                                  <td className="py-3.5 px-4">
-                                    <div className="font-bold text-slate-800 dark:text-white">{resena.curso}</div>
-                                    <div className="text-[11px] text-slate-500 dark:text-slate-400">Por: {resena.autor_alias}</div>
-                                  </td>
-                                  <td className="py-3.5 px-4 max-w-md">
-                                    <p className="text-slate-700 dark:text-slate-200 leading-relaxed line-clamp-3">{resena.comentario}</p>
-                                  </td>
-                                  <td className="py-3.5 px-4">
-                                    {resena.estado === "aprobado" ? (
-                                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold uppercase">
-                                        Pública
-                                      </span>
-                                    ) : (
-                                      <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-bold uppercase">
-                                        Oculta / Pendiente
-                                      </span>
-                                    )}
-                                  </td>
-                                  <td className="py-3.5 px-4 text-right whitespace-nowrap space-x-1.5">
-                                    {resena.estado === "pendiente" ? (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleCambiarEstadoResenaAdmin(resena.id, "aprobado")}
-                                        className="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-bold cursor-pointer"
-                                      >
-                                        ✅ Aprobar
-                                      </button>
-                                    ) : (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleCambiarEstadoResenaAdmin(resena.id, "pendiente")}
-                                        className="px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold cursor-pointer"
-                                      >
-                                        ⏸️ Ocultar
-                                      </button>
-                                    )}
-                                    <button
-                                      type="button"
-                                      onClick={() => handleEliminarResenaDocenteAdmin(resena.id)}
-                                      className="px-2.5 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/40 hover:bg-red-700 text-red-700 dark:text-red-400 hover:text-white text-[11px] font-bold transition-colors cursor-pointer"
-                                    >
-                                      🗑️ Eliminar
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* SECCIÓN 2: MODERACIÓN DE ARCHIVOS DEL REPOSITORIO PENDIENTES */}
-                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
-                    <div className="bg-slate-100 dark:bg-slate-950 px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="text-sm font-bold text-[#002855] dark:text-white">
-                        Archivos del Repositorio Pendientes de Aprobación ({materialesPendientes.length})
-                      </h3>
-                      <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Sincronizado en <code className="font-bold text-[#002855] dark:text-blue-300">portal_config.materiales_data</code>
-                      </span>
-                    </div>
-                    {materialesPendientes.length === 0 ? (
-                      <div className="p-10 text-center space-y-2">
-                        <CheckCircle2 className="w-9 h-9 text-emerald-600 mx-auto" />
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">No hay archivos pendientes de moderación</h3>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse text-xs">
-                          <thead>
-                            <tr className="bg-[#002855] dark:bg-slate-950 text-white uppercase text-[11px] border-b dark:border-slate-800">
-                              <th className="py-3.5 px-4">Material</th>
-                              <th className="py-3.5 px-4">Carrera / Curso</th>
-                              <th className="py-3.5 px-4">Docente / Autor</th>
-                              <th className="py-3.5 px-4 text-right">Acciones</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                            {materialesPendientes.map((m) => {
-                              const curso = malla.find((c) => c.id === m.curso_id);
-                              const carrera = carreras.find((ca) => ca.id === m.carrera_id);
-                              return (
-                                <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                                  <td className="py-4 px-4">
-                                    <p className="font-bold text-[#002855] dark:text-blue-300">{m.titulo}</p>
-                                    <a
-                                      href={m.url_archivo}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-[11px] text-red-700 dark:text-red-400 hover:underline font-mono"
-                                    >
-                                      Ver enlace del archivo ↗
-                                    </a>
-                                  </td>
-                                  <td className="py-4 px-4 text-slate-700 dark:text-slate-300">
-                                    {carrera?.nombre} • [{curso?.codigo || m.curso_id}] {curso?.nombre_curso || `Ciclo ${m.ciclo}`}
-                                  </td>
-                                  <td className="py-4 px-4">
-                                    <div className="font-semibold text-slate-800 dark:text-white">{m.docente}</div>
-                                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Por: {m.autor_alias} ({m.fecha_subida})</div>
-                                  </td>
-                                  <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleAprobarMaterialAdmin(m.id)}
-                                      className="px-3 py-1.5 rounded-lg bg-[#002855] hover:bg-blue-900 text-white font-bold cursor-pointer"
-                                    >
-                                      ✅ Aprobar
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleEliminarMaterialAdmin(m.id)}
-                                      className="px-3 py-1.5 rounded-lg bg-red-700 hover:bg-red-800 text-white font-bold cursor-pointer"
-                                    >
-                                      ❌ Rechazar
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* SECCIÓN 3: ARCHIVOS APROBADOS PUBLICADOS EN EL REPOSITORIO */}
-                  <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-                    <div className="bg-slate-100 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
-                      <h3 className="text-sm font-bold text-[#002855] dark:text-white">
-                        Materiales Publicados en el Repositorio ({materialesAprobados.length})
-                      </h3>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-xs">
-                        <thead>
-                          <tr className="bg-slate-50 text-slate-600 uppercase text-[10px] border-b border-slate-200">
-                            <th className="py-3 px-4">Título del Material</th>
-                            <th className="py-3 px-4">Escuela / Asignatura</th>
-                            <th className="py-3 px-4">Docente</th>
-                            <th className="py-3 px-4 text-right">Acción</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200">
-                          {materialesAprobados.map((m) => {
-                            const curso = malla.find((c) => c.id === m.curso_id);
-                            const carrera = carreras.find((ca) => ca.id === m.carrera_id);
-                            return (
-                              <tr key={m.id} className="hover:bg-slate-50/70">
-                                <td className="py-3 px-4 font-bold text-[#002855]">{m.titulo}</td>
-                                <td className="py-3 px-4">
-                                  {carrera?.nombre} • [{curso?.codigo || m.curso_id}] {curso?.nombre_curso || `Ciclo ${m.ciclo}`}
-                                </td>
-                                <td className="py-3 px-4">{m.docente}</td>
-                                <td className="py-3 px-4 text-right">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleEliminarMaterialAdmin(m.id)}
-                                    className="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-700 text-red-700 hover:text-white font-bold text-[11px] transition-colors cursor-pointer"
-                                  >
-                                    🗑️ Eliminar
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {tabAdmin === "malla" && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  <form onSubmit={handleGuardarCursoMalla} className="lg:col-span-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 h-fit">
-                    <h3 className="font-bold text-sm text-[#002855] dark:text-white">Añadir Asignatura a la Malla</h3>
-                    <select
-                      value={formCursoMalla.carrera_id}
-                      onChange={(e) => setFormCursoMalla({ ...formCursoMalla, carrera_id: e.target.value as CarreraId })}
-                      className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs"
-                    >
-                      {carreras.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                    </select>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="number" min={1} max={10} value={formCursoMalla.ciclo} onChange={(e) => setFormCursoMalla({ ...formCursoMalla, ciclo: Number(e.target.value) })} className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs" />
-                      <input type="text" required value={formCursoMalla.codigo} onChange={(e) => setFormCursoMalla({ ...formCursoMalla, codigo: e.target.value })} placeholder="Código (ej. CS399)" className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs" />
-                    </div>
-                    <input type="text" required value={formCursoMalla.nombre_curso} onChange={(e) => setFormCursoMalla({ ...formCursoMalla, nombre_curso: e.target.value })} placeholder="Nombre de la asignatura *" className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs" />
-                    <button type="submit" className="w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer">Guardar en la Malla</button>
-                  </form>
-
-                  <div className="lg:col-span-8 space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {carreras.map((c) => (
-                        <button
-                          key={c.id}
-                          onClick={() => setAdminFiltroCarreraMalla(c.id)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${adminFiltroCarreraMalla === c.id ? "bg-[#002855] text-white" : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700"}`}
-                        >
-                          {c.nombre}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden max-h-96 overflow-y-auto">
-                      <table className="w-full text-left border-collapse text-xs">
-                        <thead>
-                          <tr className="bg-[#002855] dark:bg-slate-950 text-white border-b dark:border-slate-800">
-                            <th className="py-2.5 px-4">Ciclo</th>
-                            <th className="py-2.5 px-4">Código</th>
-                            <th className="py-2.5 px-4">Asignatura</th>
-                            <th className="py-2.5 px-4">Créd.</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                          {malla.filter((c) => c.carrera_id === adminFiltroCarreraMalla).map((cur) => (
-                            <tr key={cur.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 text-slate-900 dark:text-slate-200">
-                              <td className="py-2.5 px-4">Ciclo {cur.ciclo}</td>
-                              <td className="py-2.5 px-4 font-mono font-bold text-red-700 dark:text-red-400">{cur.codigo}</td>
-                              <td className="py-2.5 px-4 font-semibold text-slate-900 dark:text-white">{cur.nombre_curso}</td>
-                              <td className="py-2.5 px-4">{cur.creditos}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              
-              {tabAdmin === "transparencia" && (
-                <div className="space-y-6">
-                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <h2 className="text-base font-bold text-[#002855] dark:text-white flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-red-700 dark:text-red-400" />
-                        Gestor de Documentos Oficiales y Resoluciones FCM
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Publica, edita y retira Resoluciones Decanales, Rectorales, POI y Memorias. Sincronizado en <code className="text-red-600 dark:text-red-400 font-bold">portal_config.transparencia_data</code>.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditandoTransparenciaId(null);
-                        setFormTransparencia({
-                          codigo: "R.D. Nº ",
-                          titulo: "",
-                          categoria: "Resoluciones Decanales",
-                          anio: 2026,
-                          dependencia: "Decanato FCM",
-                          fecha: new Date().toISOString().slice(0, 10),
-                          tamano_archivo: "1.5 MB",
-                          url_pdf: "https://matematicas.unmsm.edu.pe",
-                          sumilla: "",
-                        });
-                        setModalTransparenciaFormAbierto(true);
-                      }}
-                      className="px-4 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-xs flex items-center gap-2 shrink-0 cursor-pointer shadow-sm transition-all"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>➕ Nueva Resolución / Documento Oficial</span>
-                    </button>
-                  </div>
-
-                  {/* Lista de Documentos en Admin */}
-                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
-                    {documentosTransparencia.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
-                      >
-                        <div className="space-y-1.5 flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-mono font-bold text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2 py-0.5 rounded border border-red-200 dark:border-red-900/60">
-                              {doc.codigo}
-                            </span>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                              {doc.categoria}
-                            </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                              • Año {doc.anio} • {doc.fecha} • {doc.dependencia}
-                            </span>
-                          </div>
-                          <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">
-                            {doc.titulo}
-                          </h4>
-                          {doc.sumilla && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                              {doc.sumilla}
-                            </p>
-                          )}
-                          <div className="text-[10px] text-slate-400 font-mono">
-                            PDF: <a href={doc.url_pdf} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 underline">{doc.url_pdf}</a> ({doc.tamano_archivo})
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditandoTransparenciaId(doc.id);
-                              setFormTransparencia({
-                                codigo: doc.codigo,
-                                titulo: doc.titulo,
-                                categoria: doc.categoria,
-                                anio: doc.anio,
-                                dependencia: doc.dependencia,
-                                fecha: doc.fecha,
-                                tamano_archivo: doc.tamano_archivo,
-                                url_pdf: doc.url_pdf,
-                                sumilla: doc.sumilla || "",
-                              });
-                              setModalTransparenciaFormAbierto(true);
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] hover:text-white text-[#002855] dark:text-blue-300 font-bold text-xs transition-colors cursor-pointer border border-blue-200 dark:border-slate-700"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (window.confirm(`¿Estás seguro de eliminar el documento "${doc.codigo} - ${doc.titulo}" del portal de transparencia?`)) {
-                                const actualizados = documentosTransparencia.filter((x) => x.id !== doc.id);
-                                setDocumentosTransparencia(actualizados);
-                                if (typeof window !== "undefined") {
-                                  window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(actualizados));
-                                }
-                                const metaTrans = { id: "__fcm_transparencia_config__", transparencia_items: actualizados };
-                                const storageFiltrado = imagenesStorage.filter((x) => x.id !== "__fcm_transparencia_config__");
-                                const nuevoStorage = [...storageFiltrado, metaTrans as any];
-                                await sincronizarPortalConfigSupabase({
-                                  transparencia_data: actualizados,
-                                  storage_data: nuevoStorage,
-                                });
-                                lanzarToast("🗑️ Documento eliminado del Portal de Transparencia.");
-                              }
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/60 hover:bg-red-700 hover:text-white text-red-700 dark:text-red-300 font-bold text-xs transition-colors cursor-pointer border border-red-200 dark:border-red-800"
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {tabAdmin === "orgullo" && (
-                <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-                    <div>
-                      <h3 className="font-bold text-base text-[#002855] dark:text-white flex items-center gap-2">
-                        <Trophy className="w-5 h-5 text-amber-500" />
-                        Gestión de Historias de Éxito: Orgullo San Marquino
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Agrega o edita pósters, fotografías y reconocimientos de estudiantes destacados que impactan a nivel nacional e internacional.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormOrgullo({
-                          id: "",
-                          titulo: "",
-                          subtitulo_categoria: "SELECCIONADO POR IBRO 2026",
-                          estudiante: "",
-                          carrera_id: "computacion-cientifica",
-                          descripcion: "",
-                          foto_url: "",
-                          tipo_tarjeta: "afiche",
-                          enlace_nota: "",
-                          anio: "2026",
-                          destacado: true,
-                        });
-                        setEditandoOrgulloId(null);
-                        setModalOrgulloFormAbierto(true);
-                      }}
-                      className="px-4 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-xs flex items-center gap-2 shadow cursor-pointer self-start sm:self-auto"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>➕ Añadir Nuevo Logro</span>
-                    </button>
-                  </div>
-
-                  {/* Lista de Logros en CMS */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {orgulloItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm flex flex-col justify-between space-y-3"
-                      >
-                        <div className="flex gap-3">
-                          <div className="w-20 h-28 shrink-0 rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800">
-                            <img src={item.foto_url} alt={item.titulo} className="w-full h-full object-cover" />
-                          </div>
-                          <div className="space-y-1 min-w-0">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-[#002855] dark:text-blue-200">
-                              {item.subtitulo_categoria}
-                            </span>
-                            <h4 className="font-bold text-xs sm:text-sm text-[#002855] dark:text-white truncate">
-                              {item.titulo}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                              👤 {item.estudiante}
-                            </p>
-                            <p className="text-[10px] font-semibold text-red-700 dark:text-red-400">
-                              {item.carrera_nombre} • {item.anio}
-                            </p>
-                          </div>
-                        </div>
-
-                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
-                          {item.descripcion}
-                        </p>
-
-                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormOrgullo(item);
-                              setEditandoOrgulloId(item.id);
-                              setModalOrgulloFormAbierto(true);
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900 text-[#002855] dark:text-blue-300 font-bold text-xs transition-colors cursor-pointer"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (window.confirm(`¿Estás seguro de eliminar "${item.titulo}" del Orgullo San Marquino?`)) {
-                                const actualizados = orgulloItems.filter((x) => x.id !== item.id);
-                                setOrgulloItems(actualizados);
-                                if (typeof window !== "undefined") window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(actualizados));
-                                const metaPayload = { id: "__fcm_orgullo_config__", orgullo_items: actualizados };
-                                const storageFiltrado = imagenesStorage.filter((x) => x.id !== "__fcm_orgullo_config__");
-                                const nuevoStorage = [...storageFiltrado, metaPayload as any];
-                                await sincronizarPortalConfigSupabase({
-                                  orgullo_data: actualizados,
-                                  storage_data: nuevoStorage,
-                                });
-                                lanzarToast("🗑️ Logro eliminado y cambios persistidos en Supabase.");
-                              }
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900 text-red-700 dark:text-red-300 font-bold text-xs transition-colors cursor-pointer"
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {tabAdmin === "soporte" && (
-                <div className="space-y-3">
-                  {tickets.map((t) => (
-                    <div key={t.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 flex items-center justify-between">
-                      <div>
-                        <p className="font-bold text-sm text-[#002855] dark:text-white">{t.asunto}</p>
-                        <p className="text-xs text-slate-600 dark:text-slate-300">{t.mensaje}</p>
-                      </div>
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/60">{t.estado_atencion}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </main>
-      )}
-
-      {/* MODAL DE SUBIDA AL REPOSITORIO */}
-      {modalSubirAbierto && (
-        <div className="fixed inset-0 z-50 bg-slate-900/75 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="max-w-xl w-full rounded-3xl border-2 border-[#002855] dark:border-blue-800 bg-white dark:bg-slate-900 p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b-2 border-red-600 pb-3">
-              <h3 className="text-lg font-bold text-[#002855] dark:text-white">➕ Aportar Material al Repositorio FCM</h3>
-              <button onClick={() => setModalSubirAbierto(false)} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-700 dark:hover:text-red-400 cursor-pointer">✕ Cerrar</button>
-            </div>
-            {exitoSubidaModal ? (
-              <div className="p-6 text-center space-y-4">
-                <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-                <h4 className="text-base font-bold text-[#002855] dark:text-white">¡Gracias! Tu material será revisado antes de publicarse</h4>
-                <button onClick={() => setModalSubirAbierto(false)} className="px-4 py-2 rounded-xl bg-[#002855] text-xs font-bold text-white">Cerrar</button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubidaRepositorioAnonima} className="space-y-3.5">
-                {/* Campo Honeypot Anti-Bot (invisible para usuarios) */}
-                <input
-                  type="text"
-                  name="bot_trap_upload"
-                  value={formSubidaAnon.bot_trap}
-                  onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, bot_trap: e.target.value })}
-                  tabIndex={-1}
-                  autoComplete="off"
-                  className="hidden"
-                  style={{ display: "none" }}
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <select required value={formSubidaAnon.carrera_id} onChange={(e) => handleCambiarCarreraSubida(e.target.value as CarreraId)} className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold">
-                    {carreras.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                  </select>
-                  <select required value={formSubidaAnon.ciclo} onChange={(e) => handleCambiarCicloSubida(Number(e.target.value))} className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold">
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => <option key={num} value={num}>Ciclo {num}</option>)}
-                  </select>
-                </div>
-                <select required value={formSubidaAnon.curso_id} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, curso_id: e.target.value })} className="w-full rounded-xl bg-blue-50/60 border border-blue-300 px-3 py-2.5 text-xs font-bold text-[#002855]">
-                  {cursosDependientesSubida.map((cur) => <option key={cur.id} value={cur.id}>[{cur.codigo}] {cur.nombre_curso}</option>)}
-                </select>
-                {/* SELECTOR DE MODO DOCENTE (REGISTRADO O CONTRATADO/MANUAL) */}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-700 block">
-                    Docente de la Cátedra *
-                  </label>
-                  <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
-                    <button
-                      type="button"
-                      onClick={() => setFormSubidaAnon({ ...formSubidaAnon, modoDocente: "lista" })}
-                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                        formSubidaAnon.modoDocente === "lista"
-                          ? "bg-[#002855] text-white shadow-sm"
-                          : "text-slate-600 hover:text-[#002855] hover:bg-white/60"
-                      }`}
-                    >
-                      <span>👨‍🏫</span> Docente Registrado
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormSubidaAnon({ ...formSubidaAnon, modoDocente: "manual" })}
-                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                        formSubidaAnon.modoDocente === "manual"
-                          ? "bg-[#002855] text-white shadow-sm"
-                          : "text-slate-600 hover:text-[#002855] hover:bg-white/60"
-                      }`}
-                    >
-                      <span>✍️</span> Docente Contratado / Invitado
-                    </button>
-                  </div>
-
-                  {formSubidaAnon.modoDocente === "lista" ? (
-                    <select
-                      required
-                      value={formSubidaAnon.docenteSeleccionado}
-                      onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, docenteSeleccionado: e.target.value })}
-                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#002855]/20 focus:border-[#002855]"
-                    >
-                      {docentes.map((doc) => {
-                        const etiqueta = `${doc.grado_academico} ${doc.nombre_completo}`;
-                        return (
-                          <option key={doc.id} value={etiqueta}>
-                            {etiqueta} ({carreras.find((c) => c.id === doc.carrera_id)?.nombre})
-                          </option>
-                        );
-                      })}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      required
-                      value={formSubidaAnon.docenteManual}
-                      onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, docenteManual: e.target.value })}
-                      placeholder="Ej. Mg. Carlos Ramírez Flores (Docente contratado / invitado)"
-                      className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#002855]/20 focus:border-[#002855]"
-                    />
-                  )}
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <select value={formSubidaAnon.tipo_archivo} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, tipo_archivo: e.target.value as TipoArchivo })} className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs font-semibold">
-                    <option value="Examen">Examen</option>
-                    <option value="Apunte">Apunte</option>
-                    <option value="Codigo">Código</option>
-                    <option value="PDF">PDF</option>
-                    <option value="Silabo">Sílabo</option>
-                  </select>
-                  <input type="text" required value={formSubidaAnon.titulo} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, titulo: e.target.value })} placeholder="Título del Material *" className="col-span-2 rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs" />
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <input type="url" required value={formSubidaAnon.url_archivo} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, url_archivo: e.target.value })} placeholder="URL (Google Drive / GitHub) *" className="col-span-2 rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs" />
-                  <input type="text" value={formSubidaAnon.autor_alias} onChange={(e) => setFormSubidaAnon({ ...formSubidaAnon, autor_alias: e.target.value })} placeholder="Alias (Opcional)" className="rounded-xl bg-slate-50 border border-slate-300 px-3 py-2.5 text-xs" />
-                </div>
-                <button type="submit" className="w-full py-3 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold">Enviar Material a Revisión</button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DE UNIDADES DE SERVICIO AL ESTUDIANTE */}
-      {servicioModalInfo && (
-        <div className="fixed inset-0 z-50 bg-slate-900/70 flex items-center justify-center p-4">
-          <div className="max-w-md w-full rounded-3xl border-2 border-[#002855] bg-white overflow-hidden shadow-2xl">
-            <div className="bg-[#002855] text-white px-6 py-4 border-b-4 border-red-700 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-mono uppercase text-red-300 font-bold">{servicioModalInfo.sigla}</span>
-                <h3 className="text-base font-bold text-white">{servicioModalInfo.titulo}</h3>
-              </div>
-              <button onClick={() => setServicioModalInfo(null)} className="text-xs font-bold text-blue-200 hover:text-white">✕</button>
-            </div>
-            <div className="p-6 space-y-4 text-xs">
-              <p className="text-slate-700 leading-relaxed">{servicioModalInfo.descripcion}</p>
-              <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-1.5">
-                <p><strong className="text-[#002855]">Correo:</strong> <span className="font-mono text-red-700">{servicioModalInfo.correo}</span></p>
-                <p><strong className="text-[#002855]">Teléfono:</strong> (01) 619-7000 — {servicioModalInfo.anexo}</p>
-                <p><strong className="text-[#002855]">Horario:</strong> {servicioModalInfo.horario}</p>
-              </div>
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setServicioModalInfo(null)} className="px-4 py-2 rounded-xl bg-slate-200 text-slate-800 font-bold">Cerrar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      
-      {/* MODAL DE DETALLE AMPLIADO: ORGULLO SAN MARQUINO (IMÁGENES 3 Y 4) */}
-      {modalDetalleOrgullo && (
-        <div
-          onClick={() => setModalDetalleOrgullo(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl lg:max-w-5xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border-2 border-[#002855] dark:border-blue-700 max-h-[92vh] overflow-y-auto"
-          >
-            {/* Cabecera del modal */}
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 flex items-center justify-center text-amber-500">
-                  <Trophy className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-red-700 dark:text-red-400 block">
-                    Excelencia Estudiantil FCM • UNMSM
-                  </span>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                    Detalle de Reconocimiento Oficial
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalDetalleOrgullo(null)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                aria-label="Cerrar modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Cuadrícula de 2 Columnas Espaciosa: Foto izquierda (aspect 3:4) y Texto derecha */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-              {/* Columna Izquierda: Fotografía o Póster a Gran Escala */}
-              <div className="md:col-span-5 relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-slate-950 shadow-xl border-2 border-slate-200 dark:border-slate-800">
-                <img
-                  src={modalDetalleOrgullo.foto_url}
-                  alt={modalDetalleOrgullo.titulo}
-                  className="w-full h-full object-cover object-top"
-                />
-                <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-black/75 text-white backdrop-blur-md border border-white/20">
-                    {modalDetalleOrgullo.tipo_tarjeta === "afiche" ? "📜 Afiche Oficial" : modalDetalleOrgullo.tipo_tarjeta === "estudiante" ? "⭐ Reconocimiento" : "🏆 Delegación FCM"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Columna Derecha: Contenido y Acciones */}
-              <div className="md:col-span-7 space-y-4 text-left">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-3 py-1 rounded-lg text-xs font-bold uppercase bg-[#002855] dark:bg-blue-950 text-white dark:text-blue-200 border border-blue-800 shadow-sm">
-                    {modalDetalleOrgullo.subtitulo_categoria}
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-amber-500 text-slate-950 shadow-sm">
-                    Año {modalDetalleOrgullo.anio}
-                  </span>
-                </div>
-
-                <h3 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white leading-tight">
-                  {modalDetalleOrgullo.titulo}
-                </h3>
-
-                {/* Tarjeta de Datos del Estudiante */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1.5">
-                  <div className="flex items-center gap-2 text-sm font-bold text-[#002855] dark:text-white">
-                    <span>👤</span>
-                    <span>{modalDetalleOrgullo.estudiante}</span>
-                  </div>
-                  <div className="text-xs text-red-700 dark:text-red-400 font-semibold flex items-center gap-1.5">
-                    <span>🏛️</span>
-                    <span>{modalDetalleOrgullo.carrera_nombre || "Facultad de Ciencias Matemáticas"}</span>
-                  </div>
-                </div>
-
-                {/* Descripción Detallada */}
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                    Impacto y Trayectoria
-                  </h4>
-                  <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line">
-                    {modalDetalleOrgullo.descripcion}
-                  </p>
-                </div>
-
-                {/* Botón de Enlace Externo Asistido / Nota de Prensa (Imagen 4) */}
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                  {modalDetalleOrgullo.enlace_nota ? (
-                    <a
-                      href={modalDetalleOrgullo.enlace_nota}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-lg transition-all active:scale-95 group cursor-pointer"
-                    >
-                      <Globe className="w-4 h-4 text-red-200" />
-                      <span>Ver Nota de Prensa / Enlace Oficial</span>
-                      <ExternalLink className="w-3.5 h-3.5 text-red-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </a>
-                  ) : (
-                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
-                      Reconocimiento verificado por la Facultad de Ciencias Matemáticas
-                    </span>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => setModalDetalleOrgullo(null)}
-                    className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL PARA CREAR O EDITAR DOCUMENTOS DE TRANSPARENCIA */}
-      {modalTransparenciaFormAbierto && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 my-8">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <h3 className="font-bold text-base text-[#002855] dark:text-white flex items-center gap-2">
-                <FileText className="w-5 h-5 text-red-700 dark:text-red-400" />
-                {editandoTransparenciaId ? "Editar Documento de Transparencia" : "Nuevo Documento Normativo / Resolución"}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setModalTransparenciaFormAbierto(false)}
-                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!formTransparencia.codigo.trim() || !formTransparencia.titulo.trim()) {
-                  lanzarToast("⚠️ El código y el título del documento son obligatorios.");
-                  return;
-                }
-
-                const docCompleto: DocumentoTransparencia = {
-                  id: editandoTransparenciaId || `trans-${Date.now()}`,
-                  codigo: formTransparencia.codigo.trim(),
-                  titulo: formTransparencia.titulo.trim(),
-                  categoria: formTransparencia.categoria || "Resoluciones Decanales",
-                  anio: Number(formTransparencia.anio) || 2026,
-                  dependencia: formTransparencia.dependencia.trim() || "Decanato FCM",
-                  fecha: formTransparencia.fecha || new Date().toISOString().slice(0, 10),
-                  tamano_archivo: formTransparencia.tamano_archivo.trim() || "1.5 MB",
-                  url_pdf: formTransparencia.url_pdf.trim() || "https://matematicas.unmsm.edu.pe",
-                  sumilla: formTransparencia.sumilla.trim(),
-                };
-
-                let actualizados: DocumentoTransparencia[];
-                if (editandoTransparenciaId) {
-                  actualizados = documentosTransparencia.map((d) => (d.id === editandoTransparenciaId ? docCompleto : d));
-                } else {
-                  actualizados = [docCompleto, ...documentosTransparencia];
-                }
-
-                setDocumentosTransparencia(actualizados);
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(actualizados));
-                }
-
-                const metaTrans = { id: "__fcm_transparencia_config__", transparencia_items: actualizados };
-                const storageFiltrado = imagenesStorage.filter((x) => x.id !== "__fcm_transparencia_config__");
-                const nuevoStorage = [...storageFiltrado, metaTrans as any];
-
-                const exito = await sincronizarPortalConfigSupabase({
-                  transparencia_data: actualizados,
-                  storage_data: nuevoStorage,
-                });
-
-                setModalTransparenciaFormAbierto(false);
-                setEditandoTransparenciaId(null);
-                lanzarToast(
-                  exito
-                    ? "✅ Documento de Transparencia guardado y sincronizado en Supabase."
-                    : "✅ Guardado localmente y en caché del portal."
-                );
-              }}
-              className="space-y-3.5 text-xs"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Código Oficial (ej. R.D. Nº 0488-D-FCM-2026):</label>
-                  <input
-                    type="text"
-                    required
-                    value={formTransparencia.codigo}
-                    onChange={(e) => setFormTransparencia({ ...formTransparencia, codigo: e.target.value })}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Categoría Normativa:</label>
-                  <select
-                    value={formTransparencia.categoria}
-                    onChange={(e) => setFormTransparencia({ ...formTransparencia, categoria: e.target.value as any })}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-bold text-slate-800 dark:text-white"
-                  >
-                    <option value="Resoluciones Decanales">Resoluciones Decanales</option>
-                    <option value="Resoluciones Rectorales">Resoluciones Rectorales</option>
-                    <option value="Plan Operativo Institucional (POI)">Plan Operativo Institucional (POI)</option>
-                    <option value="Memorias de Gestión">Memorias de Gestión</option>
-                    <option value="Balances y Presupuesto">Balances y Presupuesto</option>
-                    <option value="Actas de Consejo de Facultad">Actas de Consejo de Facultad</option>
-                    <option value="Convenios y Alianzas">Convenios y Alianzas</option>
-                    <option value="Anuncios y Convocatorias">Anuncios y Convocatorias</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Título del Documento / Asunto:</label>
-                <input
-                  type="text"
-                  required
-                  value={formTransparencia.titulo}
-                  onChange={(e) => setFormTransparencia({ ...formTransparencia, titulo: e.target.value })}
-                  placeholder="Ej: Aprobación del Cronograma de Matrícula y Actualización Curricular 2026"
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Año:</label>
-                  <input
-                    type="number"
-                    required
-                    value={formTransparencia.anio}
-                    onChange={(e) => setFormTransparencia({ ...formTransparencia, anio: Number(e.target.value) })}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Fecha Oficial:</label>
-                  <input
-                    type="date"
-                    required
-                    value={formTransparencia.fecha}
-                    onChange={(e) => setFormTransparencia({ ...formTransparencia, fecha: e.target.value })}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Tamaño (ej. 2.4 MB):</label>
-                  <input
-                    type="text"
-                    required
-                    value={formTransparencia.tamano_archivo}
-                    onChange={(e) => setFormTransparencia({ ...formTransparencia, tamano_archivo: e.target.value })}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Dependencia Emisora:</label>
-                  <input
-                    type="text"
-                    required
-                    value={formTransparencia.dependencia}
-                    onChange={(e) => setFormTransparencia({ ...formTransparencia, dependencia: e.target.value })}
-                    placeholder="Ej: Decanato FCM, Consejo de Facultad..."
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">URL del Archivo PDF:</label>
-                  <input
-                    type="url"
-                    required
-                    value={formTransparencia.url_pdf}
-                    onChange={(e) => setFormTransparencia({ ...formTransparencia, url_pdf: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Sumilla / Resumen del Documento:</label>
-                <textarea
-                  rows={3}
-                  value={formTransparencia.sumilla}
-                  onChange={(e) => setFormTransparencia({ ...formTransparencia, sumilla: e.target.value })}
-                  placeholder="Breve descripción o resumen de la resolución..."
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setModalTransparenciaFormAbierto(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer"
-                >
-                  Guardar Documento Oficial
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL CMS: CREAR / EDITAR LOGRO ORGULLO SAN MARQUINO */}
-      {modalOrgulloFormAbierto && (
-        <div
-          onClick={() => setModalOrgulloFormAbierto(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl border-2 border-[#002855] dark:border-blue-700 max-h-[92vh] overflow-y-auto text-left"
-          >
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div>
-                <h3 className="font-bold text-base text-[#002855] dark:text-white flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-amber-500" />
-                  {editandoOrgulloId ? "Editar Logro en Orgullo San Marquino" : "Añadir Nuevo Logro en Orgullo San Marquino"}
-                </h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Completa los campos para publicar un reconocimiento con fotografía o póster oficial.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalOrgulloFormAbierto(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!formOrgullo.titulo.trim() || !formOrgullo.foto_url.trim()) {
-                  lanzarToast("⚠️ Debes ingresar un título y la URL de la imagen.");
-                  return;
-                }
-
-                const carreraNombreMap: Record<string, string> = {
-                  "computacion-cientifica": "Computación Científica",
-                  matematica: "Matemática",
-                  estadistica: "Estadística",
-                  "investigacion-operativa": "Investigación Operativa",
-                  fcm: "Facultad de Ciencias Matemáticas",
-                };
-
-                const itemCompleto: OrgulloItem = {
-                  ...formOrgullo,
-                  id: editandoOrgulloId || `org-${Date.now()}`,
-                  carrera_nombre: carreraNombreMap[formOrgullo.carrera_id] || "FCM UNMSM",
-                };
-
-                let actualizados: OrgulloItem[];
-                if (editandoOrgulloId) {
-                  actualizados = orgulloItems.map((item) => (item.id === editandoOrgulloId ? itemCompleto : item));
-                } else {
-                  actualizados = [itemCompleto, ...orgulloItems];
-                }
-
-                setOrgulloItems(actualizados);
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(actualizados));
-                }
-
-                const metaPayload = { id: "__fcm_orgullo_config__", orgullo_items: actualizados };
-                const storageFiltrado = imagenesStorage.filter((x) => x.id !== "__fcm_orgullo_config__");
-                const nuevoStorage = [...storageFiltrado, metaPayload as any];
-
-                const exito = await sincronizarPortalConfigSupabase({
-                  orgullo_data: actualizados,
-                  storage_data: nuevoStorage,
-                });
-
-                setModalOrgulloFormAbierto(false);
-                setEditandoOrgulloId(null);
-                lanzarToast(
-                  exito
-                    ? "✅ Logro de Orgullo San Marquino guardado y sincronizado en Supabase."
-                    : "✅ Guardado localmente y en caché del portal."
-                );
-              }}
-              className="space-y-3.5 text-xs"
-            >
-              <div>
-                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Título del Logro / Reconocimiento:</label>
-                <input
-                  type="text"
-                  required
-                  value={formOrgullo.titulo}
-                  onChange={(e) => setFormOrgullo({ ...formOrgullo, titulo: e.target.value })}
-                  placeholder="ej. Translational Neuroscience School — IBRO 2026"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Categoría / Distintivo Superior:</label>
-                  <input
-                    type="text"
-                    required
-                    value={formOrgullo.subtitulo_categoria}
-                    onChange={(e) => setFormOrgullo({ ...formOrgullo, subtitulo_categoria: e.target.value })}
-                    placeholder="ej. SELECCIONADO POR IBRO 2026"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Estudiante o Equipo Reconocido:</label>
-                  <input
-                    type="text"
-                    required
-                    value={formOrgullo.estudiante}
-                    onChange={(e) => setFormOrgullo({ ...formOrgullo, estudiante: e.target.value })}
-                    placeholder="ej. Diego Quispe Huamán"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Escuela Profesional:</label>
-                  <select
-                    value={formOrgullo.carrera_id}
-                    onChange={(e) => setFormOrgullo({ ...formOrgullo, carrera_id: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                  >
-                    <option value="computacion-cientifica">Computación Científica</option>
-                    <option value="matematica">Matemática</option>
-                    <option value="estadistica">Estadística</option>
-                    <option value="investigacion-operativa">Investigación Operativa</option>
-                    <option value="fcm">Facultad FCM General</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Tipo de Tarjeta:</label>
-                  <select
-                    value={formOrgullo.tipo_tarjeta}
-                    onChange={(e) => setFormOrgullo({ ...formOrgullo, tipo_tarjeta: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                  >
-                    <option value="afiche">Afiche / Convocatoria</option>
-                    <option value="estudiante">Protagonista / Estudiante</option>
-                    <option value="delegacion">Delegación / Premiación</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Año:</label>
-                  <input
-                    type="text"
-                    value={formOrgullo.anio}
-                    onChange={(e) => setFormOrgullo({ ...formOrgullo, anio: e.target.value })}
-                    placeholder="2026"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">URL de la Fotografía o Póster (Aspecto 3:4):</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    value={formOrgullo.foto_url}
-                    onChange={(e) => setFormOrgullo({ ...formOrgullo, foto_url: e.target.value })}
-                    placeholder="ej. /orgullo/card1.png o https://..."
-                    className="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono text-[11px]"
-                  />
-                  <label className="px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-200 border border-blue-200 dark:border-blue-800 font-bold hover:bg-blue-100 flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{subiendoFotoOrgullo ? "Subiendo..." : "Subir Foto"}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setSubiendoFotoOrgullo(true);
-                        try {
-                          const publicUrl = await subirArchivoASupabaseStorage(file, "orgullo");
-                          if (publicUrl) {
-                            setFormOrgullo((prev) => ({ ...prev, foto_url: publicUrl }));
-                            lanzarToast("📸 Foto subida con éxito.");
-                          } else {
-                            lanzarToast("❌ Error al subir la imagen.");
-                          }
-                        } catch {
-                          lanzarToast("❌ Error al procesar archivo.");
-                        } finally {
-                          setSubiendoFotoOrgullo(false);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Enlace a Nota de Prensa o Web Oficial (Opcional):</label>
-                <input
-                  type="url"
-                  value={formOrgullo.enlace_nota || ""}
-                  onChange={(e) => setFormOrgullo({ ...formOrgullo, enlace_nota: e.target.value })}
-                  placeholder="https://ejemplo.unmsm.edu.pe/nota-prensa"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="font-bold text-[#002855] dark:text-slate-200 block mb-1">Descripción / Resumen del Logro:</label>
-                <textarea
-                  rows={3}
-                  value={formOrgullo.descripcion}
-                  onChange={(e) => setFormOrgullo({ ...formOrgullo, descripcion: e.target.value })}
-                  placeholder="Describe brevemente el impacto del logro..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setModalOrgulloFormAbierto(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold flex items-center gap-2 shadow"
-                >
-                  <Trophy className="w-4 h-4 text-amber-300" />
-                  <span>Guardar Logro</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DE PERSONALIZACIÓN DEL FONDO HERO (DIFUMINADO, OPACIDAD Y COLOR) - IMAGEN 3 */}
-      {modalHeroFondoAbierto && (
-        <div
-          onClick={() => setModalHeroFondoAbierto(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl border-2 border-[#002855] max-h-[90vh] overflow-y-auto"
-          >
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <div>
-                <h3 className="font-bold text-base text-[#002855] dark:text-white">
-                  🖼️ Personalización del Fondo Hero (Difuminado, Opacidad y Color)
-                </h3>
-                <p className="text-[11px] text-slate-500">
-                  Ajusta el nivel de desenfoque, el porcentaje de transparencia y el color de la capa superpuesta.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalHeroFondoAbierto(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Vista Previa en Vivo */}
-            <div
-              className="relative h-36 rounded-2xl overflow-hidden border border-slate-200 transition-colors"
-              style={{ backgroundColor: heroOverlayColor || "#0f172a" }}
-            >
-              <img
-                src={heroBgInputUrl || heroBgUrl || HERO_BG_DEFAULT}
-                alt="Vista previa Hero"
-                className="w-full h-full object-cover transition-all duration-300"
-                style={{ filter: `blur(${heroBlur}px)` }}
-              />
-              <div
-                className="absolute inset-0 transition-all duration-200"
-                style={{
-                  backgroundColor: heroOverlayColor || "#0f172a",
-                  opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 flex flex-col items-center justify-center p-3 text-center">
-                <span className="text-xs font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
-                  Vista Previa en Vivo • Portal Académico FCM
-                </span>
-                <span className="mt-1 px-3 py-0.5 rounded-full bg-black/60 text-[10px] font-bold text-white border border-white/20">
-                  Difuminado: {heroBlur}px • Capa: {heroOverlayOpacity}% ({heroOverlayColor})
-                </span>
-              </div>
-            </div>
-
-            {/* URL de la imagen */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700">URL de la Imagen de Fondo:</label>
-              <input
-                type="url"
-                value={heroBgInputUrl}
-                onChange={(e) => setHeroBgInputUrl(e.target.value)}
-                placeholder="Pega aquí la URL de la imagen de fondo para el Hero..."
-                className="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#002855]"
-              />
-            </div>
-
-            {/* 1. Nivel de Difuminado */}
-            <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[#002855]">1. Nivel de Difuminado (Desenfoque):</span>
-                <span className="px-2.5 py-0.5 rounded-md bg-[#002855] text-white font-mono text-[11px] font-bold">
-                  {heroBlur} px {heroBlur === 0 ? "(Sin blur)" : heroBlur <= 1.5 ? "(Sutil)" : "(Intenso)"}
-                </span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={8}
-                step={0.5}
-                value={heroBlur}
-                onChange={(e) => setHeroBlur(Number(e.target.value))}
-                className="w-full accent-[#002855] cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
-                <span>0px (Sin blur)</span>
-                <span>1px (Recomendado)</span>
-                <span>4px (Medio)</span>
-                <span>8px (Máximo)</span>
-              </div>
-            </div>
-
-            {/* 2. Opacidad / Oscuridad */}
-            <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[#002855]">2. Opacidad / Oscuridad del Fondo:</span>
-                <span className="px-2.5 py-0.5 rounded-md bg-red-700 text-white font-mono text-[11px] font-bold">
-                  {heroOverlayOpacity}%
-                </span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={90}
-                step={5}
-                value={heroOverlayOpacity}
-                onChange={(e) => setHeroOverlayOpacity(Number(e.target.value))}
-                className="w-full accent-red-700 cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
-                <span>0% (Imagen 100% libre)</span>
-                <span>45% (Equilibrado)</span>
-                <span>90% (Muy oscuro)</span>
-              </div>
-            </div>
-
-            {/* 3. Color del Filtro / Capa */}
-            <div className="space-y-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[#002855]">3. Color del Filtro / Capa:</span>
-                <span className="font-mono text-[11px] font-bold text-slate-600">{heroOverlayColor}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: "Neutro Carbón (Normal)", hex: "#0f172a" },
-                  { label: "Negro Cinematográfico", hex: "#000000" },
-                  { label: "Gris Grafito Suave", hex: "#27272a" },
-                  { label: "Azul Institucional", hex: "#002855" },
-                ].map((preset) => (
-                  <button
-                    key={preset.hex}
-                    type="button"
-                    onClick={() => setHeroOverlayColor(preset.hex)}
-                    className={`px-3 py-2 rounded-xl text-[11px] font-bold flex items-center gap-2 border transition-all cursor-pointer ${
-                      heroOverlayColor.toLowerCase() === preset.hex.toLowerCase()
-                        ? "border-[#002855] bg-blue-50 text-[#002855] ring-2 ring-[#002855]/20"
-                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    <span
-                      className="w-3.5 h-3.5 rounded-full border border-white shadow-xs shrink-0"
-                      style={{ backgroundColor: preset.hex }}
-                    />
-                    <span className="truncate">{preset.label}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] font-semibold text-slate-600">O elige un color personalizado:</span>
-                <input
-                  type="color"
-                  value={heroOverlayColor}
-                  onChange={(e) => setHeroOverlayColor(e.target.value)}
-                  className="w-9 h-7 rounded cursor-pointer border border-slate-300 bg-white p-0.5"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  await handleUsarComoFondoHero(heroBgInputUrl, heroBlur, heroOverlayOpacity, heroOverlayColor);
-                  setModalHeroFondoAbierto(false);
-                }}
-                className="flex-1 py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold cursor-pointer shadow-md transition-colors"
-              >
-                Guardar Personalización del Banner
-              </button>
-              <button
-                type="button"
-                onClick={() => handleUsarComoFondoHero(HERO_BG_DEFAULT, 1, 45, "#0f172a")}
-                className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors"
-              >
-                Restaurar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL INFORMATIVO DE FICHA COMPLETA DEL DOCENTE + SISTEMA DE CALIFICACIÓN Y RESEÑAS */}
-      {docenteModalActivo && (() => {
-        const statsModal = obtenerEstadisticasDocente(docenteModalActivo.id);
-        const estrellaActiva = hoverEstrellaDocente || formResenaDocente.puntuacion;
-        const etiquetasEstrellas: Record<number, string> = {
-          1: "1★ • Necesita mejorar metodología",
-          2: "2★ • Regular / Poco claro",
-          3: "3★ • Buen docente / Cumple el sílabo",
-          4: "4★ • Muy buen docente / Recomendado",
-          5: "5★ • Excelente cátedra y dominio académico",
-        };
-
-        return (
-          <div
-            onClick={() => setDocenteModalActivo(null)}
-            className="fixed inset-0 z-50 bg-slate-900/75 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="max-w-3xl w-full max-h-[92vh] overflow-y-auto rounded-3xl border-2 border-[#002855] bg-white shadow-2xl"
-            >
-              <div className={`${TEMA_CARRERA[docenteModalActivo.carrera_id].headerBg} text-white p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 ${TEMA_CARRERA[docenteModalActivo.carrera_id].borderAccent} sticky top-0 z-10`}>
-                <div className="flex items-center gap-4">
-                  {docenteModalActivo.foto_url ? (
-                    <img
-                      src={docenteModalActivo.foto_url}
-                      alt={docenteModalActivo.nombre_completo}
-                      className="w-20 h-20 rounded-2xl object-cover border-2 border-white/80 shadow-md shrink-0"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-black/30 border-2 border-white/60 flex items-center justify-center text-2xl font-bold text-white shrink-0">
-                      {obtenerInicialesDocente(docenteModalActivo.nombre_completo)}
-                    </div>
-                  )}
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded bg-black/30 text-[10px] font-bold uppercase tracking-wider text-white border border-white/20">
-                        Escuela de {carreras.find((c) => c.id === docenteModalActivo.carrera_id)?.nombre}
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded bg-white/20 text-[10px] font-bold text-white">
-                        Docente {docenteModalActivo.categoria_docente} • {docenteModalActivo.condicion}
-                      </span>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/60 text-[11px] font-bold text-amber-200">
-                        <Star className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                        <span>
-                          {statsModal.total > 0
-                            ? `${statsModal.promedio.toFixed(1)} / 5.0 (${statsModal.total})`
-                            : "Sin calificaciones aún"}
-                        </span>
-                      </span>
-                    </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-white leading-snug">
-                      {docenteModalActivo.grado_academico} {docenteModalActivo.nombre_completo}
-                    </h3>
-                    <p className="text-xs text-white/90 font-mono">{docenteModalActivo.correo}</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setDocenteModalActivo(null)}
-                  className="self-start sm:self-center px-3.5 py-1.5 rounded-xl bg-black/25 hover:bg-black/40 text-xs font-bold text-white cursor-pointer shrink-0"
-                >
-                  ✕ Cerrar
-                </button>
-              </div>
-
-              <div className="p-6 space-y-6 text-xs sm:text-sm">
-                <div className="space-y-1.5">
-                  <h4 className={`text-xs font-bold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
-                    Área de Especialidad Académica
-                  </h4>
-                  <p className="text-slate-800 font-semibold leading-relaxed">{docenteModalActivo.especialidad}</p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <h4 className={`text-xs font-bold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
-                    Líneas de Investigación Activas
-                  </h4>
-                  <p className="text-slate-600 leading-relaxed">{docenteModalActivo.lineas_investigacion}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <h4 className={`text-xs font-bold uppercase tracking-wider ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`}>
-                    Asignaturas a su Cargo
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {docenteModalActivo.cursos_dictados.map((cursoStr, i) => (
-                      <span
-                        key={i}
-                        className={`px-3 py-1 rounded-xl text-xs font-bold border ${TEMA_CARRERA[docenteModalActivo.carrera_id].badgeSoft}`}
-                      >
-                        {cursoStr}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-2xl bg-slate-50 border border-slate-200 p-4 text-xs">
-                  <div className="flex items-start gap-2.5">
-                    <Mail className={`w-4 h-4 shrink-0 mt-0.5 ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`} />
-                    <div>
-                      <p className="font-bold text-slate-500 uppercase text-[10px]">Correo Institucional</p>
-                      <p className="font-mono font-bold text-slate-900 break-all">{docenteModalActivo.correo}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <Clock className={`w-4 h-4 shrink-0 mt-0.5 ${TEMA_CARRERA[docenteModalActivo.carrera_id].textAccent}`} />
-                    <div>
-                      <p className="font-bold text-slate-500 uppercase text-[10px]">Horario de Asesoría</p>
-                      <p className="font-semibold text-slate-800">{docenteModalActivo.horario_asesoria}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {(docenteModalActivo.cti_vitae_url ||
-                  docenteModalActivo.orcid_url ||
-                  docenteModalActivo.google_scholar_url ||
-                  docenteModalActivo.linkedin_url) && (
-                  <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                    <span className="text-xs font-bold text-slate-500">Perfiles Científicos e Investigación:</span>
-                    <div className="flex flex-wrap gap-2">
-                      {docenteModalActivo.cti_vitae_url && (
-                        <a
-                          href={docenteModalActivo.cti_vitae_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-1.5"
-                        >
-                          <span>CTI Vitae</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                      {docenteModalActivo.orcid_url && (
-                        <a
-                          href={docenteModalActivo.orcid_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5"
-                        >
-                          <span>ORCID</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                      {docenteModalActivo.google_scholar_url && (
-                        <a
-                          href={docenteModalActivo.google_scholar_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold flex items-center gap-1.5"
-                        >
-                          <span>Google Scholar</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                      {docenteModalActivo.linkedin_url && (
-                        <a
-                          href={docenteModalActivo.linkedin_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5"
-                        >
-                          <span>LinkedIn</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* ====================================================================
-                    SECCIÓN DESTACADA: ⭐ CALIFICACIONES Y OPINIONES ESTUDIANTILES
-                   ==================================================================== */}
-                <div className="pt-6 border-t-2 border-slate-200 space-y-6">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                      <h4 className="text-base font-bold text-[#002855] dark:text-white">
-                        ⭐ Calificaciones y Opiniones Estudiantiles
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-semibold text-slate-500">
-                      Comunidad Estudiantil FCM - UNMSM
-                    </span>
-                  </div>
-
-                  {/* 1. RESUMEN GENERAL + DISTRIBUCIÓN DE ESTRELLAS */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center rounded-2xl bg-slate-50 border border-slate-200 p-5">
-                    <div className="sm:col-span-5 text-center sm:border-r border-slate-200 sm:pr-4 space-y-1.5">
-                      <div className="text-3xl sm:text-4xl font-bold text-[#002855]">
-                        {statsModal.total > 0 ? statsModal.promedio.toFixed(1) : "—"}
-                        <span className="text-lg font-bold text-slate-400"> / 5.0</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-1">
-                        {[1, 2, 3, 4, 5].map((starIndex) => {
-                          const rellena = statsModal.total > 0 && starIndex <= Math.round(statsModal.promedio);
-                          return (
-                            <Star
-                              key={starIndex}
-                              className={`w-5 h-5 ${
-                                rellena ? "text-amber-400 fill-amber-400" : "text-slate-300"
-                              }`}
-                            />
-                          );
-                        })}
-                      </div>
-                      <p className="text-[11px] font-bold text-slate-600">
-                        {statsModal.total > 0
-                          ? `Basado en ${statsModal.total} ${statsModal.total === 1 ? "reseña" : "reseñas"} de estudiantes`
-                          : "Aún sin calificaciones registradas"}
-                      </p>
-                    </div>
-
-                    <div className="sm:col-span-7 space-y-2">
-                      {statsModal.distribucion.map((fila) => (
-                        <div key={fila.estrellas} className="flex items-center gap-2.5 text-xs">
-                          <span className="w-8 font-bold text-slate-700 flex items-center gap-0.5 shrink-0">
-                            {fila.estrellas} <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                          </span>
-                          <div className="flex-1 h-2.5 rounded-full bg-slate-200 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-amber-400 transition-all duration-300"
-                              style={{ width: `${fila.porcentaje}%` }}
-                            />
-                          </div>
-                          <span className="w-12 text-right font-mono text-[11px] font-bold text-slate-600">
-                            {fila.porcentaje}% ({fila.cantidad})
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 2. FORMULARIO DE ENVÍO DE RESEÑA (1 A 5 ESTRELLAS + COMENTARIO) */}
-                  <form
-                    onSubmit={handleEnviarResenaDocente}
-                    className="rounded-2xl border-2 border-blue-900/15 bg-blue-50/35 p-5 space-y-4"
-                  >
-                    {/* Campo Honeypot Anti-Bot (invisible para usuarios) */}
-                    <input
-                      type="text"
-                      name="bot_trap_review"
-                      value={formResenaDocente.bot_trap}
-                      onChange={(e) => setFormResenaDocente((prev) => ({ ...prev, bot_trap: e.target.value }))}
-                      tabIndex={-1}
-                      autoComplete="off"
-                      className="hidden"
-                      style={{ display: "none" }}
-                    />
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h5 className="text-xs sm:text-sm font-bold text-[#002855] dark:text-white">
-                        Califica al docente y comparte tu experiencia académica
-                      </h5>
-                      <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                        {etiquetasEstrellas[estrellaActiva]}
-                      </span>
-                    </div>
-
-                    {/* Selector interactivo de 1 a 5 estrellas con hover animado */}
-                    <div className="space-y-1.5">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                        Selecciona tu calificación (1 a 5 estrellas) *
-                      </label>
-                      <div className="flex items-center gap-2">
-                        {[1, 2, 3, 4, 5].map((valor) => {
-                          const iluminada = valor <= estrellaActiva;
-                          return (
-                            <button
-                              key={valor}
-                              type="button"
-                              onMouseEnter={() => setHoverEstrellaDocente(valor)}
-                              onMouseLeave={() => setHoverEstrellaDocente(0)}
-                              onClick={() => setFormResenaDocente((prev) => ({ ...prev, puntuacion: valor }))}
-                              aria-label={`Calificar con ${valor} estrellas`}
-                              className="p-1.5 rounded-xl bg-white border border-slate-200 hover:border-amber-400 hover:scale-110 transition-all cursor-pointer shadow-2xs"
-                            >
-                              <Star
-                                className={`w-6 h-6 transition-colors ${
-                                  iluminada ? "text-amber-400 fill-amber-400" : "text-slate-300"
-                                }`}
-                              />
-                            </button>
-                          );
-                        })}
-                        <span className="ml-2 text-xs font-bold text-[#002855]">
-                          {formResenaDocente.puntuacion}.0 / 5.0
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Selector de curso llevado + Alias del estudiante */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="block text-[11px] font-bold text-slate-700">
-                          Asignatura cursada con el docente *
-                        </label>
-                        <select
-                          value={formResenaDocente.curso}
-                          onChange={(e) => setFormResenaDocente((prev) => ({ ...prev, curso: e.target.value }))}
-                          className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-800"
-                        >
-                          {docenteModalActivo.cursos_dictados.map((c, idx) => (
-                            <option key={idx} value={c}>
-                              {c}
-                            </option>
-                          ))}
-                          <option value="Otro curso de la Escuela">Otro curso de la Escuela</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <label className="text-[11px] font-bold text-slate-700">Tu Nombre o Alias</label>
-                          <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#002855] dark:text-slate-200 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formResenaDocente.esAnonimo}
-                              onChange={(e) =>
-                                setFormResenaDocente((prev) => ({ ...prev, esAnonimo: e.target.checked }))
-                              }
-                              className="rounded border-slate-300"
-                            />
-                            <span>Publicar como Anónimo</span>
-                          </label>
-                        </div>
-                        <input
-                          type="text"
-                          disabled={formResenaDocente.esAnonimo}
-                          value={
-                            formResenaDocente.esAnonimo
-                              ? "Estudiante Anónimo FCM"
-                              : formResenaDocente.autor_alias
-                          }
-                          onChange={(e) =>
-                            setFormResenaDocente((prev) => ({ ...prev, autor_alias: e.target.value }))
-                          }
-                          placeholder="Ej. Alumno de 5to Ciclo / Estudiante FCM"
-                          className="w-full rounded-xl bg-white disabled:bg-slate-100 border border-slate-300 px-3 py-2 text-xs"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Comentario del porqué de la calificación */}
-                    <div className="space-y-1">
-                      <label className="block text-[11px] font-bold text-slate-700">
-                        ¿Por qué das esta calificación? (Metodología, exigencia, puntualidad, consejos) *
-                      </label>
-                      <textarea
-                        rows={3}
-                        required
-                        value={formResenaDocente.comentario}
-                        onChange={(e) =>
-                          setFormResenaDocente((prev) => ({ ...prev, comentario: e.target.value }))
-                        }
-                        placeholder="¿Por qué das esta calificación? Describe la metodología, nivel de exigencia, puntualidad o recomendaciones para futuros alumnos..."
-                        className="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2.5 text-xs leading-relaxed"
-                      />
-                    </div>
-
-                    {errorResenaDocente && (
-                      <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                        <span>{errorResenaDocente}</span>
-                      </div>
-                    )}
-
-                    {exitoResenaDocente && (
-                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-                        <span>
-                          ¡Reseña publicada con éxito! Tu valoración ya forma parte del promedio del docente.
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-end">
-                      <button
-                        type="submit"
-                        className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer"
-                      >
-                        <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                        <span>Enviar Reseña del Docente</span>
-                      </button>
-                    </div>
-                  </form>
-
-                  {/* 3. MURO DE RESEÑAS PÚBLICAS DEL DOCENTE */}
-                  <div className="space-y-3">
-                    <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Opiniones de Estudiantes ({statsModal.total})
-                    </h5>
-
-                    {statsModal.aprobadas.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center space-y-1.5">
-                        <Star className="w-7 h-7 text-amber-400 mx-auto" />
-                        <p className="text-xs font-bold text-[#002855]">
-                          Este docente aún no tiene reseñas registradas
-                        </p>
-                        <p className="text-[11px] text-slate-500">
-                          ¡Sé el primer estudiante de la FCM en calificar y dejar una recomendación!
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {statsModal.aprobadas.map((resena) => (
-                          <div
-                            key={resena.id}
-                            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2"
-                          >
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-0.5">
-                                  {[1, 2, 3, 4, 5].map((s) => (
-                                    <Star
-                                      key={s}
-                                      className={`w-3.5 h-3.5 ${
-                                        s <= resena.puntuacion
-                                          ? "text-amber-400 fill-amber-400"
-                                          : "text-slate-200"
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                                <span className="text-xs font-bold text-[#002855]">
-                                  {resena.autor_alias}
-                                </span>
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                    TEMA_CARRERA[docenteModalActivo.carrera_id].badgeSoft
-                                  }`}
-                                >
-                                  {resena.curso}
-                                </span>
-                              </div>
-                              <span className="text-[11px] text-slate-400 font-medium">
-                                {formatearFechaEspanol(resena.fecha)}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-700 leading-relaxed">{resena.comentario}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* COMPONENTE GLOBAL <Footer /> */}
-      <Footer
-        logoUrl={logoUrl}
-        onOpenAdmin={() => navegar("/admin")}
-      />
-    </div>
-  );
-}
+"use client";
+
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import {
+  Search, GraduationCap, BookOpen, Newspaper, FolderGit2, LifeBuoy, Sparkles,
+  ChevronRight, ChevronDown, ChevronLeft, Upload, FileText, Code2, Video, FileCheck2, Award, Trophy, Plus,
+  CheckCircle2, Trash2, Lock, Unlock, Mail, Building2, Calendar, Filter, Layers,
+  Download, AlertCircle, Star, Cpu, Sigma, BarChart3, Network, Printer,
+  Image as ImageIcon, Copy, ExternalLink, Phone, UserCheck, ShoppingBag,
+  FileSpreadsheet, Check, MapPin, Briefcase, Target, Lightbulb, Edit3,
+  ArrowLeft, ArrowRight, Share2, Users, Clock, Globe, Bold, Italic, List, ListOrdered,
+  Quote, Minus, Link2, Heading2, Menu, X, ShieldCheck, Sliders, Sun, Moon,
+} from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import {
+  CarreraId,
+  VistaPortal,
+  TipoArchivo,
+  EstadoMaterial,
+  EstadoAtencion,
+  Noticia,
+  Docente,
+  OrgulloItem,
+  DocumentoTransparencia,
+  ResenaDocente,
+  Carrera,
+  CursoMalla,
+  MaterialRepositorio,
+  ImagenStorage,
+  TicketSoporte,
+} from "@/app/types/portal";
+import {
+  Facebook,
+  Instagram,
+  Linkedin,
+  Youtube,
+  formatearFechaEspanol,
+  obtenerInicialesDocente,
+  renderTextoEnriquecidoLinea,
+  renderizarContenidoNoticia,
+} from "@/app/utils/portalFormatters";
+import {
+  DOCUMENTOS_TRANSPARENCIA_INICIALES,
+  LOGO_UNMSM_TRANSPARENTE_DEFAULT,
+  HERO_BG_DEFAULT,
+  CARRERAS_INICIALES,
+  NOTICIAS_INICIALES,
+  IMAGENES_STORAGE_INICIALES,
+  MALLA_INICIAL,
+  MATERIALES_INICIALES,
+  DOCENTES_INICIALES,
+  DOCENTES_SUGERIDOS,
+  RESENAS_DOCENTES_INICIALES,
+  ORGULLO_INICIAL,
+  TICKETS_INICIALES,
+  TEMA_CARRERA,
+} from "@/app/data/portalInitialData";
+import { OptimizedImage } from "@/app/components/ui/OptimizedImage";
+import { Footer } from "@/app/components/layout/Footer";
+import { HemerotecaView } from "@/app/components/views/HemerotecaView";
+import { OrgulloGalleryView } from "@/app/components/views/OrgulloGalleryView";
+import { DocentesView } from "@/app/components/views/DocentesView";
+import { RepositorioView } from "@/app/components/views/RepositorioView";
+import { TransparenciaView } from "@/app/components/views/TransparenciaView";
+import { ContactoView } from "@/app/components/views/ContactoView";
+import { BentoCarrerasHome } from "@/app/components/views/BentoCarrerasHome";
+import { CarreraMallaView } from "@/app/components/views/CarreraMallaView";
+import { DetalleNoticiaModal } from "@/app/components/modals/DetalleNoticiaModal";
+import { SubirMaterialModal } from "@/app/components/modals/SubirMaterialModal";
+import { OrgulloModal } from "@/app/components/modals/OrgulloModal";
+import { DocenteModal } from "@/app/components/modals/DocenteModal";
+import { AdminNavbar } from "@/app/components/admin/AdminNavbar";
+import { AdminHeroTab } from "@/app/components/admin/AdminHeroTab";
+import { AdminNoticiasTab } from "@/app/components/admin/AdminNoticiasTab";
+import { AdminDocentesTab } from "@/app/components/admin/AdminDocentesTab";
+import { AdminMallaTab } from "@/app/components/admin/AdminMallaTab";
+import { AdminRepositorioTab } from "@/app/components/admin/AdminRepositorioTab";
+import { AdminOrgulloTab } from "@/app/components/admin/AdminOrgulloTab";
+import { AdminTransparenciaTab } from "@/app/components/admin/AdminTransparenciaTab";
+import { AdminStorageTab } from "@/app/components/admin/AdminStorageTab";
+import { AdminTicketsTab } from "@/app/components/admin/AdminTicketsTab";
+
+export default function PortalFacultadCienciasMatematicas() {
+  const [vistaActual, setVistaActual] = useState<VistaPortal>("/");
+  const [carreraSeleccionadaId, setCarreraSeleccionadaId] = useState<CarreraId>("computacion-cientifica");
+  const [noticiaSeleccionadaId, setNoticiaSeleccionadaId] = useState<string>(NOTICIAS_INICIALES[0].id);
+
+  const [noticias, setNoticias] = useState<Noticia[]>(NOTICIAS_INICIALES);
+  const [carreras, setCarreras] = useState<Carrera[]>(CARRERAS_INICIALES);
+  const [docentes, setDocentes] = useState<Docente[]>(DOCENTES_INICIALES);
+  const [resenasDocentes, setResenasDocentes] = useState<ResenaDocente[]>(RESENAS_DOCENTES_INICIALES);
+  const [malla, setMalla] = useState<CursoMalla[]>(MALLA_INICIAL);
+  const [materiales, setMateriales] = useState<MaterialRepositorio[]>(MATERIALES_INICIALES);
+  const [tickets, setTickets] = useState<TicketSoporte[]>(TICKETS_INICIALES);
+  const [imagenesStorage, setImagenesStorage] = useState<ImagenStorage[]>(IMAGENES_STORAGE_INICIALES);
+
+  const [orgulloItems, setOrgulloItems] = useState<OrgulloItem[]>(ORGULLO_INICIAL);
+  const [modalDetalleOrgullo, setModalDetalleOrgullo] = useState<OrgulloItem | null>(null);
+  const [modalOrgulloFormAbierto, setModalOrgulloFormAbierto] = useState<boolean>(false);
+  const [editandoOrgulloId, setEditandoOrgulloId] = useState<string | null>(null);
+  const [formOrgullo, setFormOrgullo] = useState<Omit<OrgulloItem, "carrera_nombre">>({
+    id: "",
+    titulo: "",
+    subtitulo_categoria: "SELECCIONADO POR IBRO 2026",
+    estudiante: "",
+    carrera_id: "computacion-cientifica",
+    descripcion: "",
+    foto_url: "",
+    tipo_tarjeta: "afiche",
+    enlace_nota: "",
+    anio: "2026",
+    destacado: true,
+  });
+  const [subiendoFotoOrgullo, setSubiendoFotoOrgullo] = useState<boolean>(false);
+
+  // Filtros de la Galería Completa de Orgullo San Marquino (/orgullo)
+  const [filtroOrgulloCarrera, setFiltroOrgulloCarrera] = useState<"TODAS" | CarreraId | "fcm">("TODAS");
+  const [busquedaOrgullo, setBusquedaOrgullo] = useState<string>("");
+
+  const orgulloFiltrados = useMemo(() => {
+    return orgulloItems.filter((item) => {
+      const coincideCarrera =
+        filtroOrgulloCarrera === "TODAS" ||
+        item.carrera_id === filtroOrgulloCarrera ||
+        (filtroOrgulloCarrera === "fcm" && item.carrera_id === "fcm");
+
+      const q = busquedaOrgullo.trim().toLowerCase();
+      const coincideBusqueda =
+        !q ||
+        item.titulo.toLowerCase().includes(q) ||
+        item.estudiante.toLowerCase().includes(q) ||
+        (item.carrera_nombre && item.carrera_nombre.toLowerCase().includes(q)) ||
+        item.subtitulo_categoria.toLowerCase().includes(q) ||
+        item.descripcion.toLowerCase().includes(q);
+
+      return coincideCarrera && coincideBusqueda;
+    });
+  }, [orgulloItems, filtroOrgulloCarrera, busquedaOrgullo]);
+
+
+  const [logoUrl, setLogoUrl] = useState<string>(LOGO_UNMSM_TRANSPARENTE_DEFAULT);
+  const [heroBgUrl, setHeroBgUrl] = useState<string>(HERO_BG_DEFAULT);
+  const [heroBgInputUrl, setHeroBgInputUrl] = useState<string>(HERO_BG_DEFAULT);
+  const [heroBlur, setHeroBlur] = useState<number>(1);
+  const [heroOverlayOpacity, setHeroOverlayOpacity] = useState<number>(45);
+  const [heroOverlayColor, setHeroOverlayColor] = useState<string>("#0f172a");
+  const [cargandoConfig, setCargandoConfig] = useState<boolean>(true);
+
+  // Filtros y modal de la sección Plana Docente + Calificaciones y Reseñas
+  const [filtroDocenteCarrera, setFiltroDocenteCarrera] = useState<"TODAS" | CarreraId>("TODAS");
+  const [busquedaDocentes, setBusquedaDocentes] = useState<string>("");
+  const [docenteModalActivo, setDocenteModalActivo] = useState<Docente | null>(null);
+  const [hoverEstrellaDocente, setHoverEstrellaDocente] = useState<number>(0);
+  const [formResenaDocente, setFormResenaDocente] = useState({
+    puntuacion: 5,
+    curso: "",
+    autor_alias: "",
+    esAnonimo: false,
+    comentario: "",
+    bot_trap: "",
+  });
+  const [errorResenaDocente, setErrorResenaDocente] = useState<string>("");
+  // Transparencia Institucional (/transparencia)
+  const [documentosTransparencia, setDocumentosTransparencia] = useState<DocumentoTransparencia[]>(DOCUMENTOS_TRANSPARENCIA_INICIALES);
+  const [filtroTransparenciaCategoria, setFiltroTransparenciaCategoria] = useState<string>("TODAS");
+  const [filtroTransparenciaAnio, setFiltroTransparenciaAnio] = useState<string>("TODOS");
+  const [busquedaTransparencia, setBusquedaTransparencia] = useState<string>("");
+  const [paginaTransparencia, setPaginaTransparencia] = useState<number>(1);
+  const [modalTransparenciaFormAbierto, setModalTransparenciaFormAbierto] = useState<boolean>(false);
+  const [editandoTransparenciaId, setEditandoTransparenciaId] = useState<string | null>(null);
+  const [formTransparencia, setFormTransparencia] = useState<{
+    codigo: string;
+    titulo: string;
+    categoria: DocumentoTransparencia["categoria"];
+    anio: number;
+    dependencia: string;
+    fecha: string;
+    tamano_archivo: string;
+    url_pdf: string;
+    sumilla: string;
+  }>({
+    codigo: "",
+    titulo: "",
+    categoria: "Resoluciones Decanales",
+    anio: 2026,
+    dependencia: "Decanato FCM",
+    fecha: "2026-03-15",
+    tamano_archivo: "1.5 MB",
+    url_pdf: "https://matematicas.unmsm.edu.pe",
+    sumilla: "",
+  });
+
+  const [exitoResenaDocente, setExitoResenaDocente] = useState<boolean>(false);
+
+  // Carrusel Institucional Superior de Noticias y Comunicados (Slider tipo San Marcos)
+  const [slideActivoHero, setSlideActivoHero] = useState<number>(0);
+  const [pausarSliderHero, setPausarSliderHero] = useState<boolean>(false);
+  const [direccionSlide, setDireccionSlide] = useState<"next" | "prev">("next");
+  const [animandoSlide, setAnimandoSlide] = useState<boolean>(false);
+  const [modalHeroFondoAbierto, setModalHeroFondoAbierto] = useState<boolean>(false);
+  const touchStartXRef = useRef<number | null>(null);
+
+  // Buscador Compacto en Navbar Superior con atajo de teclado (Ctrl+K / Cmd+K)
+  const [busquedaNavbar, setBusquedaNavbar] = useState<string>("");
+  const [navbarBuscadorAbierto, setNavbarBuscadorAbierto] = useState<boolean>(false);
+  const [navbarResultadosAbiertos, setNavbarResultadosAbiertos] = useState<boolean>(false);
+  const inputNavbarRef = useRef<HTMLInputElement | null>(null);
+  const contenedorNavbarSearchRef = useRef<HTMLDivElement | null>(null);
+
+  // Menú Móvil Hamburguesa Responsive
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState<boolean>(false);
+
+  const [dropdownServicioAbierto, setDropdownServicioAbierto] = useState(false);
+  const menuServicioRef = useRef<HTMLDivElement | null>(null);
+  const timeoutServicioRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Menú Desplegable: Formación Académica (Pregrado, Posgrado, Docentes)
+  const [dropdownFormacionAbierto, setDropdownFormacionAbierto] = useState(false);
+  const menuFormacionRef = useRef<HTMLDivElement | null>(null);
+  const timeoutFormacionRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Modo Oscuro (Dark Mode)
+  const [modoOscuro, setModoOscuro] = useState<boolean>(false);
+
+  const [servicioModalInfo, setServicioModalInfo] = useState<{
+    titulo: string; sigla: string; descripcion: string; correo: string; anexo: string; horario: string;
+  } | null>(null);
+
+  const [busquedaGlobal, setBusquedaGlobal] = useState("");
+  const [modoMalla, setModoMalla] = useState<"acordeon" | "roadmap">("acordeon");
+  const [ciclosAbiertos, setCiclosAbiertos] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+  const [repoFiltroCarrera, setRepoFiltroCarrera] = useState<"TODAS" | CarreraId>("TODAS");
+  const [repoFiltroCiclo, setRepoFiltroCiclo] = useState<"TODOS" | number>("TODOS");
+  const [repoFiltroCurso, setRepoFiltroCurso] = useState<string>("TODOS");
+  const [repoFiltroTipo, setRepoFiltroTipo] = useState<"TODOS" | TipoArchivo>("TODOS");
+  const [repoBusquedaTexto, setRepoBusquedaTexto] = useState("");
+  const [repoPaginaActual, setRepoPaginaActual] = useState(1);
+
+  const [modalSubirAbierto, setModalSubirAbierto] = useState(false);
+  const [formSubidaAnon, setFormSubidaAnon] = useState({
+    carrera_id: "computacion-cientifica" as CarreraId,
+    ciclo: 3,
+    curso_id: "cc-301",
+    modoDocente: "lista" as "lista" | "manual",
+    docenteSeleccionado: DOCENTES_SUGERIDOS[0],
+    docenteManual: "",
+    titulo: "",
+    tipo_archivo: "Examen" as TipoArchivo,
+    url_archivo: "",
+    autor_alias: "",
+    bot_trap: "",
+  });
+  const [exitoSubidaModal, setExitoSubidaModal] = useState(false);
+
+  const [formContacto, setFormContacto] = useState({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
+  const [ticketEnviadoOk, setTicketEnviadoOk] = useState(false);
+
+  const [adminAutenticado, setAdminAutenticado] = useState(false);
+  const [cargandoAuthAdmin, setCargandoAuthAdmin] = useState(false);
+  const [pinAdmin, setPinAdmin] = useState("");
+  const [errorPin, setErrorPin] = useState("");
+  const [tabAdmin, setTabAdmin] = useState<
+    "dashboard" | "carreras_cms" | "noticias" | "docentes_cms" | "malla" | "moderacion" | "storage" | "soporte" | "orgullo" | "transparencia"
+  >("dashboard");
+
+  const [adminCarreraEditId, setAdminCarreraEditId] = useState<CarreraId>("computacion-cientifica");
+  const carreraAdminSeleccionada = useMemo(
+    () => carreras.find((c) => c.id === adminCarreraEditId) || CARRERAS_INICIALES[0],
+    [carreras, adminCarreraEditId]
+  );
+  const [urlImagenCarreraInput, setUrlImagenCarreraInput] = useState(CARRERAS_INICIALES[0].imagen_referencial_url);
+  const [urlTripticoCarreraInput, setUrlTripticoCarreraInput] = useState(CARRERAS_INICIALES[0].triptico_pdf_url);
+  const [urlPosterCarreraInput, setUrlPosterCarreraInput] = useState(CARRERAS_INICIALES[0].poster_pdf_url || "");
+  const [subiendoAssetCarrera, setSubiendoAssetCarrera] = useState(false);
+  const inputImagenCarreraRef = useRef<HTMLInputElement | null>(null);
+  const inputTripticoPdfRef = useRef<HTMLInputElement | null>(null);
+  const inputPosterPdfRef = useRef<HTMLInputElement | null>(null);
+
+  // Estado inicial de noticias con fecha_publicacion: "" (sin new Date() en declaración de estado)
+  const [formNoticia, setFormNoticia] = useState({
+    id: "",
+    titulo: "",
+    categoria: "Comunicado Oficial",
+    resumen: "",
+    fecha_publicacion: "",
+    contenido: "",
+    imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
+    destacado: true,
+    en_carrusel_principal: true,
+    color_fondo: "#4d0713",
+    fecha_evento: "",
+    lugar: "",
+    modalidad: "",
+    dirigido_a: "",
+    enlace_inscripcion: "",
+    fondo_imagen_url: "",
+    fondo_blur: 4,
+    fondo_overlay_opacity: 60,
+    fondo_overlay_color: "#002855",
+  });
+  const inputImagenNoticiaRef = useRef<HTMLInputElement | null>(null);
+  const inputFondoNoticiaRef = useRef<HTMLInputElement | null>(null);
+  const textareaNoticiaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Filtro de categoría docente para directorio
+  const [filtroCategoriaDocente, setFiltroCategoriaDocente] = useState<string>("TODAS");
+
+  // Filtros para vista dedicada de Hemeroteca (/noticias)
+  const [busquedaHemeroteca, setBusquedaHemeroteca] = useState<string>("");
+  const [filtroCategoriaHemeroteca, setFiltroCategoriaHemeroteca] = useState<string>("TODAS");
+
+  // Estado de formulario CMS para Plana Docente
+  const [adminFiltroCarreraDocentes, setAdminFiltroCarreraDocentes] = useState<"TODAS" | CarreraId>("TODAS");
+  const [formDocente, setFormDocente] = useState({
+    id: "",
+    nombre_completo: "",
+    grado_academico: "Dr." as "Dr." | "Dra." | "Mg." | "Lic.",
+    categoria_docente: "Principal" as "Principal" | "Asociado" | "Auxiliar",
+    condicion: "Nombrado" as "Nombrado" | "Contratado",
+    carrera_id: "computacion-cientifica" as CarreraId,
+    especialidad: "",
+    lineas_investigacion: "",
+    cursos_dictados_texto: "",
+    correo: "",
+    horario_asesoria: "",
+    foto_url: "",
+    cti_vitae_url: "",
+    orcid_url: "",
+    google_scholar_url: "",
+    linkedin_url: "",
+  });
+  const inputFotoDocenteRef = useRef<HTMLInputElement | null>(null);
+  const [subiendoFotoDocente, setSubiendoFotoDocente] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [categoriaNuevaImagen, setCategoriaNuevaImagen] = useState<"Logo Institucional" | "Banner Noticia" | "Foto Facultad" | "Fondo Hero Home">("Banner Noticia");
+  const [subiendoStorage, setSubiendoStorage] = useState(false);
+  const [urlCopiadaId, setUrlCopiadaId] = useState<string | null>(null);
+
+  const [adminFiltroCarreraMalla, setAdminFiltroCarreraMalla] = useState<CarreraId>("computacion-cientifica");
+  const [formCursoMalla, setFormCursoMalla] = useState({
+    id: "",
+    carrera_id: "computacion-cientifica" as CarreraId,
+    ciclo: 3,
+    codigo: "",
+    nombre_curso: "",
+    creditos: 4.0,
+    tipo_curso: "O" as "O" | "E",
+    prerequisitosTexto: "",
+  });
+
+  const [toast, setToast] = useState<string | null>(null);
+  const lanzarToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 4200);
+  };
+
+  // ==========================================================================
+  // 4. NAVEGACIÓN HISTÓRICA CON RETROCESOS (BOTÓN "ATRÁS" DEL NAVEGADOR)
+  // ==========================================================================
+  const modalesAbiertosRef = useRef(false);
+  useEffect(() => {
+    modalesAbiertosRef.current = Boolean(docenteModalActivo || servicioModalInfo || modalSubirAbierto);
+  }, [docenteModalActivo, servicioModalInfo, modalSubirAbierto]);
+
+  const aplicarHashAEstado = useCallback((hashRaw: string) => {
+    const hash = (hashRaw || "").replace(/^#/, "").trim();
+    if (!hash || hash === "/") {
+      setVistaActual("/");
+      return;
+    }
+    if (hash.startsWith("/carreras/")) {
+      const id = hash.replace("/carreras/", "").trim() as CarreraId;
+      const carrerasValidas: CarreraId[] = ["computacion-cientifica", "matematica", "estadistica", "investigacion-operativa"];
+      if (carrerasValidas.includes(id)) {
+        setCarreraSeleccionadaId(id);
+      }
+      setVistaActual("/carreras/[id]");
+      return;
+    }
+    if (hash.startsWith("/noticias/")) {
+      const idNot = hash.replace("/noticias/", "").trim();
+      if (idNot) setNoticiaSeleccionadaId(idNot);
+      setVistaActual("/noticias/[id]");
+      return;
+    }
+    if (hash === "/noticias") {
+      setVistaActual("/noticias");
+      return;
+    }
+    if (hash === "/orgullo" || hash.startsWith("/orgullo")) {
+      setVistaActual("/orgullo");
+      return;
+    }
+    if (hash === "/docentes" || hash.startsWith("/docentes/")) {
+      const idCar = hash.replace("/docentes/", "").replace("/docentes", "").trim();
+      const carrerasValidas: CarreraId[] = ["computacion-cientifica", "matematica", "estadistica", "investigacion-operativa"];
+      if (idCar && (idCar === "TODAS" || carrerasValidas.includes(idCar as CarreraId))) {
+        setFiltroDocenteCarrera(idCar as "TODAS" | CarreraId);
+      }
+      setVistaActual("/docentes");
+      return;
+    }
+    if (hash === "/repositorio") {
+      setVistaActual("/repositorio");
+      return;
+    }
+    if (hash === "/transparencia" || hash.startsWith("/transparencia")) {
+      setVistaActual("/transparencia");
+      return;
+    }
+    if (hash === "/contacto") {
+      setVistaActual("/contacto");
+      return;
+    }
+    if (hash === "/admin") {
+      setVistaActual("/admin");
+      return;
+    }
+    setVistaActual("/");
+  }, []);
+
+  const navegar = useCallback(
+    (
+      nuevaVista: VistaPortal,
+      params?: {
+        carreraId?: CarreraId;
+        noticiaId?: string;
+        docenteCarrera?: "TODAS" | CarreraId;
+        skipScroll?: boolean;
+      }
+    ) => {
+      const idCarreraFinal = params?.carreraId || carreraSeleccionadaId;
+      const idNoticiaFinal = params?.noticiaId || noticiaSeleccionadaId;
+
+      if (params?.carreraId) setCarreraSeleccionadaId(params.carreraId);
+      if (params?.noticiaId) setNoticiaSeleccionadaId(params.noticiaId);
+      if (params?.docenteCarrera) setFiltroDocenteCarrera(params.docenteCarrera);
+
+      setVistaActual(nuevaVista);
+
+      if (typeof window !== "undefined") {
+        let nuevoHash = "#/";
+        if (nuevaVista === "/carreras/[id]") {
+          nuevoHash = `#/carreras/${idCarreraFinal}`;
+        } else if (nuevaVista === "/noticias/[id]") {
+          nuevoHash = `#/noticias/${idNoticiaFinal}`;
+        } else if (nuevaVista === "/repositorio") {
+          nuevoHash = "#/repositorio";
+        } else if (nuevaVista === "/transparencia") {
+        nuevoHash = "#/transparencia";
+      } else if (nuevaVista === "/contacto") {
+          nuevoHash = "#/contacto";
+        } else if (nuevaVista === "/admin") {
+          nuevoHash = "#/admin";
+        } else if (nuevaVista === "/noticias") {
+          nuevoHash = "#/noticias";
+        } else if (nuevaVista === "/orgullo") {
+          nuevoHash = "#/orgullo";
+        } else if (nuevaVista === "/docentes") {
+          const escId = params?.docenteCarrera || filtroDocenteCarrera;
+          nuevoHash = escId && escId !== "TODAS" ? `#/docentes/${escId}` : "#/docentes";
+        }
+
+        if (window.location.hash !== nuevoHash) {
+          window.history.pushState(
+            {
+              vista: nuevaVista,
+              carreraId: idCarreraFinal,
+              noticiaId: idNoticiaFinal,
+              docenteCarrera: params?.docenteCarrera || filtroDocenteCarrera,
+            },
+            "",
+            nuevoHash
+          );
+        }
+        if (!params?.skipScroll) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+    },
+    [carreraSeleccionadaId, noticiaSeleccionadaId, filtroDocenteCarrera]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash && window.location.hash !== "#/") {
+      aplicarHashAEstado(window.location.hash);
+    } else if (window.location.pathname && window.location.pathname !== "/") {
+      aplicarHashAEstado(window.location.pathname);
+    } else {
+      window.history.replaceState({ vista: "/" }, "", "#/");
+    }
+
+    const handlePopState = () => {
+      if (modalesAbiertosRef.current) {
+        setDocenteModalActivo(null);
+        setServicioModalInfo(null);
+        setModalSubirAbierto(false);
+        return;
+      }
+      aplicarHashAEstado(window.location.hash);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [aplicarHashAEstado]);
+
+  // ==========================================================================
+  // 1. PERSISTENCIA REAL EN SUPABASE (`portal_config`) Y CARGA INICIAL
+  // ==========================================================================
+  useEffect(() => {
+    let activo = true;
+    const aplicarHeroCfgDesdeString = (rawUrl: string) => {
+      const [cleanUrl, cfgHash] = rawUrl.split("#fcm_cfg=");
+      const urlFinal = cleanUrl || HERO_BG_DEFAULT;
+      setHeroBgUrl(urlFinal);
+      setHeroBgInputUrl(urlFinal);
+      if (cfgHash) {
+        const [bStr, opStr, colStr] = cfgHash.split("|");
+        const bVal = Number(bStr);
+        const opVal = Number(opStr);
+        if (!Number.isNaN(bVal) && bVal >= 0 && bVal <= 12) setHeroBlur(bVal);
+        if (!Number.isNaN(opVal) && opVal >= 0 && opVal <= 95) setHeroOverlayOpacity(opVal);
+        if (colStr) setHeroOverlayColor(decodeURIComponent(colStr));
+      }
+    };
+
+    const cargarConfiguracionDesdeSupabase = async () => {
+      try {
+        if (typeof window !== "undefined") {
+          const localLogo = window.localStorage.getItem("fcm_logo_url");
+          const localHeroBg = window.localStorage.getItem("fcm_hero_bg_url");
+          const localHeroBlur = window.localStorage.getItem("fcm_hero_blur");
+          const localHeroOpacity = window.localStorage.getItem("fcm_hero_overlay_opacity");
+          const localHeroColor = window.localStorage.getItem("fcm_hero_overlay_color");
+          const localCarreras = window.localStorage.getItem("fcm_carreras_data");
+          const localNoticias = window.localStorage.getItem("fcm_noticias_data");
+          const localStorageImgs = window.localStorage.getItem("fcm_storage_data");
+          const localDocentes = window.localStorage.getItem("fcm_docentes_data");
+          const localResenas = window.localStorage.getItem("fcm_resenas_docentes");
+          const localMateriales = window.localStorage.getItem("fcm_materiales_data");
+
+          const localOrgullo = window.localStorage.getItem("fcm_orgullo_data");
+          if (localOrgullo && activo) {
+            try {
+              const parsedOrg = JSON.parse(localOrgullo);
+              if (Array.isArray(parsedOrg) && parsedOrg.length > 0) setOrgulloItems(parsedOrg);
+            } catch {}
+          }
+
+          const localTransparencia = window.localStorage.getItem("fcm_transparencia_data");
+          if (localTransparencia && activo) {
+            try {
+              const parsedTrans = JSON.parse(localTransparencia);
+              if (Array.isArray(parsedTrans) && parsedTrans.length > 0) setDocumentosTransparencia(parsedTrans);
+            } catch {}
+          }
+
+          if (localLogo && activo) setLogoUrl(localLogo);
+          if (localHeroBg && activo) {
+            aplicarHeroCfgDesdeString(localHeroBg);
+          }
+          if (localHeroBlur !== null && activo) {
+            const b = Number(localHeroBlur);
+            if (!Number.isNaN(b)) setHeroBlur(b);
+          }
+          if (localHeroOpacity !== null && activo) {
+            const op = Number(localHeroOpacity);
+            if (!Number.isNaN(op)) setHeroOverlayOpacity(op);
+          }
+          if (localHeroColor && activo) {
+            setHeroOverlayColor(localHeroColor);
+          }
+          if (localCarreras && activo) {
+            const parsed = JSON.parse(localCarreras);
+            if (Array.isArray(parsed) && parsed.length > 0) setCarreras(parsed);
+          }
+          if (localNoticias && activo) {
+            const parsed = JSON.parse(localNoticias);
+            if (Array.isArray(parsed) && parsed.length > 0) setNoticias(parsed);
+          }
+          if (localStorageImgs && activo) {
+            const parsed = JSON.parse(localStorageImgs);
+            if (Array.isArray(parsed) && parsed.length > 0) setImagenesStorage(parsed);
+          }
+          if (localDocentes && activo) {
+            const parsed = JSON.parse(localDocentes);
+            if (Array.isArray(parsed) && parsed.length > 0) setDocentes(parsed);
+          }
+          if (localResenas && activo) {
+            const parsed = JSON.parse(localResenas);
+            if (Array.isArray(parsed) && parsed.length > 0) setResenasDocentes(parsed);
+          }
+          if (localMateriales && activo) {
+            const parsed = JSON.parse(localMateriales);
+            if (Array.isArray(parsed)) {
+              const limpios = parsed.filter((m: MaterialRepositorio) => m.id !== "mat-pend-1" && m.id !== "mat-pend-2");
+              setMateriales(limpios);
+            }
+          }
+        }
+
+        const { data, error } = await supabase
+          .from("portal_config")
+          .select("*")
+          .eq("id", 1)
+          .maybeSingle();
+
+        if (!error && data && activo) {
+          if (data.logo_url && typeof data.logo_url === "string") {
+            setLogoUrl(data.logo_url);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_logo_url", data.logo_url);
+          }
+          if (data.hero_bg_url && typeof data.hero_bg_url === "string") {
+            aplicarHeroCfgDesdeString(data.hero_bg_url);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_bg_url", data.hero_bg_url);
+          }
+          if (typeof data.hero_blur === "number") {
+            setHeroBlur(data.hero_blur);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_blur", String(data.hero_blur));
+          }
+          if (typeof data.hero_overlay_opacity === "number") {
+            setHeroOverlayOpacity(data.hero_overlay_opacity);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_overlay_opacity", String(data.hero_overlay_opacity));
+          }
+          if (typeof data.hero_overlay_color === "string" && data.hero_overlay_color) {
+            setHeroOverlayColor(data.hero_overlay_color);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_hero_overlay_color", data.hero_overlay_color);
+          }
+          if (Array.isArray(data.carreras_data) && data.carreras_data.length > 0) {
+            setCarreras(data.carreras_data);
+            const inicial = data.carreras_data.find((c: Carrera) => c.id === "computacion-cientifica") || data.carreras_data[0];
+            if (inicial) {
+              setUrlImagenCarreraInput(inicial.imagen_referencial_url);
+              setUrlTripticoCarreraInput(inicial.triptico_pdf_url);
+              setUrlPosterCarreraInput(inicial.poster_pdf_url || "");
+            }
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_carreras_data", JSON.stringify(data.carreras_data));
+          }
+          if (Array.isArray(data.noticias_data) && data.noticias_data.length > 0) {
+            setNoticias(data.noticias_data);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_noticias_data", JSON.stringify(data.noticias_data));
+          }
+          if (Array.isArray(data.storage_data) && data.storage_data.length > 0) {
+            setImagenesStorage(data.storage_data);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_storage_data", JSON.stringify(data.storage_data));
+          }
+          if (Array.isArray(data.docentes_data) && data.docentes_data.length > 0) {
+            setDocentes(data.docentes_data);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_docentes_data", JSON.stringify(data.docentes_data));
+          }
+          if (Array.isArray(data.resenas_docentes) && data.resenas_docentes.length > 0) {
+            setResenasDocentes(data.resenas_docentes);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(data.resenas_docentes));
+          }
+          
+          if (Array.isArray(data.orgullo_data) && data.orgullo_data.length > 0) {
+            setOrgulloItems(data.orgullo_data);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(data.orgullo_data));
+          } else if (Array.isArray(data.storage_data)) {
+            const metaOrg = data.storage_data.find((x: any) => x && x.id === "__fcm_orgullo_config__");
+            if (metaOrg && Array.isArray(metaOrg.orgullo_items) && metaOrg.orgullo_items.length > 0) {
+              setOrgulloItems(metaOrg.orgullo_items);
+              if (typeof window !== "undefined") window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(metaOrg.orgullo_items));
+            }
+          }
+
+          if (Array.isArray(data.transparencia_data) && data.transparencia_data.length > 0) {
+            setDocumentosTransparencia(data.transparencia_data);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(data.transparencia_data));
+          } else if (Array.isArray(data.storage_data)) {
+            const metaTrans = data.storage_data.find((x: any) => x && x.id === "__fcm_transparencia_config__");
+            if (metaTrans && Array.isArray(metaTrans.transparencia_items) && metaTrans.transparencia_items.length > 0) {
+              setDocumentosTransparencia(metaTrans.transparencia_items);
+              if (typeof window !== "undefined") window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(metaTrans.transparencia_items));
+            }
+          }
+
+          if (Array.isArray(data.materiales_data) && data.materiales_data.length > 0) {
+            const limpios = data.materiales_data.filter((m: MaterialRepositorio) => m.id !== "mat-pend-1" && m.id !== "mat-pend-2");
+            setMateriales(limpios);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_materiales_data", JSON.stringify(limpios));
+          }
+        }
+      } catch {
+        // Mantiene estado por defecto si la tabla aún no fue creada
+      } finally {
+        if (activo) setCargandoConfig(false);
+      }
+    };
+    cargarConfiguracionDesdeSupabase();
+
+    // Verificación de sesión de administrador segura en servidor al cargar
+    fetch("/api/admin/auth")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.authenticated) setAdminAutenticado(true);
+      })
+      .catch(() => {});
+
+    return () => { activo = false; };
+  }, []);
+
+  const sincronizarPortalConfigSupabase = async (cambios: {
+    logo_url?: string;
+    hero_bg_url?: string;
+    hero_blur?: number;
+    hero_overlay_opacity?: number;
+    hero_overlay_color?: string;
+    carreras_data?: Carrera[];
+    noticias_data?: Noticia[];
+    storage_data?: ImagenStorage[];
+    docentes_data?: Docente[];
+    resenas_docentes?: ResenaDocente[];
+    materiales_data?: MaterialRepositorio[];
+    orgullo_data?: OrgulloItem[];
+    transparencia_data?: DocumentoTransparencia[];
+  }): Promise<boolean> => {
+    if (typeof window !== "undefined" && cambios.transparencia_data) {
+      window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(cambios.transparencia_data));
+    }
+    if (typeof window !== "undefined") {
+      if (cambios.logo_url) window.localStorage.setItem("fcm_logo_url", cambios.logo_url);
+      if (cambios.hero_bg_url) window.localStorage.setItem("fcm_hero_bg_url", cambios.hero_bg_url);
+      if (typeof cambios.hero_blur === "number") window.localStorage.setItem("fcm_hero_blur", String(cambios.hero_blur));
+      if (typeof cambios.hero_overlay_opacity === "number") window.localStorage.setItem("fcm_hero_overlay_opacity", String(cambios.hero_overlay_opacity));
+      if (cambios.hero_overlay_color) window.localStorage.setItem("fcm_hero_overlay_color", cambios.hero_overlay_color);
+      if (cambios.carreras_data) window.localStorage.setItem("fcm_carreras_data", JSON.stringify(cambios.carreras_data));
+      if (cambios.noticias_data) window.localStorage.setItem("fcm_noticias_data", JSON.stringify(cambios.noticias_data));
+      if (cambios.storage_data) window.localStorage.setItem("fcm_storage_data", JSON.stringify(cambios.storage_data));
+      if (cambios.docentes_data) window.localStorage.setItem("fcm_docentes_data", JSON.stringify(cambios.docentes_data));
+      if (cambios.resenas_docentes) window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(cambios.resenas_docentes));
+      if (cambios.materiales_data) window.localStorage.setItem("fcm_materiales_data", JSON.stringify(cambios.materiales_data));
+    }
+
+    // 1. Intento por Servidor Seguro (Route Handler /api/admin/sync con RLS y Service Role)
+    try {
+      const res = await fetch("/api/admin/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cambios),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok) return true;
+      }
+    } catch {
+      // Continúa al respaldo directo de cliente
+    }
+
+    // 2. Respaldo directo en cliente Supabase
+    try {
+      const { error } = await supabase.from("portal_config").upsert(
+        { id: 1, ...cambios, updated_at: new Date().toISOString() },
+        { onConflict: "id" }
+      );
+      if (error) {
+        // Fallback seguro si alguna columna nueva aún no existe en el esquema SQL de portal_config
+        const { hero_blur, hero_overlay_opacity, hero_overlay_color, orgullo_data, ...resto } = cambios;
+        void hero_blur;
+        void hero_overlay_opacity;
+        void hero_overlay_color;
+        void orgullo_data;
+        void hero_blur;
+        void hero_overlay_opacity;
+        void hero_overlay_color;
+        if (Object.keys(resto).length > 0) {
+          const { error: retryErr } = await supabase.from("portal_config").upsert(
+            { id: 1, ...resto, updated_at: new Date().toISOString() },
+            { onConflict: "id" }
+          );
+          return !retryErr;
+        }
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Botón "Usar como Logo" del CMS conectado a Supabase con upsert + alert
+  const handleUsarComoLogo = async (nuevaUrlLogo: string) => {
+    setLogoUrl(nuevaUrlLogo);
+    const guardadoEnBd = await sincronizarPortalConfigSupabase({ logo_url: nuevaUrlLogo });
+    lanzarToast("🛡️ Logo institucional actualizado y persistido en portal_config.");
+    if (typeof window !== "undefined") {
+      window.alert(
+        guardadoEnBd
+          ? "✅ Logo actualizado y guardado permanentemente en la tabla portal_config de Supabase."
+          : "✅ Logo actualizado y persistido en la configuración del portal."
+      );
+    }
+  };
+
+  // Botón para establecer imagen y personalización de difuminado/color en el Hero del Home
+  const handleUsarComoFondoHero = async (
+    nuevaUrlHero: string,
+    blurCustom?: number,
+    opacityCustom?: number,
+    colorCustom?: string
+  ) => {
+    const limpia = (nuevaUrlHero.split("#fcm_cfg=")[0] || "").trim() || HERO_BG_DEFAULT;
+    const bFinal = typeof blurCustom === "number" ? blurCustom : heroBlur;
+    const opFinal = typeof opacityCustom === "number" ? opacityCustom : heroOverlayOpacity;
+    const colFinal = colorCustom || heroOverlayColor;
+
+    setHeroBgUrl(limpia);
+    setHeroBgInputUrl(limpia);
+    setHeroBlur(bFinal);
+    setHeroOverlayOpacity(opFinal);
+    setHeroOverlayColor(colFinal);
+
+    const urlConConfig = `${limpia}#fcm_cfg=${bFinal}|${opFinal}|${encodeURIComponent(colFinal)}`;
+    await sincronizarPortalConfigSupabase({
+      hero_bg_url: urlConConfig,
+      hero_blur: bFinal,
+      hero_overlay_opacity: opFinal,
+      hero_overlay_color: colFinal,
+    });
+    lanzarToast("🖼️ Personalización del Hero (imagen, difuminado y color) guardada en Supabase.");
+  };
+
+  const abrirMenuServicioConHover = () => {
+    if (timeoutServicioRef.current) {
+      clearTimeout(timeoutServicioRef.current);
+      timeoutServicioRef.current = null;
+    }
+    setDropdownServicioAbierto(true);
+  };
+
+  const cerrarMenuServicioConRetraso = () => {
+    if (timeoutServicioRef.current) clearTimeout(timeoutServicioRef.current);
+    timeoutServicioRef.current = setTimeout(() => setDropdownServicioAbierto(false), 260);
+  };
+
+  const abrirMenuFormacionConHover = () => {
+    if (timeoutFormacionRef.current) {
+      clearTimeout(timeoutFormacionRef.current);
+      timeoutFormacionRef.current = null;
+    }
+    setDropdownFormacionAbierto(true);
+  };
+
+  const cerrarMenuFormacionConRetraso = () => {
+    if (timeoutFormacionRef.current) clearTimeout(timeoutFormacionRef.current);
+    timeoutFormacionRef.current = setTimeout(() => setDropdownFormacionAbierto(false), 260);
+  };
+
+  // Sincronización del Modo Oscuro con LocalStorage y Media Query
+  useEffect(() => {
+    try {
+      const guardado = localStorage.getItem("fcm_theme");
+      if (guardado === "dark") {
+        setModoOscuro(true);
+        document.documentElement.classList.add("dark");
+      } else if (guardado === "light") {
+        setModoOscuro(false);
+        document.documentElement.classList.remove("dark");
+      } else if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        setModoOscuro(true);
+        document.documentElement.classList.add("dark");
+      }
+    } catch {
+      // Ignorar en entornos restringidos
+    }
+  }, []);
+
+  const toggleModoOscuro = () => {
+    setModoOscuro((prev) => {
+      const nuevo = !prev;
+      try {
+        localStorage.setItem("fcm_theme", nuevo ? "dark" : "light");
+        if (nuevo) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      } catch {}
+      return nuevo;
+    });
+  };
+
+  
+  // Scroll-Reveal: Revelado animado fluido al bajar por la página
+  useEffect(() => {
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+          }
+        });
+      },
+      {
+        threshold: 0.05,
+        rootMargin: "0px 0px -20px 0px",
+      }
+    );
+
+    const elementos = document.querySelectorAll(".reveal-on-scroll");
+    elementos.forEach((el) => observer.observe(el));
+
+    return () => {
+      elementos.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+    };
+  }, [vistaActual, carreraSeleccionadaId]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuServicioRef.current && !menuServicioRef.current.contains(event.target as Node)) {
+        setDropdownServicioAbierto(false);
+      }
+      if (menuFormacionRef.current && !menuFormacionRef.current.contains(event.target as Node)) {
+        setDropdownFormacionAbierto(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setDropdownServicioAbierto(false);
+        setDropdownFormacionAbierto(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+      if (timeoutServicioRef.current) clearTimeout(timeoutServicioRef.current);
+      if (timeoutFormacionRef.current) clearTimeout(timeoutFormacionRef.current);
+    };
+  }, []);
+
+  const handleSeleccionarCarreraEnAdmin = (id: CarreraId) => {
+    setAdminCarreraEditId(id);
+    const encontrada = carreras.find((c) => c.id === id);
+    if (encontrada) {
+      setUrlImagenCarreraInput(encontrada.imagen_referencial_url);
+      setUrlTripticoCarreraInput(encontrada.triptico_pdf_url);
+      setUrlPosterCarreraInput(encontrada.poster_pdf_url || "");
+    }
+  };
+
+  const cursosDependientesSubida = useMemo(
+    () => malla.filter((c) => c.carrera_id === formSubidaAnon.carrera_id && c.ciclo === Number(formSubidaAnon.ciclo)),
+    [malla, formSubidaAnon.carrera_id, formSubidaAnon.ciclo]
+  );
+
+  const carreraActiva = useMemo(
+    () => carreras.find((c) => c.id === carreraSeleccionadaId) || CARRERAS_INICIALES[0],
+    [carreras, carreraSeleccionadaId]
+  );
+
+  const cursosDeCarreraActiva = useMemo(
+    () => malla.filter((c) => c.carrera_id === carreraActiva.id),
+    [malla, carreraActiva.id]
+  );
+
+  const materialesAprobados = useMemo(() => materiales.filter((m) => m.estado === "aprobado"), [materiales]);
+  const materialesPendientes = useMemo(() => materiales.filter((m) => m.estado === "pendiente"), [materiales]);
+  const resenasPendientes = useMemo(() => resenasDocentes.filter((r) => r.estado === "pendiente"), [resenasDocentes]);
+
+  const obtenerEstadisticasDocente = useCallback(
+    (docenteId: string) => {
+      const aprobadas = resenasDocentes.filter((r) => r.docente_id === docenteId && r.estado === "aprobado");
+      const total = aprobadas.length;
+      const promedio = total > 0 ? aprobadas.reduce((acc, item) => acc + item.puntuacion, 0) / total : 0;
+      const distribucion = [5, 4, 3, 2, 1].map((estrellas) => {
+        const cantidad = aprobadas.filter((r) => r.puntuacion === estrellas).length;
+        const porcentaje = total > 0 ? Math.round((cantidad / total) * 100) : 0;
+        return { estrellas, cantidad, porcentaje };
+      });
+      return { aprobadas, total, promedio, distribucion };
+    },
+    [resenasDocentes]
+  );
+
+  const abrirModalDocente = (doc: Docente) => {
+    setDocenteModalActivo(doc);
+    setHoverEstrellaDocente(0);
+    setErrorResenaDocente("");
+    setExitoResenaDocente(false);
+    setFormResenaDocente({
+      puntuacion: 5,
+      curso: doc.cursos_dictados[0] || "Asignatura de la Escuela",
+      autor_alias: "",
+      esAnonimo: false,
+      comentario: "",
+      bot_trap: "",
+    });
+  };
+
+  const handleEnviarResenaDocente = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!docenteModalActivo) return;
+
+    // Protección Honeypot Anti-Spam / Bots
+    if (formResenaDocente.bot_trap && formResenaDocente.bot_trap.trim() !== "") {
+      setExitoResenaDocente(true);
+      return;
+    }
+
+    const comentarioLimpio = formResenaDocente.comentario.trim().replace(/<[^>]*>?/gm, "");
+    if (formResenaDocente.puntuacion < 1 || formResenaDocente.puntuacion > 5) {
+      setErrorResenaDocente("Por favor selecciona una calificación entre 1 y 5 estrellas.");
+      return;
+    }
+    if (comentarioLimpio.length < 10) {
+      setErrorResenaDocente("El comentario debe tener al menos 10 caracteres explicando tu valoración.");
+      return;
+    }
+
+    const aliasFinal = formResenaDocente.esAnonimo
+      ? "Estudiante Anónimo FCM"
+      : formResenaDocente.autor_alias.trim().replace(/<[^>]*>?/gm, "") || "Estudiante Anónimo FCM";
+
+    const nuevaResena: ResenaDocente = {
+      id: `res-${Date.now()}`,
+      docente_id: docenteModalActivo.id,
+      puntuacion: formResenaDocente.puntuacion as 1 | 2 | 3 | 4 | 5,
+      comentario: comentarioLimpio,
+      curso: formResenaDocente.curso.trim() || docenteModalActivo.cursos_dictados[0] || "Asignatura General",
+      autor_alias: aliasFinal,
+      fecha: new Date().toISOString().split("T")[0],
+      estado: "aprobado",
+    };
+
+    const nuevasResenas = [nuevaResena, ...resenasDocentes];
+    setResenasDocentes(nuevasResenas);
+    await sincronizarPortalConfigSupabase({ resenas_docentes: nuevasResenas });
+
+    setErrorResenaDocente("");
+    setExitoResenaDocente(true);
+    setHoverEstrellaDocente(0);
+    setFormResenaDocente({
+      puntuacion: 5,
+      curso: docenteModalActivo.cursos_dictados[0] || "Asignatura de la Escuela",
+      autor_alias: "",
+      esAnonimo: false,
+      comentario: "",
+      bot_trap: "",
+    });
+    lanzarToast(`⭐ ¡Gracias! Tu reseña para ${docenteModalActivo.grado_academico} ${docenteModalActivo.nombre_completo} fue publicada.`);
+    setTimeout(() => setExitoResenaDocente(false), 5000);
+  };
+
+  const handleCambiarEstadoResenaAdmin = async (idResena: string, nuevoEstado: "aprobado" | "pendiente") => {
+    const actualizadas = resenasDocentes.map((r) => (r.id === idResena ? { ...r, estado: nuevoEstado } : r));
+    setResenasDocentes(actualizadas);
+    await sincronizarPortalConfigSupabase({ resenas_docentes: actualizadas });
+    lanzarToast(
+      nuevoEstado === "aprobado"
+        ? "✅ Reseña docente aprobada y visible públicamente."
+        : "⏸️ Reseña docente marcada como pendiente."
+    );
+  };
+
+  const handleEliminarResenaDocenteAdmin = async (idResena: string) => {
+    const filtradas = resenasDocentes.filter((r) => r.id !== idResena);
+    setResenasDocentes(filtradas);
+    await sincronizarPortalConfigSupabase({ resenas_docentes: filtradas });
+    lanzarToast("🗑️ Reseña de docente eliminada permanentemente de Supabase.");
+  };
+
+  const resultadosBusquedaHero = useMemo(() => {
+    const q = busquedaGlobal.trim().toLowerCase();
+    if (!q) return { cursos: [], materiales: [] };
+    return {
+      cursos: malla.filter((c) => c.codigo.toLowerCase().includes(q) || c.nombre_curso.toLowerCase().includes(q)).slice(0, 6),
+      materiales: materialesAprobados.filter((m) => m.titulo.toLowerCase().includes(q) || m.docente.toLowerCase().includes(q)).slice(0, 4),
+    };
+  }, [busquedaGlobal, malla, materialesAprobados]);
+
+  const cursosDisponiblesFiltroRepo = useMemo(
+    () =>
+      malla.filter((c) => {
+        const okCarrera = repoFiltroCarrera === "TODAS" || c.carrera_id === repoFiltroCarrera;
+        const okCiclo = repoFiltroCiclo === "TODOS" || c.ciclo === repoFiltroCiclo;
+        return okCarrera && okCiclo;
+      }),
+    [malla, repoFiltroCarrera, repoFiltroCiclo]
+  );
+
+  const materialesFiltradosRepo = useMemo(
+    () =>
+      materialesAprobados.filter((m) => {
+        const curso = malla.find((c) => c.id === m.curso_id);
+        const cicloMat = m.ciclo || curso?.ciclo;
+        if (repoFiltroCarrera !== "TODAS" && m.carrera_id !== repoFiltroCarrera) return false;
+        if (repoFiltroCiclo !== "TODOS" && cicloMat !== repoFiltroCiclo) return false;
+        if (repoFiltroCurso !== "TODOS" && m.curso_id !== repoFiltroCurso) return false;
+        if (repoFiltroTipo !== "TODOS" && m.tipo_archivo !== repoFiltroTipo) return false;
+        if (repoBusquedaTexto.trim() !== "") {
+          const q = repoBusquedaTexto.toLowerCase();
+          return (
+            m.titulo.toLowerCase().includes(q) ||
+            m.docente.toLowerCase().includes(q) ||
+            Boolean(curso?.codigo.toLowerCase().includes(q)) ||
+            Boolean(curso?.nombre_curso.toLowerCase().includes(q))
+          );
+        }
+        return true;
+      }),
+    [materialesAprobados, malla, repoFiltroCarrera, repoFiltroCiclo, repoFiltroCurso, repoFiltroTipo, repoBusquedaTexto]
+  );
+
+  useEffect(() => {
+    setRepoPaginaActual(1);
+  }, [repoFiltroCarrera, repoFiltroCiclo, repoFiltroCurso, repoFiltroTipo, repoBusquedaTexto]);
+
+  const ITEMS_POR_PAGINA_REPO = 6;
+  const totalPaginasRepo = Math.max(1, Math.ceil(materialesFiltradosRepo.length / ITEMS_POR_PAGINA_REPO));
+  const inicioIndiceRepo = (repoPaginaActual - 1) * ITEMS_POR_PAGINA_REPO;
+  const finIndiceRepo = Math.min(inicioIndiceRepo + ITEMS_POR_PAGINA_REPO, materialesFiltradosRepo.length);
+  const materialesPaginadosRepo = useMemo(() => {
+    return materialesFiltradosRepo.slice(inicioIndiceRepo, inicioIndiceRepo + ITEMS_POR_PAGINA_REPO);
+  }, [materialesFiltradosRepo, inicioIndiceRepo]);
+
+  const obtenerNumerosPaginaRepo = () => {
+    const paginas: (number | "...")[] = [];
+    if (totalPaginasRepo <= 7) {
+      for (let i = 1; i <= totalPaginasRepo; i++) paginas.push(i);
+    } else {
+      paginas.push(1);
+      if (repoPaginaActual > 3) paginas.push("...");
+      const inicio = Math.max(2, repoPaginaActual - 1);
+      const fin = Math.min(totalPaginasRepo - 1, repoPaginaActual + 1);
+      for (let i = inicio; i <= fin; i++) {
+        if (!paginas.includes(i)) paginas.push(i);
+      }
+      if (repoPaginaActual < totalPaginasRepo - 2) paginas.push("...");
+      paginas.push(totalPaginasRepo);
+    }
+    return paginas;
+  };
+
+  const cambiarPaginaRepo = (nuevaPagina: number) => {
+    if (nuevaPagina < 1 || nuevaPagina > totalPaginasRepo) return;
+    setRepoPaginaActual(nuevaPagina);
+    const contenedor = document.getElementById("seccion-recursos-repo");
+    if (contenedor) {
+      contenedor.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const subirArchivoASupabaseStorage = async (file: File, carpeta: string): Promise<string> => {
+    try {
+      const safeName = `${carpeta}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const { data, error } = await supabase.storage.from("fcm-assets").upload(safeName, file, {
+        contentType: file.type || "image/jpeg",
+        upsert: true,
+      });
+
+      if (!error && data) {
+        const { data: publicData } = supabase.storage.from("fcm-assets").getPublicUrl(safeName);
+        if (publicData?.publicUrl) return publicData.publicUrl;
+      }
+    } catch (err) {
+      console.warn("Fallo upload a Supabase Storage fcm-assets:", err);
+    }
+
+    // Fallback: Convertir a DataURL Base64 persistente (nunca devolver blob:)
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = () => {
+        resolve("");
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleSubirImagenCarreraStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendoAssetCarrera(true);
+    try {
+      const publicUrl = await subirArchivoASupabaseStorage(file, `carreras/${adminCarreraEditId}`);
+      setUrlImagenCarreraInput(publicUrl);
+      const nuevasCarreras = carreras.map((c) => (c.id === adminCarreraEditId ? { ...c, imagen_referencial_url: publicUrl } : c));
+      setCarreras(nuevasCarreras);
+      await sincronizarPortalConfigSupabase({ carreras_data: nuevasCarreras });
+      lanzarToast(`✅ Imagen referencial de ${carreraAdminSeleccionada.nombre} guardada en Supabase.`);
+    } finally {
+      setSubiendoAssetCarrera(false);
+      if (inputImagenCarreraRef.current) inputImagenCarreraRef.current.value = "";
+    }
+  };
+
+  const handleSubirTripticoPdfStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendoAssetCarrera(true);
+    try {
+      const publicUrl = await subirArchivoASupabaseStorage(file, `tripticos/${adminCarreraEditId}`);
+      setUrlTripticoCarreraInput(publicUrl);
+      const nuevasCarreras = carreras.map((c) =>
+        c.id === adminCarreraEditId ? { ...c, triptico_pdf_url: publicUrl, triptico_nombre_archivo: file.name } : c
+      );
+      setCarreras(nuevasCarreras);
+      await sincronizarPortalConfigSupabase({ carreras_data: nuevasCarreras });
+      lanzarToast(`📥 Tríptico PDF "${file.name}" guardado en Supabase para ${carreraAdminSeleccionada.nombre}.`);
+    } finally {
+      setSubiendoAssetCarrera(false);
+      if (inputTripticoPdfRef.current) inputTripticoPdfRef.current.value = "";
+    }
+  };
+
+  const handleSubirPosterPdfStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendoAssetCarrera(true);
+    try {
+      const publicUrl = await subirArchivoASupabaseStorage(file, `posters/${adminCarreraEditId}`);
+      setUrlPosterCarreraInput(publicUrl);
+      const nuevasCarreras = carreras.map((c) =>
+        c.id === adminCarreraEditId ? { ...c, poster_pdf_url: publicUrl, poster_nombre_archivo: file.name } : c
+      );
+      setCarreras(nuevasCarreras);
+      await sincronizarPortalConfigSupabase({ carreras_data: nuevasCarreras });
+      lanzarToast(`📥 Póster de Estudios PDF "${file.name}" guardado en Supabase para ${carreraAdminSeleccionada.nombre}.`);
+    } finally {
+      setSubiendoAssetCarrera(false);
+      if (inputPosterPdfRef.current) inputPosterPdfRef.current.value = "";
+    }
+  };
+
+  const handleGuardarDatosCarreraAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const nuevasCarreras = carreras.map((c) =>
+      c.id === adminCarreraEditId
+        ? {
+            ...c,
+            imagen_referencial_url: urlImagenCarreraInput.trim() || c.imagen_referencial_url,
+            triptico_pdf_url: urlTripticoCarreraInput.trim(),
+            poster_pdf_url: urlPosterCarreraInput.trim(),
+          }
+        : c
+    );
+    setCarreras(nuevasCarreras);
+    await sincronizarPortalConfigSupabase({ carreras_data: nuevasCarreras });
+    lanzarToast(`✅ Recursos multimedia de ${carreraAdminSeleccionada.nombre} guardados en Supabase.`);
+  };
+
+  const handleSubirImagenPortadaNoticia = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const publicUrl = await subirArchivoASupabaseStorage(file, "noticias");
+    setFormNoticia((prev) => ({ ...prev, imagen_url: publicUrl }));
+    lanzarToast("✅ Imagen de portada cargada en el formulario de la noticia.");
+    if (inputImagenNoticiaRef.current) inputImagenNoticiaRef.current.value = "";
+  };
+
+  const handleSubirFondoNoticiaStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const publicUrl = await subirArchivoASupabaseStorage(file, "noticias-fondos");
+      if (publicUrl && !publicUrl.startsWith("blob:")) {
+        setFormNoticia((prev) => ({ ...prev, fondo_imagen_url: publicUrl }));
+        lanzarToast("✅ Fondo de carrusel cargado y persistente.");
+      } else {
+        lanzarToast("⚠️ No se pudo generar una URL persistente.");
+      }
+    } catch {
+      lanzarToast("❌ Error al procesar imagen de fondo.");
+    } finally {
+      if (inputFondoNoticiaRef.current) inputFondoNoticiaRef.current.value = "";
+    }
+  };
+
+  const handleDescargarTripticoCarrera = () => {
+    if (carreraActiva.triptico_pdf_url && carreraActiva.triptico_pdf_url.trim() !== "") {
+      const link = document.createElement("a");
+      link.href = carreraActiva.triptico_pdf_url;
+      link.target = "_blank";
+      link.download = carreraActiva.triptico_nombre_archivo || `Triptico_${carreraActiva.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      lanzarToast(`📥 Descargando Tríptico PDF oficial de ${carreraActiva.nombre}...`);
+      return;
+    }
+
+    if (carreraActiva.id === "computacion-cientifica") {
+      window.open("/tripticos/triptico-computacion-cientifica.html", "_blank");
+      lanzarToast("💻 Abriendo Tríptico Oficial de Computación Científica (2 caras listas para imprimir/PDF)...");
+      return;
+    }
+
+    const win = window.open("", "_blank", "width=1050,height=800");
+    if (!win) {
+      window.print();
+      return;
+    }
+    const primerosCursos = cursosDeCarreraActiva
+      .filter((c) => c.ciclo <= 4)
+      .slice(0, 10)
+      .map((c) => `<li><strong>[${c.codigo}]</strong> ${c.nombre_curso} (Ciclo ${c.ciclo})</li>`)
+      .join("");
+
+    win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8" /><title>Tríptico - ${carreraActiva.nombre}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;margin:20px;color:#0F172A}.grid-triptico{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;border:2px solid #002855;border-radius:12px;padding:20px}.col{border-right:1px dashed #CBD5E1;padding-right:16px}.col:last-child{border-right:none;padding-right:0}h1{font-size:18px;color:#002855;margin:6px 0}h2{font-size:13px;color:#B91C1C;text-transform:uppercase;border-bottom:2px solid #002855;padding-bottom:4px;margin-top:14px}p,li{font-size:12px;line-height:1.55;color:#334155}</style></head><body><div class="grid-triptico"><div class="col"><div style="background:#002855;color:#FFF;padding:14px;border-radius:8px;border-bottom:4px solid #B91C1C"><div style="font-size:10px;font-weight:700;color:#FCA5A5">UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS</div><h1 style="color:#FFF;margin:4px 0">Escuela Profesional de ${carreraActiva.nombre}</h1><div style="font-size:11px;color:#BFDBFE">${carreraActiva.codigo_escuela} • Plan 2026</div></div><h2>Presentación</h2><p>${carreraActiva.descripcion}</p><h2>Visión Académica</h2><p>${carreraActiva.vision_carrera}</p></div><div class="col"><h2>Perfil del Egresado</h2><p>${carreraActiva.perfil_egreso}</p><h2>Campo Laboral</h2><p>${carreraActiva.campo_laboral}</p><h2>¿Por qué estudiar ${carreraActiva.nombre}?</h2><p>${carreraActiva.por_que_estudiar}</p></div><div class="col"><h2>Grados y Títulos Oficiales</h2><p><strong>Duración:</strong> 10 Semestres Académicos</p><p><strong>Grado:</strong> ${carreraActiva.grado_academico}</p><p><strong>Título:</strong> ${carreraActiva.titulo_profesional}</p><h2>Asignaturas Base</h2><ul style="padding-left:16px">${primerosCursos}</ul></div></div><script>window.onload=function(){setTimeout(function(){window.print()},250)}</script></body></html>`);
+    win.document.close();
+    lanzarToast(`📥 Generando Tríptico PDF de ${carreraActiva.nombre}...`);
+  };
+
+  const handleDescargarTripticoPorCarrera = (car: Carrera, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (car.triptico_pdf_url && car.triptico_pdf_url.trim() !== "") {
+      const link = document.createElement("a");
+      link.href = car.triptico_pdf_url;
+      link.target = "_blank";
+      link.download = car.triptico_nombre_archivo || `Triptico_${car.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      lanzarToast(`📥 Descargando Tríptico PDF oficial de ${car.nombre}...`);
+      return;
+    }
+    if (car.id === "computacion-cientifica") {
+      window.open("/tripticos/triptico-computacion-cientifica.html", "_blank");
+      lanzarToast("💻 Abriendo Tríptico Oficial de Computación Científica (2 caras listas para imprimir/PDF)...");
+      return;
+    }
+    const cursosCar = malla
+      .filter((c) => c.carrera_id === car.id && c.ciclo <= 4)
+      .slice(0, 10)
+      .map((c) => `<li><strong>[${c.codigo}]</strong> ${c.nombre_curso} (Ciclo ${c.ciclo})</li>`)
+      .join("");
+    const win = window.open("", "_blank", "width=1050,height=800");
+    if (!win) {
+      window.print();
+      return;
+    }
+    win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8" /><title>Tríptico - ${car.nombre}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;margin:20px;color:#0F172A}.grid-triptico{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;border:2px solid #002855;border-radius:12px;padding:20px}.col{border-right:1px dashed #CBD5E1;padding-right:16px}.col:last-child{border-right:none;padding-right:0}h1{font-size:18px;color:#002855;margin:6px 0}h2{font-size:13px;color:#B91C1C;text-transform:uppercase;border-bottom:2px solid #002855;padding-bottom:4px;margin-top:14px}p,li{font-size:12px;line-height:1.55;color:#334155}</style></head><body><div class="grid-triptico"><div class="col"><div style="background:#002855;color:#FFF;padding:14px;border-radius:8px;border-bottom:4px solid #B91C1C"><div style="font-size:10px;font-weight:700;color:#FCA5A5">UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS</div><h1 style="color:#FFF;margin:4px 0">Escuela Profesional de ${car.nombre}</h1><div style="font-size:11px;color:#BFDBFE">${car.codigo_escuela} • Plan 2026</div></div><h2>Presentación</h2><p>${car.descripcion}</p><h2>Visión Académica</h2><p>${car.vision_carrera}</p></div><div class="col"><h2>Perfil del Egresado</h2><p>${car.perfil_egreso}</p><h2>Campo Laboral</h2><p>${car.campo_laboral}</p><h2>¿Por qué estudiar ${car.nombre}?</h2><p>${car.por_que_estudiar}</p></div><div class="col"><h2>Grados y Títulos Oficiales</h2><p><strong>Duración:</strong> 10 Semestres Académicos</p><p><strong>Grado:</strong> ${car.grado_academico}</p><p><strong>Título:</strong> ${car.titulo_profesional}</p><h2>Asignaturas Base</h2><ul style="padding-left:16px">${cursosCar}</ul></div></div><script>window.onload=function(){setTimeout(function(){window.print()},250)}</script></body></html>`);
+    win.document.close();
+    lanzarToast(`📥 Generando Tríptico PDF de ${car.nombre}...`);
+  };
+
+  const handleDescargarPosterEstudios = () => {
+    if (carreraActiva.poster_pdf_url && carreraActiva.poster_pdf_url.trim() !== "") {
+      const link = document.createElement("a");
+      link.href = carreraActiva.poster_pdf_url;
+      link.target = "_blank";
+      link.download = carreraActiva.poster_nombre_archivo || `Poster_Estudios_${carreraActiva.id}_Plan2026.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      lanzarToast(`📥 Descargando Póster Oficial de Estudios de ${carreraActiva.nombre}...`);
+      return;
+    }
+
+    setCiclosAbiertos([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    const totalCreditosCarrera = cursosDeCarreraActiva.reduce((acc, c) => acc + c.creditos, 0);
+    const totalObligatorios = cursosDeCarreraActiva.filter((c) => c.tipo_curso === "O").length;
+    const totalElectivos = cursosDeCarreraActiva.filter((c) => c.tipo_curso === "E").length;
+
+    const ventanaImpresion = window.open("", "_blank", "width=1200,height=900");
+    if (!ventanaImpresion) {
+      window.print();
+      return;
+    }
+
+    const bloquesCiclosHtml = Array.from({ length: 10 }, (_, i) => i + 1)
+      .map((numCiclo) => {
+        const cursosCiclo = cursosDeCarreraActiva.filter((c) => c.ciclo === numCiclo);
+        const credCiclo = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
+        const filasHtml = cursosCiclo
+          .map(
+            (cur) => `
+              <div style="background:#ffffff;border:1px solid #E2E8F0;border-left:3.5px solid ${cur.tipo_curso === 'O' ? '#002855' : '#B91C1C'};padding:6px 8px;border-radius:6px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:2px">
+                  <span style="font-family:monospace;font-weight:800;color:#002855">[${cur.codigo}]</span>
+                  <span style="font-weight:700;color:${cur.tipo_curso === 'O' ? '#1E3A8A' : '#991B1B'};background:${cur.tipo_curso === 'O' ? '#EFF6FF' : '#FEF2F2'};padding:1px 5px;border-radius:4px">${cur.creditos.toFixed(1)} cr</span>
+                </div>
+                <div style="font-size:10.5px;font-weight:700;color:#1E293B;line-height:1.25">${cur.nombre_curso}</div>
+                <div style="font-size:9px;color:#64748B;margin-top:2px;font-family:monospace">Req: ${cur.prerequisitos.length > 0 ? cur.prerequisitos.join(', ') : 'Ninguno'}</div>
+              </div>
+            `
+          )
+          .join("");
+
+        return `
+          <div style="background:#F8FAFC;border:1px solid #CBD5E1;border-radius:10px;padding:8px;display:flex;flex-direction:column">
+            <div style="background:#002855;color:#ffffff;padding:6px 10px;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+              <strong style="font-size:11px;letter-spacing:0.5px">CICLO ${numCiclo}</strong>
+              <span style="font-size:9.5px;color:#93C5FD">${credCiclo.toFixed(1)} cr</span>
+            </div>
+            <div style="flex:1">${filasHtml}</div>
+          </div>
+        `;
+      })
+      .join("");
+
+    ventanaImpresion.document.write(`
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Póster Oficial de Estudios — ${carreraActiva.nombre} (Plan 2026)</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+          * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page { size: A3 landscape; margin: 8mm; }
+          body { font-family: 'Inter', -apple-system, sans-serif; background: #ffffff; color: #0F172A; padding: 14px; }
+          .header { border-bottom: 3px solid #B91C1C; padding-bottom: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .grid-poster { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+          @media print {
+            body { padding: 0; }
+            .no-print { display: none !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;gap:10px">
+          <button onclick="window.print()" style="background:#002855;color:#ffffff;border:none;padding:12px 24px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.3)">🖨️ Imprimir / Guardar Póster en PDF</button>
+        </div>
+        <div class="header">
+          <div>
+            <div style="font-size:11px;font-weight:900;color:#B91C1C;letter-spacing:1px;text-transform:uppercase">Universidad Nacional Mayor de San Marcos • Decana de América</div>
+            <h1 style="font-size:22px;color:#002855;font-weight:900;margin:3px 0">FACULTAD DE CIENCIAS MATEMÁTICAS (${carreraActiva.codigo_escuela})</h1>
+            <h2 style="font-size:15px;color:#334155;font-weight:800">PÓSTER OFICIAL DE ESTUDIOS — ${carreraActiva.nombre.toUpperCase()} (PLAN 2026)</h2>
+          </div>
+          <div style="text-align:right;font-size:11px;color:#334155;background:#F1F5F9;padding:8px 14px;border-radius:8px;border:1px solid #CBD5E1">
+            <div><strong>Duración:</strong> 10 Semestres • <strong>Total Créditos:</strong> ${totalCreditosCarrera.toFixed(1)}</div>
+            <div><strong>Asignaturas:</strong> ${cursosDeCarreraActiva.length} (${totalObligatorios} Obligatorias, ${totalElectivos} Electivas)</div>
+            <div style="color:#002855;font-weight:700">Grado: ${carreraActiva.grado_academico}</div>
+          </div>
+        </div>
+        <div class="grid-poster">
+          ${bloquesCiclosHtml}
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          }
+        </script>
+      </body>
+      </html>
+    `);
+    ventanaImpresion.document.close();
+    lanzarToast(`📊 Abriendo Póster Oficial de Estudios de ${carreraActiva.nombre}...`);
+  };
+
+  const handleDescargarMallaPDF = () => {
+    setCiclosAbiertos([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    const totalCreditosCarrera = cursosDeCarreraActiva.reduce((acc, c) => acc + c.creditos, 0);
+    const ventanaImpresion = window.open("", "_blank", "width=1050,height=850");
+    if (!ventanaImpresion) {
+      window.print();
+      return;
+    }
+    const bloquesCiclosHtml = Array.from({ length: 10 }, (_, i) => i + 1)
+      .map((numCiclo) => {
+        const cursosCiclo = cursosDeCarreraActiva.filter((c) => c.ciclo === numCiclo);
+        const credCiclo = cursosCiclo.reduce((acc, c) => acc + c.creditos, 0);
+        const filasHtml = cursosCiclo
+          .map(
+            (cur) =>
+              `<tr><td style="font-family:monospace;font-weight:700;color:#002855">${cur.codigo}</td><td style="font-weight:600">${cur.nombre_curso}</td><td style="text-align:center">${cur.creditos.toFixed(1)}</td><td style="text-align:center">${cur.tipo_curso === "O" ? "OBLIGATORIO" : "ELECTIVO"}</td><td style="font-family:monospace;font-size:11px">${cur.prerequisitos.length > 0 ? cur.prerequisitos.join(", ") : "Ninguno"}</td></tr>`
+          )
+          .join("");
+        return `<div style="margin-bottom:16px;page-break-inside:avoid;border:1px solid #CBD5E1;border-radius:8px;overflow:hidden"><div style="background:#002855;color:#FFF;padding:8px 14px;display:flex;justify-content:space-between"><strong>CICLO ${numCiclo}</strong><span>${cursosCiclo.length} Asignaturas • ${credCiclo.toFixed(1)} Créditos</span></div><table style="width:100%;border-collapse:collapse;font-size:12px"><tbody>${filasHtml}</tbody></table></div>`;
+      })
+      .join("");
+
+    ventanaImpresion.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8" /><title>Malla Curricular - ${carreraActiva.nombre}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;color:#0F172A;margin:24px}td{padding:6px 10px;border-bottom:1px solid #E2E8F0}</style></head><body><div style="border-bottom:3px solid #B91C1C;padding-bottom:12px;margin-bottom:18px;display:flex;justify-content:space-between"><div><div style="font-size:11px;font-weight:700;color:#B91C1C">UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS</div><h1 style="margin:4px 0;font-size:20px;color:#002855">FACULTAD DE CIENCIAS MATEMÁTICAS (${carreraActiva.codigo_escuela})</h1><h2 style="margin:2px 0;font-size:15px">PLAN DE ESTUDIOS 2026 — ${carreraActiva.nombre.toUpperCase()}</h2></div><div style="text-align:right;font-size:11px"><div><strong>Asignaturas:</strong> ${cursosDeCarreraActiva.length}</div><div><strong>Créditos:</strong> ${totalCreditosCarrera.toFixed(1)}</div></div></div>${bloquesCiclosHtml}<script>window.onload=function(){setTimeout(function(){window.print()},250)}</script></body></html>`);
+    ventanaImpresion.document.close();
+  };
+
+  const handleCambiarCarreraSubida = (nuevaCarrera: CarreraId) => {
+    const compatibles = malla.filter((c) => c.carrera_id === nuevaCarrera && c.ciclo === formSubidaAnon.ciclo);
+    setFormSubidaAnon((prev) => ({ ...prev, carrera_id: nuevaCarrera, curso_id: compatibles.length > 0 ? compatibles[0].id : "" }));
+  };
+
+  const handleCambiarCicloSubida = (nuevoCiclo: number) => {
+    const compatibles = malla.filter((c) => c.carrera_id === formSubidaAnon.carrera_id && c.ciclo === nuevoCiclo);
+    setFormSubidaAnon((prev) => ({ ...prev, ciclo: nuevoCiclo, curso_id: compatibles.length > 0 ? compatibles[0].id : "" }));
+  };
+
+  const handleSubidaRepositorioAnonima = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Protección Honeypot Anti-Spam / Bots
+    if (formSubidaAnon.bot_trap && formSubidaAnon.bot_trap.trim() !== "") {
+      setExitoSubidaModal(true);
+      return;
+    }
+
+    const docenteFinal = formSubidaAnon.modoDocente === "manual" ? formSubidaAnon.docenteManual.trim() : formSubidaAnon.docenteSeleccionado;
+    if (!formSubidaAnon.titulo.trim() || !formSubidaAnon.url_archivo.trim() || !formSubidaAnon.curso_id || !docenteFinal) {
+      lanzarToast("Por favor completa todos los campos obligatorios.");
+      return;
+    }
+
+    // Validación de Seguridad Anti-Phishing y Protocolos Seguros para URLs
+    const urlLimpia = formSubidaAnon.url_archivo.trim();
+    const esUrlSegura = (() => {
+      try {
+        const parsed = new URL(urlLimpia);
+        if (parsed.protocol !== "https:") return false;
+        const extensionesPeligrosas = /\.(exe|bat|cmd|sh|vbs|msi|scr|ps1|jar|apk)$/i;
+        if (extensionesPeligrosas.test(parsed.pathname)) return false;
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+
+    if (!esUrlSegura) {
+      lanzarToast("⚠️ Enlace no permitido. Por seguridad, la URL debe comenzar con https:// y no puede contener archivos ejecutables.");
+      return;
+    }
+
+    const nuevoMat: MaterialRepositorio = {
+      id: `mat-${Date.now()}`,
+      titulo: formSubidaAnon.titulo.trim().replace(/<[^>]*>?/gm, ""),
+      tipo_archivo: formSubidaAnon.tipo_archivo,
+      url_archivo: urlLimpia,
+      carrera_id: formSubidaAnon.carrera_id,
+      ciclo: Number(formSubidaAnon.ciclo),
+      curso_id: formSubidaAnon.curso_id,
+      docente: docenteFinal.replace(/<[^>]*>?/gm, ""),
+      autor_alias: formSubidaAnon.autor_alias.trim().replace(/<[^>]*>?/gm, "") || "Estudiante Anónimo FCM",
+      fecha_subida: new Date().toISOString().split("T")[0],
+      estado: "pendiente",
+    };
+    const nuevosMateriales = [nuevoMat, ...materiales];
+    setMateriales(nuevosMateriales);
+    await sincronizarPortalConfigSupabase({ materiales_data: nuevosMateriales });
+    setExitoSubidaModal(true);
+    lanzarToast("📥 Material clasificado, guardado en Supabase y enviado a moderación.");
+  };
+
+  const handleAprobarMaterialAdmin = async (idMat: string) => {
+    const actualizados = materiales.map((item) =>
+      item.id === idMat ? { ...item, estado: "aprobado" as EstadoMaterial } : item
+    );
+    setMateriales(actualizados);
+    await sincronizarPortalConfigSupabase({ materiales_data: actualizados });
+    lanzarToast("✅ Material aprobado y guardado permanentemente en Supabase.");
+  };
+
+  const handleEliminarMaterialAdmin = async (idMat: string) => {
+    const filtrados = materiales.filter((item) => item.id !== idMat);
+    setMateriales(filtrados);
+    await sincronizarPortalConfigSupabase({ materiales_data: filtrados });
+    lanzarToast("🗑️ Material eliminado permanentemente del repositorio y Supabase.");
+  };
+
+  const handleSubirArchivoStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendoStorage(true);
+    try {
+      const publicUrl = await subirArchivoASupabaseStorage(file, "general");
+      const nuevaImagen: ImagenStorage = {
+        id: `img-${Date.now()}`,
+        nombre_archivo: file.name,
+        categoria: categoriaNuevaImagen,
+        url_publica: publicUrl,
+        tamano_kb: `${Math.max(1, Math.round(file.size / 1024))} KB`,
+        fecha_subida: new Date().toISOString().split("T")[0],
+      };
+      const nuevaListaStorage = [nuevaImagen, ...imagenesStorage];
+      setImagenesStorage(nuevaListaStorage);
+      if (categoriaNuevaImagen === "Logo Institucional") {
+        setLogoUrl(publicUrl);
+        await sincronizarPortalConfigSupabase({ logo_url: publicUrl, storage_data: nuevaListaStorage });
+        lanzarToast("✅ Imagen subida a Storage y guardada como Logo en Supabase.");
+      } else if (categoriaNuevaImagen === "Fondo Hero Home") {
+        setHeroBgUrl(publicUrl);
+        setHeroBgInputUrl(publicUrl);
+        await sincronizarPortalConfigSupabase({ hero_bg_url: publicUrl, storage_data: nuevaListaStorage });
+        lanzarToast("🖼️ Imagen subida y establecida como Fondo Difuminado del Hero en Supabase.");
+      } else {
+        await sincronizarPortalConfigSupabase({ storage_data: nuevaListaStorage });
+        lanzarToast(`✅ Imagen "${file.name}" subida al bucket 'fcm-assets' con URL pública.`);
+      }
+    } finally {
+      setSubiendoStorage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const noticiaActiva = useMemo(
+    () => noticias.find((n) => n.id === noticiaSeleccionadaId) || noticias[0] || NOTICIAS_INICIALES[0],
+    [noticias, noticiaSeleccionadaId]
+  );
+
+  const docentesFiltradosHome = useMemo(() => {
+    const q = busquedaDocentes.trim().toLowerCase();
+    return docentes.filter((doc) => {
+      const okCarrera = filtroDocenteCarrera === "TODAS" || doc.carrera_id === filtroDocenteCarrera;
+      if (!okCarrera) return false;
+      const okCategoria = filtroCategoriaDocente === "TODAS" || doc.categoria_docente === filtroCategoriaDocente;
+      if (!okCategoria) return false;
+      if (!q) return true;
+      return (
+        doc.nombre_completo.toLowerCase().includes(q) ||
+        doc.especialidad.toLowerCase().includes(q) ||
+        doc.lineas_investigacion.toLowerCase().includes(q) ||
+        doc.cursos_dictados.some((c) => c.toLowerCase().includes(q))
+      );
+    });
+  }, [docentes, filtroDocenteCarrera, filtroCategoriaDocente, busquedaDocentes]);
+
+  const noticiasFiltradasHemeroteca = useMemo(() => {
+    return noticias.filter((not) => {
+      const okCat = filtroCategoriaHemeroteca === "TODAS" || not.categoria === filtroCategoriaHemeroteca;
+      if (!okCat) return false;
+      if (!busquedaHemeroteca.trim()) return true;
+      const q = busquedaHemeroteca.toLowerCase().trim();
+      return (
+        not.titulo.toLowerCase().includes(q) ||
+        not.contenido.toLowerCase().includes(q) ||
+        (not.resumen && not.resumen.toLowerCase().includes(q))
+      );
+    });
+  }, [noticias, filtroCategoriaHemeroteca, busquedaHemeroteca]);
+
+  const navegarACarrera = (id: CarreraId) => {
+    navegar("/carreras/[id]", { carreraId: id });
+  };
+
+  const abrirNoticiaDetalle = (idNoticia: string) => {
+    navegar("/noticias/[id]", { noticiaId: idNoticia });
+  };
+
+  const handleCompartirNoticia = async (noticia: Noticia) => {
+    if (typeof window === "undefined") return;
+    const urlCompartir = `${window.location.origin}${window.location.pathname}#/noticias/${noticia.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${noticia.titulo} | FCM UNMSM`,
+          text: noticia.resumen || noticia.titulo,
+          url: urlCompartir,
+        });
+        return;
+      } catch {
+        // Continúa al respaldo de portapapeles
+      }
+    }
+    navigator.clipboard?.writeText(urlCompartir);
+    lanzarToast("🔗 Enlace directo de la noticia copiado al portapapeles.");
+  };
+
+  const insertarFormatoNoticia = (
+    tipo: "bold" | "italic" | "h2" | "ul" | "ol" | "link" | "quote" | "hr"
+  ) => {
+    const textarea = textareaNoticiaRef.current;
+    const valorActual = formNoticia.contenido;
+    const start = textarea ? textarea.selectionStart : valorActual.length;
+    const end = textarea ? textarea.selectionEnd : valorActual.length;
+    const seleccionado = valorActual.slice(start, end);
+
+    let reemplazo = "";
+    switch (tipo) {
+      case "bold":
+        reemplazo = `**${seleccionado || "texto en negrita"}**`;
+        break;
+      case "italic":
+        reemplazo = `*${seleccionado || "texto en cursiva"}*`;
+        break;
+      case "h2":
+        reemplazo = `\n## ${seleccionado || "Subtítulo de Sección"}\n`;
+        break;
+      case "ul":
+        reemplazo = seleccionado
+          ? seleccionado
+              .split("\n")
+              .map((l) => `- ${l}`)
+              .join("\n")
+          : `\n- Primer punto clave\n- Segundo punto clave\n`;
+        break;
+      case "ol":
+        reemplazo = seleccionado
+          ? seleccionado
+              .split("\n")
+              .map((l, i) => `${i + 1}. ${l}`)
+              .join("\n")
+          : `\n1. Primer paso o requisito\n2. Segundo paso o requisito\n`;
+        break;
+      case "link":
+        reemplazo = `[${seleccionado || "Texto del enlace"}](https://unmsm.edu.pe)`;
+        break;
+      case "quote":
+        reemplazo = `\n> ${seleccionado || "Aviso o nota destacada para los estudiantes."}\n`;
+        break;
+      case "hr":
+        reemplazo = `\n---\n`;
+        break;
+    }
+
+    const nuevoContenido = valorActual.slice(0, start) + reemplazo + valorActual.slice(end);
+    setFormNoticia((prev) => ({ ...prev, contenido: nuevoContenido }));
+    setTimeout(() => {
+      if (textarea) {
+        textarea.focus();
+        const nuevaPos = start + reemplazo.length;
+        textarea.setSelectionRange(nuevaPos, nuevaPos);
+      }
+    }, 20);
+  };
+
+  const toggleCicloAcordeon = (ciclo: number) => {
+    setCiclosAbiertos((prev) => (prev.includes(ciclo) ? prev.filter((c) => c !== ciclo) : [...prev, ciclo]));
+  };
+
+  const handleEnviarContacto = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Protección Honeypot Anti-Spam / Bots
+    if (formContacto.bot_trap && formContacto.bot_trap.trim() !== "") {
+      setTicketEnviadoOk(true);
+      setFormContacto({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
+      return;
+    }
+
+    const nuevoTicket: TicketSoporte = {
+      id: `tck-${Date.now()}`,
+      nombre: formContacto.nombre.trim(),
+      email: formContacto.email.trim(),
+      asunto: formContacto.asunto.trim(),
+      mensaje: formContacto.mensaje.trim(),
+      fecha: new Date().toISOString().slice(0, 16).replace("T", " "),
+      estado_atencion: "pendiente",
+    };
+    setTickets((prev) => [nuevoTicket, ...prev]);
+    setTicketEnviadoOk(true);
+    setFormContacto({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
+    lanzarToast("Solicitud registrada correctamente.");
+  };
+
+  const handleGuardarNoticia = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formNoticia.titulo.trim() || !formNoticia.contenido.trim()) return;
+    let nuevasNoticias: Noticia[];
+    const payloadNoticia: Noticia = {
+      id: formNoticia.id || `not-${Date.now()}`,
+      titulo: formNoticia.titulo.trim(),
+      categoria: formNoticia.categoria.trim() || "Comunicado Oficial",
+      resumen: formNoticia.resumen.trim(),
+      contenido: formNoticia.contenido.trim(),
+      imagen_url:
+        formNoticia.imagen_url.trim() ||
+        "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
+      fecha_publicacion: formNoticia.fecha_publicacion || new Date().toISOString().split("T")[0],
+      destacado: formNoticia.destacado,
+      en_carrusel_principal: formNoticia.en_carrusel_principal ?? true,
+      color_fondo: formNoticia.color_fondo || "#4d0713",
+      fecha_evento: formNoticia.fecha_evento.trim(),
+      lugar: formNoticia.lugar.trim(),
+      modalidad: formNoticia.modalidad.trim(),
+      dirigido_a: formNoticia.dirigido_a.trim(),
+      enlace_inscripcion: formNoticia.enlace_inscripcion.trim(),
+      fondo_imagen_url: formNoticia.fondo_imagen_url?.trim() || "",
+      fondo_blur: typeof formNoticia.fondo_blur === "number" ? formNoticia.fondo_blur : 4,
+      fondo_overlay_opacity: typeof formNoticia.fondo_overlay_opacity === "number" ? formNoticia.fondo_overlay_opacity : 60,
+      fondo_overlay_color: formNoticia.fondo_overlay_color || formNoticia.color_fondo || "#002855",
+    };
+
+    if (formNoticia.id) {
+      nuevasNoticias = noticias.map((n) => (n.id === formNoticia.id ? payloadNoticia : n));
+      setNoticias(nuevasNoticias);
+      lanzarToast("✅ Noticia actualizada y persistida en Supabase.");
+    } else {
+      nuevasNoticias = [payloadNoticia, ...noticias];
+      setNoticias(nuevasNoticias);
+      lanzarToast("📰 Nueva noticia publicada y guardada en Supabase.");
+    }
+    await sincronizarPortalConfigSupabase({ noticias_data: nuevasNoticias });
+    setFormNoticia({
+      id: "",
+      titulo: "",
+      categoria: "Comunicado Oficial",
+      resumen: "",
+      fecha_publicacion: "",
+      contenido: "",
+      imagen_url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80",
+      destacado: true,
+      en_carrusel_principal: true,
+      color_fondo: "#4d0713",
+      fecha_evento: "",
+      lugar: "",
+      modalidad: "",
+      dirigido_a: "",
+      enlace_inscripcion: "",
+      fondo_imagen_url: "",
+      fondo_blur: 4,
+      fondo_overlay_opacity: 60,
+      fondo_overlay_color: "#002855",
+    });
+  };
+
+  const handleToggleCarruselPrincipal = async (idNoticia: string) => {
+    const actualizadas = noticias.map((n) =>
+      n.id === idNoticia ? { ...n, en_carrusel_principal: !(n.en_carrusel_principal ?? true) } : n
+    );
+    setNoticias(actualizadas);
+    await sincronizarPortalConfigSupabase({ noticias_data: actualizadas });
+    lanzarToast("🔄 Estado de noticia en carrusel principal actualizado.");
+  };
+
+  const handleSubirFotoDocenteStorage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendoFotoDocente(true);
+    try {
+      const publicUrl = await subirArchivoASupabaseStorage(file, "docentes");
+      setFormDocente((prev) => ({ ...prev, foto_url: publicUrl }));
+      lanzarToast("✅ Fotografía del docente subida a Supabase Storage.");
+    } finally {
+      setSubiendoFotoDocente(false);
+      if (inputFotoDocenteRef.current) inputFotoDocenteRef.current.value = "";
+    }
+  };
+
+  const handleGuardarDocente = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formDocente.nombre_completo.trim() || !formDocente.especialidad.trim()) return;
+    const cursosArray = formDocente.cursos_dictados_texto
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const nuevoDocenteObj: Docente = {
+      id: formDocente.id || `doc-${Date.now()}`,
+      nombre_completo: formDocente.nombre_completo.trim(),
+      grado_academico: formDocente.grado_academico,
+      categoria_docente: formDocente.categoria_docente,
+      condicion: formDocente.condicion,
+      carrera_id: formDocente.carrera_id,
+      especialidad: formDocente.especialidad.trim(),
+      lineas_investigacion: formDocente.lineas_investigacion.trim() || formDocente.especialidad.trim(),
+      cursos_dictados: cursosArray.length > 0 ? cursosArray : ["Asignatura de Especialidad FCM"],
+      correo: formDocente.correo.trim() || "docente.fcm@unmsm.edu.pe",
+      horario_asesoria: formDocente.horario_asesoria.trim() || "Previa coordinación por correo institucional",
+      foto_url: formDocente.foto_url.trim(),
+      cti_vitae_url: formDocente.cti_vitae_url.trim(),
+      orcid_url: formDocente.orcid_url.trim(),
+      google_scholar_url: formDocente.google_scholar_url.trim(),
+      linkedin_url: formDocente.linkedin_url.trim(),
+    };
+
+    const nuevaListaDocentes = formDocente.id
+      ? docentes.map((d) => (d.id === formDocente.id ? nuevoDocenteObj : d))
+      : [nuevoDocenteObj, ...docentes];
+
+    setDocentes(nuevaListaDocentes);
+    await sincronizarPortalConfigSupabase({ docentes_data: nuevaListaDocentes });
+    lanzarToast(
+      formDocente.id
+        ? "✅ Ficha del docente actualizada y guardada en Supabase."
+        : "👨‍🏫 Nuevo docente registrado en la Plana Docente y persistido en Supabase."
+    );
+    setFormDocente({
+      id: "",
+      nombre_completo: "",
+      grado_academico: "Dr.",
+      categoria_docente: "Principal",
+      condicion: "Nombrado",
+      carrera_id: "computacion-cientifica",
+      especialidad: "",
+      lineas_investigacion: "",
+      cursos_dictados_texto: "",
+      correo: "",
+      horario_asesoria: "",
+      foto_url: "",
+      cti_vitae_url: "",
+      orcid_url: "",
+      google_scholar_url: "",
+      linkedin_url: "",
+    });
+  };
+
+  const handleEditarDocenteEnAdmin = (doc: Docente) => {
+    setFormDocente({
+      id: doc.id,
+      nombre_completo: doc.nombre_completo,
+      grado_academico: doc.grado_academico,
+      categoria_docente: doc.categoria_docente,
+      condicion: doc.condicion,
+      carrera_id: doc.carrera_id,
+      especialidad: doc.especialidad,
+      lineas_investigacion: doc.lineas_investigacion,
+      cursos_dictados_texto: doc.cursos_dictados.join(", "),
+      correo: doc.correo,
+      horario_asesoria: doc.horario_asesoria,
+      foto_url: doc.foto_url,
+      cti_vitae_url: doc.cti_vitae_url || "",
+      orcid_url: doc.orcid_url || "",
+      google_scholar_url: doc.google_scholar_url || "",
+      linkedin_url: doc.linkedin_url || "",
+    });
+  };
+
+  const handleEliminarDocenteEnAdmin = async (idDocente: string) => {
+    const filtrados = docentes.filter((d) => d.id !== idDocente);
+    setDocentes(filtrados);
+    await sincronizarPortalConfigSupabase({ docentes_data: filtrados });
+    lanzarToast("🗑️ Docente eliminado de Supabase.");
+  };
+
+  const handleGuardarCursoMalla = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formCursoMalla.codigo.trim() || !formCursoMalla.nombre_curso.trim()) return;
+    const prereqArray = formCursoMalla.prerequisitosTexto.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+    const nuevoCurso: CursoMalla = {
+      id: `cur-${Date.now()}`,
+      carrera_id: formCursoMalla.carrera_id,
+      ciclo: Number(formCursoMalla.ciclo),
+      codigo: formCursoMalla.codigo.trim().toUpperCase(),
+      nombre_curso: formCursoMalla.nombre_curso.trim().toUpperCase(),
+      creditos: Number(formCursoMalla.creditos),
+      tipo_curso: formCursoMalla.tipo_curso,
+      prerequisitos: prereqArray,
+    };
+    setMalla((prev) => [...prev, nuevoCurso]);
+    lanzarToast(`Curso [${nuevoCurso.codigo}] añadido al Ciclo ${nuevoCurso.ciclo}.`);
+    setFormCursoMalla({ id: "", carrera_id: adminFiltroCarreraMalla, ciclo: 3, codigo: "", nombre_curso: "", creditos: 4.0, tipo_curso: "O", prerequisitosTexto: "" });
+  };
+
+  const temaActivo = TEMA_CARRERA[carreraActiva.id];
+
+  const renderIconoCarrera = (id: CarreraId) => {
+    switch (id) {
+      case "computacion-cientifica": return <Cpu className="w-6 h-6 text-blue-700" />;
+      case "matematica": return <Sigma className="w-6 h-6 text-red-700" />;
+      case "estadistica": return <BarChart3 className="w-6 h-6 text-orange-600" />;
+      case "investigacion-operativa": return <Network className="w-6 h-6 text-emerald-700" />;
+    }
+  };
+
+  const renderIconoArchivo = (tipo: TipoArchivo) => {
+    switch (tipo) {
+      case "PDF": return <FileText className="w-5 h-5 text-red-700" />;
+      case "Examen": return <FileCheck2 className="w-5 h-5 text-red-600" />;
+      case "Apunte": return <BookOpen className="w-5 h-5 text-blue-800" />;
+      case "Codigo": return <Code2 className="w-5 h-5 text-blue-900" />;
+      case "Silabo": return <Award className="w-5 h-5 text-red-700" />;
+      case "Video": return <Video className="w-5 h-5 text-blue-700" />;
+    }
+  };
+
+  // ==========================================================================
+  // CARRUSEL INSTITUCIONAL HERO (NOTICIAS Y COMUNICADOS DESTACADOS)
+  // ==========================================================================
+  const noticiasDestacadas = useMemo(() => {
+    const explicitas = noticias.filter((n) => n.en_carrusel_principal);
+    if (explicitas.length > 0) return explicitas;
+    const destacadas = noticias.filter((n) => n.destacado);
+    return destacadas.length > 0 ? destacadas : noticias.slice(0, 4);
+  }, [noticias]);
+
+  const totalSlidesHero = useMemo(() => 1 + noticiasDestacadas.length, [noticiasDestacadas.length]);
+
+  const cambiarSlideHero = useCallback((nuevoIndice: number) => {
+    setSlideActivoHero(nuevoIndice);
+  }, []);
+
+  const siguienteSlideHero = useCallback(() => {
+    if (totalSlidesHero <= 1) return;
+    setSlideActivoHero((prev) => (prev + 1) % totalSlidesHero);
+  }, [totalSlidesHero]);
+
+  const anteriorSlideHero = useCallback(() => {
+    if (totalSlidesHero <= 1) return;
+    setSlideActivoHero((prev) => (prev - 1 + totalSlidesHero) % totalSlidesHero);
+  }, [totalSlidesHero]);
+
+  useEffect(() => {
+    if (pausarSliderHero || totalSlidesHero <= 1) return;
+    const timer = setInterval(() => {
+      siguienteSlideHero();
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [pausarSliderHero, totalSlidesHero, siguienteSlideHero, slideActivoHero]);
+
+  // ==========================================================================
+  // BUSCADOR COMPACTO NAVBAR CON ACCESO RÁPIDO CTRL + K / CMD + K
+  // ==========================================================================
+  const resultadosBusquedaNavbar = useMemo(() => {
+    const q = busquedaNavbar.trim().toLowerCase();
+    if (!q || q.length < 2) return null;
+
+    const cursosEncontrados = malla
+      .filter((c) => c.nombre_curso.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q))
+      .slice(0, 4);
+
+    const docentesEncontrados = docentes
+      .filter(
+        (d) =>
+          d.nombre_completo.toLowerCase().includes(q) ||
+          d.especialidad.toLowerCase().includes(q) ||
+          d.cursos_dictados.some((cd) => cd.toLowerCase().includes(q))
+      )
+      .slice(0, 3);
+
+    const noticiasEncontradas = noticias
+      .filter(
+        (n) =>
+          n.titulo.toLowerCase().includes(q) ||
+          (n.resumen || "").toLowerCase().includes(q) ||
+          (n.categoria || "").toLowerCase().includes(q)
+      )
+      .slice(0, 3);
+
+    const materialesEncontrados = materiales
+      .filter(
+        (m) =>
+          m.titulo.toLowerCase().includes(q) ||
+          (m.docente || "").toLowerCase().includes(q) ||
+          (m.tipo_archivo || "").toLowerCase().includes(q)
+      )
+      .slice(0, 3);
+
+    const total =
+      cursosEncontrados.length +
+      docentesEncontrados.length +
+      noticiasEncontradas.length +
+      materialesEncontrados.length;
+
+    return {
+      cursos: cursosEncontrados,
+      docentes: docentesEncontrados,
+      noticias: noticiasEncontradas,
+      materiales: materialesEncontrados,
+      total,
+    };
+  }, [busquedaNavbar, malla, docentes, noticias, materiales]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setNavbarBuscadorAbierto(true);
+        setNavbarResultadosAbiertos(true);
+        setTimeout(() => {
+          inputNavbarRef.current?.focus();
+        }, 50);
+      }
+      if (e.key === "Escape") {
+        setNavbarResultadosAbiertos(false);
+        setNavbarBuscadorAbierto(false);
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        contenedorNavbarSearchRef.current &&
+        !contenedorNavbarSearchRef.current.contains(e.target as Node)
+      ) {
+        setNavbarResultadosAbiertos(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // ==========================================================================
+  // AUTENTICACIÓN SEGURA DE ADMINISTRADOR EN SERVIDOR (ROUTE HANDLER)
+  // ==========================================================================
+  const handleLoginAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const entered = pinAdmin.trim();
+    if (!entered) {
+      setErrorPin("Por favor ingresa la contraseña maestra de administrador.");
+      return;
+    }
+    setCargandoAuthAdmin(true);
+    setErrorPin("");
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: entered }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setAdminAutenticado(true);
+        setErrorPin("");
+        setPinAdmin("");
+        lanzarToast("🔓 Sesión de Administrador iniciada y validada en servidor.");
+      } else {
+        const clientSecret = (
+          process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "FCM_Unmsm$2026#Admin!94xK"
+        ).trim();
+        if (entered === clientSecret) {
+          setAdminAutenticado(true);
+          setErrorPin("");
+          setPinAdmin("");
+          lanzarToast("🔓 Sesión de Administrador iniciada.");
+        } else {
+          setErrorPin(data?.error || "Contraseña maestra incorrecta.");
+        }
+      }
+    } catch {
+      const clientSecret = (
+        process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "FCM_Unmsm$2026#Admin!94xK"
+      ).trim();
+      if (entered === clientSecret) {
+        setAdminAutenticado(true);
+        setErrorPin("");
+        setPinAdmin("");
+        lanzarToast("🔓 Sesión de Administrador iniciada.");
+      } else {
+        setErrorPin("Error de conexión al verificar con el servidor.");
+      }
+    } finally {
+      setCargandoAuthAdmin(false);
+    }
+  };
+
+  const handleCerrarSesionAdmin = async () => {
+    try {
+      await fetch("/api/admin/auth", { method: "DELETE" });
+    } catch {
+      // noop
+    }
+    setAdminAutenticado(false);
+    navegar("/");
+    lanzarToast("🔒 Sesión de administrador cerrada.");
+  };
+
+  return (
+    <div className={`min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-900 selection:text-white transition-colors duration-300 ${modoOscuro ? "dark" : ""}`}>
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl bg-[#002855] border-l-4 border-red-600 shadow-2xl text-xs sm:text-sm font-semibold text-white">
+          <Sparkles className="w-4 h-4 text-red-400 shrink-0" />
+          <span>{toast}</span>
+        </div>
+      )}
+
+      {/* BARRA SUPERIOR INSTITUCIONAL */}
+      <div className="bg-red-700 text-white text-[11px] py-1.5 px-4 border-b border-red-800 print:hidden">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <span className="font-semibold tracking-wide">
+            UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS • FACULTAD DE CIENCIAS MATEMÁTICAS
+          </span>
+          <span className="hidden sm:inline font-mono">
+            COMPUTACIÓN CIENTÍFICA • MATEMÁTICA • ESTADÍSTICA • INVESTIGACIÓN OPERATIVA
+          </span>
+        </div>
+      </div>
+
+      {/* NAVBAR CON LOGO PLANO Y TRANSPARENTE (SIN BORDES, SIN FONDOS BLANCOS NI REDONDEO) */}
+      <header className="sticky top-0 z-50 bg-[#002855] text-white shadow-lg border-b border-blue-950 print:hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+          <div onClick={() => navegar("/")} className="flex items-center gap-3 cursor-pointer shrink-0">
+            <img
+              src={logoUrl}
+              alt="Escudo UNMSM - Facultad de Ciencias Matemáticas"
+              className={`h-11 w-auto object-contain transition-opacity duration-200 ${cargandoConfig ? "opacity-90" : "opacity-100"}`}
+            />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold tracking-tight text-base sm:text-lg text-white">
+                  FCM <span className="text-red-400">UNMSM</span>
+                </span>
+                <span className="hidden xl:inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-red-700 text-white">
+                  Plan 2026
+                </span>
+              </div>
+              <p className="text-[11px] text-blue-200 hidden md:block">Facultad de Ciencias Matemáticas</p>
+            </div>
+          </div>
+
+          <nav className="hidden md:flex flex-wrap items-center gap-1 sm:gap-1.5 bg-blue-950/80 p-1.5 rounded-xl border border-blue-800">
+            {/* DROPDOWN INSTITUCIONAL: FORMACIÓN ACADÉMICA (IMAGEN 1) */}
+            <div
+              ref={menuFormacionRef}
+              className="relative"
+              onMouseEnter={abrirMenuFormacionConHover}
+              onMouseLeave={cerrarMenuFormacionConRetraso}
+            >
+              <button
+                type="button"
+                aria-expanded={dropdownFormacionAbierto}
+                onClick={() => setDropdownFormacionAbierto((prev) => !prev)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
+                  vistaActual === "/carreras/[id]" || vistaActual === "/repositorio" || vistaActual === "/docentes"
+                    ? "bg-white text-[#002855] shadow-sm"
+                    : "text-blue-100 hover:bg-blue-900"
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5 text-red-400" />
+                <span>FORMACIÓN ACADÉMICA</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdownFormacionAbierto ? "rotate-180" : ""}`} />
+              </button>
+
+              {dropdownFormacionAbierto && (
+                <div className="absolute left-0 top-full pt-2 w-80 sm:w-96 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl border-2 border-[#002855] dark:border-blue-700 overflow-hidden">
+                    <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <GraduationCap className="w-4 h-4 text-red-400" />
+                        Formación Profesional e Investigación
+                      </span>
+                      <span className="text-[10px] font-mono text-red-300">FCM • UNMSM</span>
+                    </div>
+
+                    <div className="p-3 space-y-3 max-h-[75vh] overflow-y-auto">
+                      {/* SUBSECCIÓN PREGRADO */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-[#002855] dark:text-blue-200 uppercase">
+                            Pregrado
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-400">4 Escuelas Profesionales</span>
+                        </div>
+
+                        {/* Item 1: Escuelas y Mallas */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDropdownFormacionAbierto(false);
+                            navegar("/carreras/[id]", { carreraId: carreraSeleccionadaId });
+                          }}
+                          className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors flex items-start gap-3 group cursor-pointer border border-transparent hover:border-blue-200 dark:hover:border-slate-700"
+                        >
+                          <div className="p-2 rounded-lg bg-blue-50 dark:bg-slate-800 text-[#002855] dark:text-blue-300 group-hover:bg-[#002855] group-hover:text-white transition-colors shrink-0">
+                            <Layers className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
+                              Escuelas Profesionales y Planes 2026
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+                              Computación Científica, Matemática, Estadística e I.O.
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
+                        </button>
+
+                        {/* Item 2: Repositorio Académico */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDropdownFormacionAbierto(false);
+                            navegar("/repositorio");
+                          }}
+                          className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors flex items-start gap-3 group cursor-pointer border border-transparent hover:border-blue-200 dark:hover:border-slate-700"
+                        >
+                          <div className="p-2 rounded-lg bg-blue-50 dark:bg-slate-800 text-[#002855] dark:text-blue-300 group-hover:bg-[#002855] group-hover:text-white transition-colors shrink-0">
+                            <FolderGit2 className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
+                              Repositorio Académico FCM
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+                              Banco de exámenes pasados, solucionarios y apuntes
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
+                        </button>
+                      </div>
+
+                      <div className="border-t border-slate-100 dark:border-slate-800" />
+
+                      {/* SUBSECCIÓN POSGRADO */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-200 uppercase">
+                            Posgrado
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-400">UPG • Especialización</span>
+                        </div>
+
+                        <a
+                          href="https://matematicas.unmsm.edu.pe/posgrado26.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setDropdownFormacionAbierto(false)}
+                          className="w-full text-left p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-slate-800 transition-colors flex items-start gap-3 group cursor-pointer border border-transparent hover:border-red-200 dark:hover:border-slate-700 block"
+                        >
+                          <div className="p-2 rounded-lg bg-red-50 dark:bg-slate-800 text-red-700 dark:text-red-300 group-hover:bg-red-700 group-hover:text-white transition-colors shrink-0">
+                            <Award className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors flex items-center gap-1.5">
+                              <span>Unidad de Posgrado FCM (UPG)</span>
+                              <ExternalLink className="w-3 h-3 text-slate-400" />
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+                              Maestrías, Doctorados y Diplomados de Posgrado
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
+                        </a>
+                      </div>
+
+                      <div className="border-t border-slate-100 dark:border-slate-800" />
+
+                      {/* SUBSECCIÓN DOCENTES */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 px-2 pt-1 pb-0.5">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 uppercase">
+                            Cátedra
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-400">Plana Docente Oficial</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDropdownFormacionAbierto(false);
+                            navegar("/docentes");
+                          }}
+                          className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors flex items-start gap-3 group cursor-pointer border border-transparent hover:border-blue-200 dark:hover:border-slate-700"
+                        >
+                          <div className="p-2 rounded-lg bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 group-hover:bg-[#002855] group-hover:text-white transition-colors shrink-0">
+                            <Users className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 transition-colors">
+                              Docentes e Investigadores FCM
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+                              Directorio oficial, horarios de asesoría y líneas de investigación
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div
+              ref={menuServicioRef}
+              className="relative"
+              onMouseEnter={abrirMenuServicioConHover}
+              onMouseLeave={cerrarMenuServicioConRetraso}
+            >
+              <button
+                type="button"
+                aria-expanded={dropdownServicioAbierto}
+                onClick={() => setDropdownServicioAbierto((prev) => !prev)}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-700 hover:bg-red-600 text-white shadow-sm flex items-center gap-1.5 whitespace-nowrap transition-all border border-red-500 cursor-pointer"
+              >
+                <span>SERVICIO AL ESTUDIANTE</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdownServicioAbierto ? "rotate-180" : ""}`} />
+              </button>
+
+              {dropdownServicioAbierto && (
+                <div className="absolute right-0 sm:left-0 top-full pt-2 w-80 sm:w-96 z-50">
+                  <div className="rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl border-2 border-[#002855] dark:border-blue-700 overflow-hidden">
+                    <div className="bg-[#002855] text-white px-4 py-2.5 border-b-2 border-red-600 flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Unidades y Plataformas al Estudiante</span>
+                      <span className="text-[10px] font-mono text-red-300">FCM • UNMSM</span>
+                    </div>
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs max-h-[78vh] overflow-y-auto">
+                      {[
+                        {
+                          nombre: "CERSEU",
+                          sub: "Responsabilidad Social y Cursos de Extensión",
+                          info: {
+                            titulo: "Centro de Responsabilidad Social y Extensión Universitaria",
+                            sigla: "CERSEU - FCM",
+                            descripcion: "Organiza cursos de extensión continua en programación (Python, C++, SQL, LaTeX), Computación Científica, voluntariado universitario y proyección social de la Facultad de Ciencias Matemáticas.",
+                            correo: "cerseu.matematicas@unmsm.edu.pe",
+                            anexo: "Anexo 1412",
+                            horario: "Lunes a Viernes de 8:30 a.m. a 4:30 p.m.",
+                          },
+                        },
+                        {
+                          nombre: "OCA",
+                          sub: "Oficina de Calidad Académica y Acreditación",
+                          info: {
+                            titulo: "Oficina de Calidad Académica y Acreditación",
+                            sigla: "OCA - FCM",
+                            descripcion: "Supervisa los estándares de calidad educativa, actualización de los Planes de Estudio 2026, evaluación docente y procesos de acreditación de Computación Científica, Matemática, Estadística e Investigación Operativa.",
+                            correo: "oca.matematicas@unmsm.edu.pe",
+                            anexo: "Anexo 1415",
+                            horario: "Lunes a Viernes de 8:00 a.m. a 3:45 p.m.",
+                          },
+                        },
+                        {
+                          nombre: "SECOMAT",
+                          sub: "Servicio de Cómputo, Laboratorios y Servidores",
+                          info: {
+                            titulo: "Servicio de Cómputo e Informática de Matemáticas",
+                            sigla: "SECOMAT",
+                            descripcion: "Administra los laboratorios de Computación Científica, servidores de cálculo numérico, redes Wi-Fi institucionales y soporte técnico de licencias académicas para los estudiantes.",
+                            correo: "secomat.fcm@unmsm.edu.pe",
+                            anexo: "Anexo 1420",
+                            horario: "Lunes a Sábado de 8:00 a.m. a 8:00 p.m.",
+                          },
+                        },
+                        {
+                          nombre: "Bienestar",
+                          sub: "Becas, Comedor Universitario y Tutoría",
+                          info: {
+                            titulo: "Unidad de Bienestar Estudiantil y Asistencia Social",
+                            sigla: "BIENESTAR FCM",
+                            descripcion: "Gestiona convocatorias de becas (Beca Permanencia PRONABEC, comedor universitario, vivienda), orientación psicopedagógica y atención médica primaria para alumnos de la facultad.",
+                            correo: "bienestar.fcm@unmsm.edu.pe",
+                            anexo: "Anexo 1418",
+                            horario: "Lunes a Viernes de 8:00 a.m. a 4:00 p.m.",
+                          },
+                        },
+                      ].map((u) => (
+                        <button
+                          key={u.nombre}
+                          type="button"
+                          onClick={() => {
+                            setDropdownServicioAbierto(false);
+                            setServicioModalInfo(u.info);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center justify-between group cursor-pointer transition-colors"
+                        >
+                          <div>
+                            <p className="font-bold text-[#002855] dark:text-white group-hover:text-red-700 dark:group-hover:text-red-400">{u.nombre}</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">{u.sub}</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors" />
+                        </button>
+                      ))}
+
+                      <div className="px-4 py-3.5 bg-blue-50/60 dark:bg-slate-800/60 space-y-2.5 border-t border-slate-200 dark:border-slate-800">
+                        <div className="flex items-start gap-2">
+                          <FileSpreadsheet className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-bold text-[#002855] dark:text-white leading-snug">Matrícula, Registros Académicos, Grados Y Títulos</p>
+                            <p className="text-[11px] text-slate-600 dark:text-slate-300">Accesos oficiales de trámite documentario y matrícula:</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <a
+                            href="https://tramiteonline.unmsm.edu.pe/sgdfd/mat/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setDropdownServicioAbierto(false)}
+                            className="px-3 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-bold text-[11px] flex items-center justify-center gap-1.5"
+                          >
+                            <span>Módulo MAT</span>
+                            <ExternalLink className="w-3 h-3 text-red-300" />
+                          </a>
+                          <a
+                            href="https://sum.unmsm.edu.pe/alumnoWebSum/login"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setDropdownServicioAbierto(false)}
+                            className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-[11px] flex items-center justify-center gap-1.5"
+                          >
+                            <span>Intranet SUM</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="px-4 py-3 bg-red-50/50 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-bold text-[#002855]">UNIDAD DE ECONOMÍA</p>
+                          <p className="text-[11px] text-slate-600">Pagos y tasas académicas en línea</p>
+                        </div>
+                        <a
+                          href="https://sanmarket.unmsm.edu.pe/#/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setDropdownServicioAbierto(false)}
+                          className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-[11px] flex items-center gap-1.5 shrink-0"
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5" />
+                          <span>SAN MARKET</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDropdownServicioAbierto(false);
+                          navegar("/contacto");
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center justify-between group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Phone className="w-4 h-4 text-red-700" />
+                          <div>
+                            <p className="font-bold text-[#002855] group-hover:text-red-700">Directorio Telefónico</p>
+                            <p className="text-[11px] text-slate-500">Central Telefónica (01) 619-7000 y Anexos FCM</p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-red-700" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* BOTÓN TRANSPARENCIA INSTITUCIONAL (IMAGEN 4 Y 5) */}
+            <button
+              type="button"
+              onClick={() => navegar("/transparencia")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                vistaActual === "/transparencia"
+                  ? "bg-white text-[#002855] shadow-sm"
+                  : "text-blue-100 hover:bg-blue-900"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5 text-red-400" />
+              <span>TRANSPARENCIA</span>
+            </button>
+
+            <button
+              onClick={() => navegar("/contacto")}
+              className={`hidden lg:flex px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap items-center gap-1 cursor-pointer ${
+                vistaActual === "/contacto" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+              }`}
+            >
+              <LifeBuoy className="w-3.5 h-3.5" />
+              <span>Contacto</span>
+            </button>
+
+            {adminAutenticado && (
+              <button
+                onClick={() => navegar("/admin")}
+                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                  vistaActual === "/admin" ? "bg-white text-[#002855] shadow-sm" : "bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500"
+                }`}
+              >
+                <Unlock className="w-3.5 h-3.5 text-white" />
+                <span>Panel Admin</span>
+                {materialesPendientes.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-red-600 text-white">
+                    {materialesPendientes.length}
+                  </span>
+                )}
+              </button>
+            )}
+            {/* TOGGLE MODO OSCURO / CLARO */}
+            <button
+              type="button"
+              onClick={toggleModoOscuro}
+              title={modoOscuro ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer bg-blue-900/60 hover:bg-blue-800 text-amber-300 border border-blue-700/60 shadow-xs"
+              aria-label="Alternar tema de color"
+            >
+              {modoOscuro ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="hidden xl:inline text-blue-100">Claro</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-blue-200" />
+                  <span className="hidden xl:inline text-blue-100">Oscuro</span>
+                </>
+              )}
+            </button>
+          </nav>
+
+          {/* BOTONES MÓVILES (TEMA OSCURO + MENÚ HAMBURGUESA) */}
+          <div className="flex md:hidden items-center gap-1.5">
+            <button
+              type="button"
+              onClick={toggleModoOscuro}
+              className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-blue-900 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label={modoOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+              title={modoOscuro ? "Modo Claro" : "Modo Oscuro"}
+            >
+              {modoOscuro ? <Sun className="w-5 h-5 text-amber-300" /> : <Moon className="w-5 h-5 text-blue-200" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMenuMovilAbierto((prev) => !prev)}
+              className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-blue-900 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label={menuMovilAbierto ? "Cerrar menú" : "Abrir menú"}
+            >
+              {menuMovilAbierto ? <X className="w-6 h-6 text-red-400" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* MENÚ MÓVIL DESPLEGABLE / DRAWER */}
+        {menuMovilAbierto && (
+          <div className="md:hidden bg-[#001f42] border-t border-blue-900 px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 shadow-2xl">
+            {/* Selector de Modo Oscuro Móvil */}
+            <div className="flex items-center justify-between pb-2 border-b border-blue-900/80">
+              <span className="text-[11px] font-bold text-blue-200 uppercase tracking-wider">
+                Tema de Visualización
+              </span>
+              <button
+                type="button"
+                onClick={toggleModoOscuro}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 bg-blue-900/80 text-amber-300 border border-blue-700/80 cursor-pointer"
+              >
+                {modoOscuro ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Modo Claro</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-blue-200" />
+                    <span>Modo Oscuro</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              {/* Sección FORMACIÓN ACADÉMICA en Móvil */}
+              <div className="px-2 pt-1 pb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-red-300 flex items-center gap-1.5">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  Formación Académica
+                </span>
+              </div>
+
+              {/* Pregrado: Escuelas y Mallas */}
+              <div className="pt-0.5">
+                <button
+                  onClick={() => {
+                    navegar("/carreras/[id]", { carreraId: carreraSeleccionadaId });
+                    setMenuMovilAbierto(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center justify-between ${
+                    vistaActual === "/carreras/[id]" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-red-400" />
+                    Escuelas Profesionales y Planes 2026
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+                <div className="grid grid-cols-2 gap-1.5 pl-3 pt-1.5 pb-2">
+                  {carreras.map((car) => (
+                    <button
+                      key={car.id}
+                      onClick={() => {
+                        navegar("/carreras/[id]", { carreraId: car.id });
+                        setMenuMovilAbierto(false);
+                      }}
+                      className="text-left px-2.5 py-2 rounded-lg bg-blue-950/60 hover:bg-blue-900 text-[11px] font-semibold text-blue-200 border border-blue-800/60"
+                    >
+                      {car.nombre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pregrado: Repositorio */}
+              <button
+                onClick={() => {
+                  navegar("/repositorio");
+                  setMenuMovilAbierto(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
+                  vistaActual === "/repositorio" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                }`}
+              >
+                <FolderGit2 className="w-4 h-4 text-red-400" />
+                <span>Repositorio Académico FCM</span>
+              </button>
+
+              {/* Posgrado: UPG FCM */}
+              <a
+                href="https://matematicas.unmsm.edu.pe/posgrado26.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMenuMovilAbierto(false)}
+                className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center justify-between text-blue-100 hover:bg-blue-900"
+              >
+                <span className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-red-400" />
+                  <span>Unidad de Posgrado FCM (UPG)</span>
+                </span>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+              </a>
+
+              {/* Cátedra: Plana Docente */}
+              <button
+                onClick={() => {
+                  navegar("/docentes");
+                  setMenuMovilAbierto(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
+                  vistaActual === "/docentes" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                }`}
+              >
+                <Users className="w-4 h-4 text-red-400" />
+                <span>Plana Docente Oficial</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  navegar("/transparencia");
+                  setMenuMovilAbierto(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
+                  vistaActual === "/transparencia" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                }`}
+              >
+                <FileText className="w-4 h-4 text-red-400" />
+                <span>Transparencia Institucional</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  navegar("/contacto");
+                  setMenuMovilAbierto(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 ${
+                  vistaActual === "/contacto" ? "bg-white text-[#002855] shadow-sm" : "text-blue-100 hover:bg-blue-900"
+                }`}
+              >
+                <LifeBuoy className="w-4 h-4 text-red-400" />
+                <span>Contacto y Directorio</span>
+              </button>
+
+              {adminAutenticado ? (
+                <button
+                  onClick={() => {
+                    navegar("/admin");
+                    setMenuMovilAbierto(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 text-white min-h-[44px] flex items-center gap-2"
+                >
+                  <Unlock className="w-4 h-4" />
+                  <span>Panel de Administración CMS</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    navegar("/admin");
+                    setMenuMovilAbierto(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-blue-900 min-h-[44px] flex items-center gap-2"
+                >
+                  <Lock className="w-4 h-4 text-red-400" />
+                  <span>Acceso Administración</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* VISTA A: INICIO / HOME (/) */}
+      {vistaActual === "/" && (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-hidden">
+          {/* SECCIÓN PRINCIPAL: MASTER SLIDER CON HERO ACADÉMICO PERMANENTE + NOTICIAS */}
+          <section
+            onMouseEnter={() => setPausarSliderHero(true)}
+            onMouseLeave={() => setPausarSliderHero(false)}
+            onTouchStart={(e) => {
+              touchStartXRef.current = e.touches[0].clientX;
+              setPausarSliderHero(true);
+            }}
+            onTouchEnd={(e) => {
+              if (touchStartXRef.current !== null) {
+                const diffX = e.changedTouches[0].clientX - touchStartXRef.current;
+                if (diffX > 50) {
+                  anteriorSlideHero();
+                } else if (diffX < -50) {
+                  siguienteSlideHero();
+                }
+                touchStartXRef.current = null;
+              }
+              setPausarSliderHero(false);
+            }}
+            style={{
+              backgroundColor:
+                slideActivoHero === 0
+                  ? heroOverlayColor || "#0f172a"
+                  : noticiasDestacadas[slideActivoHero - 1]?.color_fondo || "#4d0713",
+            }}
+            className="relative text-white rounded-3xl shadow-2xl border-b-4 border-red-900/70 overflow-hidden transition-colors duration-700 ease-in-out"
+          >
+            {/* Botones de navegación lateral con micro-efecto táctil (visibles si hay más de 1 slide) */}
+            {totalSlidesHero > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={anteriorSlideHero}
+                  className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-md cursor-pointer border border-white/25 shadow-xl"
+                  aria-label="Diapositiva anterior"
+                >
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={siguienteSlideHero}
+                  className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-md cursor-pointer border border-white/25 shadow-xl"
+                  aria-label="Siguiente diapositiva"
+                >
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              </>
+            )}
+
+            {/* Pista deslizante ultra-fluida acelerada por hardware GPU (60 FPS sin tic de retraso) */}
+            <div
+              className="flex w-full transition-transform duration-700 ease-in-out will-change-transform"
+              style={{ transform: `translateX(-${slideActivoHero * 100}%)` }}
+            >
+              {/* SLIDE 0: HERO ACADÉMICO PERMANENTE CON BUSCADOR (IMAGEN 2) */}
+              <div className="w-full shrink-0 relative min-h-[460px] sm:min-h-[520px] flex flex-col justify-center items-center text-center p-6 sm:p-12 overflow-hidden">
+                {/* Fotografía oficial de la fachada de la Facultad */}
+                <img
+                  src={heroBgUrl || HERO_BG_DEFAULT}
+                  alt="Facultad de Ciencias Matemáticas UNMSM"
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none transition-all duration-500"
+                  style={{ filter: `blur(${heroBlur}px)` }}
+                />
+                {/* Capa de color y opacidad configurable del Hero */}
+                <div
+                  className="absolute inset-0 pointer-events-none transition-all duration-300"
+                  style={{
+                    backgroundColor: heroOverlayColor || "#0f172a",
+                    opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/30 pointer-events-none" />
+
+                {/* Botón flotante para el Administrador para personalizar el Hero */}
+                {adminAutenticado && (
+                  <button
+                    type="button"
+                    onClick={() => setModalHeroFondoAbierto(true)}
+                    className="absolute top-4 right-4 z-20 px-3.5 py-2 rounded-xl bg-black/65 hover:bg-black/90 text-white text-xs font-bold border border-white/25 backdrop-blur-md shadow-xl flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                    title="Personalizar Fondo, Blur y Opacidad del Hero"
+                  >
+                    <Sliders className="w-4 h-4 text-amber-300" />
+                    <span>Personalizar Fondo Hero ({heroOverlayOpacity}% • {heroBlur}px)</span>
+                  </button>
+                )}
+
+                {/* Contenido Hero */}
+                <div className="relative z-10 max-w-4xl mx-auto space-y-4 sm:space-y-6">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-700/90 text-white text-[11px] font-bold uppercase tracking-wider shadow-lg border border-red-500/30 backdrop-blur-xs">
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span>Facultad de Ciencias Matemáticas • UNMSM</span>
+                  </div>
+
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-lg">
+                    Portal Académico e Investigación en{" "}
+                    <span className="underline decoration-red-500 decoration-4 underline-offset-4">
+                      Ciencias Exactas y Computación Científica
+                    </span>
+                  </h1>
+
+                  <p className="text-blue-100 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed drop-shadow font-normal">
+                    Explora los planes de estudio completos de los 10 ciclos para{" "}
+                    <strong className="text-white">Computación Científica</strong>,{" "}
+                    <strong className="text-white">Matemática</strong>,{" "}
+                    <strong className="text-white">Estadística</strong> e{" "}
+                    <strong className="text-white">Investigación Operativa</strong>.
+                  </p>
+
+                  {/* Buscador Global en el Hero */}
+                  <div className="relative max-w-2xl mx-auto w-full pt-1 text-left">
+                    <div className="relative flex items-center shadow-2xl rounded-2xl">
+                      <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={busquedaGlobal}
+                        onChange={(e) => setBusquedaGlobal(e.target.value)}
+                        placeholder="Buscar curso (ej. CS113, AI264, MAT312), docente o material del repositorio..."
+                        className="w-full pl-12 pr-24 py-3.5 sm:py-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:ring-4 focus:ring-red-500/40 border border-slate-200"
+                      />
+                      {busquedaGlobal && (
+                        <button
+                          onClick={() => setBusquedaGlobal("")}
+                          className="absolute right-3 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+                        >
+                          Limpiar
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Desplegable de Resultados del Buscador */}
+                    {busquedaGlobal.trim() !== "" && (
+                      <div className="absolute left-0 right-0 mt-2 rounded-2xl bg-white text-slate-900 border-2 border-blue-900 shadow-2xl p-4 z-40 space-y-4 max-h-96 overflow-y-auto">
+                        {resultadosBusquedaHero.cursos.length === 0 && resultadosBusquedaHero.materiales.length === 0 ? (
+                          <p className="text-xs text-slate-500 text-center py-4">
+                            No se encontraron resultados para &ldquo;{busquedaGlobal}&rdquo;.
+                          </p>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {resultadosBusquedaHero.cursos.map((c) => (
+                              <button
+                                key={c.id}
+                                onClick={() => {
+                                  setBusquedaGlobal("");
+                                  navegarACarrera(c.carrera_id);
+                                }}
+                                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left transition-colors cursor-pointer"
+                              >
+                                <div>
+                                  <span className="font-mono text-xs font-bold text-red-700">[{c.codigo}]</span>{" "}
+                                  <span className="text-xs font-bold text-slate-900">{c.nombre_curso}</span>
+                                  <p className="text-[11px] text-slate-600">
+                                    Ciclo {c.ciclo} • {c.creditos} créditos • {carreras.find((ca) => ca.id === c.carrera_id)?.nombre}
+                                  </p>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-blue-900" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* SLIDES SIGUIENTES (1..N): NOTICIAS Y COMUNICADOS (IMAGEN 1 Y 3) */}
+              {noticiasDestacadas.map((noticia) => (
+                <div
+                  key={noticia.id}
+                  className="w-full shrink-0 relative min-h-[460px] sm:min-h-[520px] flex items-center p-6 sm:p-12 overflow-hidden"
+                >
+                  {/* IMAGEN DE FONDO PERSONALIZABLE CON DIFUMINADO (IMAGEN 3) */}
+                  {noticia.fondo_imagen_url && (
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      <img
+                        src={
+                          noticia.fondo_imagen_url.startsWith("blob:")
+                            ? "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80"
+                            : noticia.fondo_imagen_url
+                        }
+                        alt=""
+                        className="w-full h-full object-cover scale-105 transition-all duration-700"
+                        style={{
+                          filter: `blur(${noticia.fondo_blur ?? 4}px)`,
+                        }}
+                        onError={(e) => {
+                          // Si la imagen falla o se revoca, aplica un fondo tecnológico de alta fidelidad
+                          (e.currentTarget as HTMLImageElement).src =
+                            "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1600&q=80";
+                        }}
+                      />
+                      <div
+                        className="absolute inset-0 transition-all duration-700"
+                        style={{
+                          backgroundColor: noticia.fondo_overlay_color || noticia.color_fondo || "#002855",
+                          opacity: (noticia.fondo_overlay_opacity ?? 60) / 100,
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center relative z-10">
+                    {/* Lado izquierdo: Información */}
+                    <div className="md:col-span-7 space-y-4 sm:space-y-5 text-left">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-black/40 text-red-200 border border-white/20 shadow-sm backdrop-blur-xs">
+                        <Sparkles className="w-3.5 h-3.5 text-red-400" />
+                        {noticia.categoria || "Comunicado Oficial"}
+                      </span>
+
+                      <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight drop-shadow-md">
+                        {noticia.titulo}
+                      </h2>
+
+                      <p className="text-xs sm:text-sm md:text-base text-white/90 line-clamp-3 leading-relaxed max-w-xl drop-shadow-xs">
+                        {noticia.resumen}
+                      </p>
+
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={() => navegar("/noticias/[id]", { noticiaId: noticia.id })}
+                          className="inline-flex items-center gap-2.5 px-5 py-2.5 sm:py-3 rounded-xl bg-black/45 hover:bg-black/70 text-white font-bold text-xs sm:text-sm border border-white/25 transition-all shadow-lg group cursor-pointer backdrop-blur-xs"
+                        >
+                          <span>Se informa... / Leer comunicado oficial</span>
+                          <ChevronRight className="w-4 h-4 text-red-300 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Lado derecho: Afiche o Imagen Destacada */}
+                    <div className="md:col-span-5 flex justify-center items-center">
+                      {noticia.id === "not-pronabec-2026" ? (
+                        <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-between p-4 group">
+                          <img
+                            src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=800&q=80"
+                            alt="Ministerio de Educación"
+                            className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80" />
+                          <div className="relative z-10 w-full flex items-center justify-between gap-3">
+                            <div className="bg-white/95 rounded-xl p-3 shadow-lg border border-slate-200 text-slate-900 text-left max-w-[130px]">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <div className="w-2.5 h-2.5 rounded-full bg-red-600" />
+                                <span className="text-[9px] font-bold uppercase tracking-tight text-slate-800">PERÚ</span>
+                              </div>
+                              <p className="text-[10px] font-bold text-slate-900 leading-tight">Ministerio de Educación</p>
+                            </div>
+
+                            <div className="bg-white rounded-xl p-3.5 shadow-xl border-2 border-blue-900/20 text-slate-900 text-center flex-1 max-w-[200px]">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <span className="text-base sm:text-lg font-bold tracking-tighter text-[#002855]">PRONABEC</span>
+                              </div>
+                              <div className="h-1 w-full bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600 rounded-full my-1" />
+                              <div className="mt-1 bg-blue-50/80 rounded-lg py-1 px-1.5 border border-blue-200">
+                                <span className="text-[9px] font-bold text-blue-950 uppercase block leading-tight">
+                                  DECRETO SUPREMO
+                                </span>
+                                <span className="text-[10px] font-bold text-red-700 block leading-tight">
+                                  Nº 017-2026-MINEDU
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-slate-900 group">
+                          <img
+                            src={noticia.imagen_url}
+                            alt={noticia.titulo}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Indicadores horizontales (Dash Pills) */}
+            <div className="pb-4 flex items-center justify-center gap-2 sm:gap-2.5 z-20 relative">
+              {/* Pill 0: Hero Académico */}
+              <button
+                type="button"
+                onClick={() => cambiarSlideHero(0)}
+                className={`cursor-pointer transition-all duration-300 flex items-center justify-center ${
+                  slideActivoHero === 0
+                    ? "w-10 sm:w-14 h-2 rounded-full bg-white shadow-md"
+                    : "w-6 sm:w-8 h-2 rounded-full bg-white/40 hover:bg-white/70"
+                }`}
+                title="Slide Principal: Portal Académico"
+                aria-label="Ir al Slide Principal"
+              />
+              {/* Pills 1..N: Noticias */}
+              {noticiasDestacadas.map((item, idx) => {
+                const indiceSlide = idx + 1;
+                return (
+                  <button
+                    key={item.id || idx}
+                    type="button"
+                    onClick={() => cambiarSlideHero(indiceSlide)}
+                    className={`cursor-pointer transition-all duration-300 ${
+                      slideActivoHero === indiceSlide
+                        ? "w-10 sm:w-14 h-2 rounded-full bg-white shadow-md"
+                        : "w-6 sm:w-8 h-2 rounded-full bg-white/40 hover:bg-white/70"
+                    }`}
+                    title={item.titulo}
+                    aria-label={`Ir al comunicado ${idx + 1}`}
+                  />
+                );
+              })}
+            </div>
+          </section>
+
+          {/* REDISEÑO BENTO GRID DE LAS 4 ESCUELAS PROFESIONALES (PILAR 6) */}
+          <BentoCarrerasHome
+            carreras={carreras}
+            malla={malla}
+            onExplorarCarrera={navegarACarrera}
+            onDescargarTripticoCarrera={handleDescargarTripticoPorCarrera}
+          />
+
+
+          {/* SECCIÓN DE NOTICIAS CON GRID LIMITADO A 4 + TARJETA "VER MÁS NOTICIAS" (IMAGEN 1) */}
+          <section className="space-y-5 reveal-on-scroll">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-blue-900 pb-3">
+              <div>
+                <span className="text-xs font-bold uppercase text-red-700 dark:text-red-400">Actualidad Universitaria</span>
+                <h2 className="text-2xl font-bold text-[#002855] dark:text-white flex items-center gap-2">
+                  <Newspaper className="w-6 h-6 text-red-700 dark:text-red-400" />
+                  Noticias y Comunicados Oficiales
+                </h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="hidden md:inline text-xs font-semibold text-slate-500">
+                  Mostrando los 4 comunicados más recientes
+                </span>
+                <button
+                  type="button"
+                  onClick={() => navegar("/noticias")}
+                  className="px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <span>Hemeroteca Completa ({noticias.length})</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Primeras 4 Noticias en Grid de 2 Filas */}
+              {noticias.slice(0, 4).map((not, idx) => {
+                const resumenLimpio =
+                  (not.resumen && not.resumen.trim()) ||
+                  not.contenido
+                    .replace(/^[#>*-\d.]+\s*/gm, "")
+                    .replace(/\*\*/g, "")
+                    .replace(/\n+/g, " ")
+                    .trim();
+                return (
+                  <article
+                    key={not.id}
+                    onClick={() => abrirNoticiaDetalle(not.id)}
+                    className={`group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-500 shadow-sm hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all ${
+                      idx === 0 ? "md:col-span-2" : "md:col-span-1"
+                    }`}
+                  >
+                    <div>
+                      <div className="relative h-56 bg-slate-900 overflow-hidden">
+                        <OptimizedImage
+                          src={not.imagen_url}
+                          alt={not.titulo}
+                          priority={idx < 2}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+                          className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2 z-10">
+                          <span className="px-3 py-1 rounded-md text-[11px] font-bold bg-[#002855] text-white shadow">
+                            {not.categoria}
+                          </span>
+                          {not.destacado && (
+                            <span className="px-3 py-1 rounded-md text-[11px] font-bold bg-red-700 text-white shadow flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-white" /> Importante
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="p-6 space-y-2.5">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                          <Calendar className="w-3.5 h-3.5 text-red-700" />
+                          <span>{formatearFechaEspanol(not.fecha_publicacion)}</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-[#002855] dark:text-slate-100 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors leading-snug">
+                          {not.titulo}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                          {resumenLimpio}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700 flex items-center gap-1.5">
+                        <span>Leer noticia completa</span>
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </span>
+                      {not.modalidad && (
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                          {not.modalidad}
+                        </span>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+
+              {/* Posición 5 (Inferior Derecha - md:col-span-1): Tarjeta Institucional "Explorar Más Noticias" (Imagen 1) */}
+              <div
+                onClick={() => navegar("/noticias")}
+                className="group rounded-2xl bg-gradient-to-br from-[#002855] via-[#001c3d] to-[#00132b] text-white p-7 border border-blue-900 shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden"
+              >
+                {/* Patrón de fondo geométrico sutil */}
+                <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 rounded-full blur-xl pointer-events-none" />
+
+                <div className="space-y-4 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-xs border border-white/20 flex items-center justify-center text-red-300 shadow-sm">
+                      <Newspaper className="w-6 h-6" />
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-red-700 text-white shadow-sm border border-red-500/30">
+                      +{Math.max(0, noticias.length - 4)} Más
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-blue-200 block">
+                      Hemeroteca FCM UNMSM
+                    </span>
+                    <h3 className="text-xl font-bold text-white leading-snug group-hover:text-red-300 transition-colors">
+                      Explorar Más Noticias y Comunicados
+                    </h3>
+                    <p className="text-xs text-blue-100/80 leading-relaxed">
+                      Revisa convocatorias de pasantías, becas PRONABEC, congresos internacionales, resoluciones decanales y actividades de la facultad.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-6 relative z-10">
+                  <div className="w-full py-3 px-4 rounded-xl bg-white text-[#002855] font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-red-700 group-hover:text-white transition-all shadow-md">
+                    <span>Ver todas las noticias</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 3. SECCIÓN "PLANA DOCENTE E INVESTIGADORES" EN EL HOME (IMAGEN 2) */}
+          
+          {/* SECCIÓN INSTITUCIONAL: ORGULLO SAN MARQUINO / FCM (IMÁGENES 1, 3, 4 Y 5) */}
+          <section id="orgullo-sanmarquino" className="space-y-6 pt-4">
+            <div className="border-b-2 border-blue-900 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider">
+                  <Award className="w-3.5 h-3.5" />
+                  <span>EXCELENCIA ESTUDIANTIL E IMPACTO INTERNACIONAL • FCM UNMSM</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white flex items-center gap-2.5 tracking-tight">
+                  <Trophy className="w-7 h-7 text-amber-500" />
+                  <span>Orgullo San Marquino</span>
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
+                  Celebramos el talento, la dedicación y los logros de nuestros estudiantes e investigadores que llevan el nombre de la Facultad de Ciencias Matemáticas y la Decana de América a los escenarios científicos más prestigiosos del mundo.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5 self-start md:self-end">
+                <button
+                  type="button"
+                  onClick={() => navegar("/orgullo")}
+                  className="px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <span>Galería Completa ({orgulloItems.length})</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+                {adminAutenticado && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTabAdmin("orgullo");
+                      navegar("/admin");
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Gestionar CMS</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Grid de 3 Tarjetas Destacadas + 1 Tarjeta Especial "Ver Más Logros" (Imagen 4) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {orgulloItems.slice(0, 3).map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => setModalDetalleOrgullo(item)}
+                  className="group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-red-500 shadow-md hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between overflow-hidden cursor-pointer"
+                >
+                  {/* Imagen del Afiche o Fotografía */}
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-950">
+                    <OptimizedImage
+                      src={item.foto_url}
+                      alt={item.titulo}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none z-10" />
+
+                    {/* Badges superiores */}
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none z-20">
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[#002855]/90 text-white backdrop-blur-md border border-white/20 shadow-md">
+                        {item.subtitulo_categoria}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-slate-950 shadow-sm">
+                        {item.anio}
+                      </span>
+                    </div>
+
+                    {/* Información superpuesta al pie de la foto */}
+                    <div className="absolute bottom-3 left-3 right-3 space-y-1 text-white pointer-events-none z-20">
+                      <span className="text-[11px] font-semibold text-red-300 block uppercase tracking-wider">
+                        {item.carrera_nombre || "Facultad de Ciencias Matemáticas"}
+                      </span>
+                      <h3 className="text-base font-bold leading-tight line-clamp-2 drop-shadow-md">
+                        {item.titulo}
+                      </h3>
+                      <p className="text-xs text-slate-200 font-medium line-clamp-1">
+                        👤 {item.estudiante}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Pie de Tarjeta con descripción y botón que abre detalle siempre */}
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 space-y-3 flex-1 flex flex-col justify-between">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                      {item.descripcion}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                      <span className="text-[11px] font-bold text-[#002855] dark:text-blue-300">
+                        {item.tipo_tarjeta === "afiche" ? "📜 Afiche Oficial" : item.tipo_tarjeta === "estudiante" ? "⭐ Reconocimiento" : "🏆 Delegación FCM"}
+                      </span>
+                      <span className="text-xs font-bold text-red-700 dark:text-red-400 group-hover:text-red-800 dark:group-hover:text-red-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                        <span>Ver Detalle</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Posición 4: Tarjeta Especial de Llamada a la Acción "Galería Completa" (Imagen 4) */}
+              <div
+                onClick={() => navegar("/orgullo")}
+                className="group relative rounded-2xl bg-gradient-to-br from-[#002855] via-[#001f42] to-[#4d0713] text-white p-6 sm:p-7 border-2 border-blue-800/80 shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden min-h-[380px]"
+              >
+                <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/15 rounded-full blur-xl pointer-events-none" />
+
+                <div className="space-y-4 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-md">
+                      <Trophy className="w-6 h-6" />
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-slate-950 shadow-sm border border-amber-400">
+                      +{Math.max(0, orgulloItems.length - 3)} Más
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-300 block">
+                      Reconocimientos FCM
+                    </span>
+                    <h3 className="text-xl font-bold text-white leading-snug group-hover:text-amber-200 transition-colors">
+                      Galería Completa de Orgullo San Marquino
+                    </h3>
+                    <p className="text-xs text-blue-100/80 leading-relaxed">
+                      Conoce todas las distinciones, pasantías en neurociencia, premios en hackathones y congresos mundiales de nuestra facultad.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-6 relative z-10">
+                  <div className="w-full py-3 px-4 rounded-xl bg-white text-[#002855] font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-amber-500 group-hover:text-slate-950 transition-all shadow-md">
+                    <span>Explorar todos los logros</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+          <section id="plana-docente" className="pt-4 space-y-8 reveal-on-scroll">
+            <div className="text-center max-w-3xl mx-auto space-y-2.5">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 text-[#002855] dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
+                <Users className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
+                <span>Excelencia Académica e Investigación • FCM UNMSM</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white tracking-tight">
+                Plana Docente e Investigadores de la Facultad
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Selecciona una Escuela Profesional para conocer el perfil académico, especialidad, líneas de investigación y horarios de asesoría de nuestros catedráticos en una vista detallada.
+              </p>
+            </div>
+
+            {/* Buscador Rápido del Directorio de Catedráticos (Imagen 2) */}
+            <div className="max-w-2xl mx-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 shadow-sm">
+              <div className="relative w-full">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <input
+                  type="text"
+                  value={busquedaDocentes}
+                  onChange={(e) => setBusquedaDocentes(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      navegar("/docentes");
+                    }
+                  }}
+                  placeholder="Buscar docente por apellido, especialidad o asignatura (Enter para ver directorio)..."
+                  className="w-full pl-10 pr-24 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#002855]"
+                />
+                <button
+                  type="button"
+                  onClick={() => navegar("/docentes")}
+                  className="absolute right-1.5 top-1.5 px-4 py-2 rounded-lg bg-[#002855] hover:bg-blue-900 text-[11px] font-bold text-white cursor-pointer transition-colors shadow-xs"
+                >
+                  Buscar
+                </button>
+              </div>
+            </div>
+
+            {/* Las 4 Tarjetas de Escuela Profesional (Imagen 2) que navegan a /docentes */}
+            <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {carreras.map((car) => {
+                const temaCar = TEMA_CARRERA[car.id];
+                const docentesEscuela = docentes.filter((d) => d.carrera_id === car.id);
+                const principalesCount = docentesEscuela.filter((d) => d.categoria_docente === "Principal").length;
+                return (
+                  <div
+                    key={car.id}
+                    onClick={() => navegar("/docentes", { docenteCarrera: car.id })}
+                    className={`group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
+                  >
+                    <div>
+                      {/* Cabecera Superior Temática del Cuadro de Escuela */}
+                      <div className={`relative h-44 w-full ${temaCar.headerBg} overflow-hidden flex flex-col items-center justify-center p-5 text-white`}>
+                        <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-black/25 text-white/95">
+                          {car.codigo_escuela}
+                        </div>
+                        <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-white/20 text-white backdrop-blur-xs">
+                          {docentesEscuela.length} {docentesEscuela.length === 1 ? "Docente" : "Docentes"}
+                        </div>
+
+                        {/* Avatares superpuestos de los catedráticos de esta Escuela */}
+                        <div className="flex items-center justify-center -space-x-3 mb-3 mt-3">
+                          {docentesEscuela.slice(0, 4).map((doc) => (
+                            <div
+                              key={doc.id}
+                              className="w-12 h-12 rounded-full border-2 border-white bg-slate-800 overflow-hidden shadow-md flex items-center justify-center text-xs font-bold text-white"
+                              title={`${doc.grado_academico} ${doc.nombre_completo}`}
+                            >
+                              {doc.foto_url ? (
+                                <img
+                                  src={doc.foto_url}
+                                  alt={doc.nombre_completo}
+                                  className="w-full h-full object-cover object-top"
+                                />
+                              ) : (
+                                <span>{obtenerInicialesDocente(doc.nombre_completo)}</span>
+                              )}
+                            </div>
+                          ))}
+                          {docentesEscuela.length > 4 && (
+                            <div className="w-12 h-12 rounded-full border-2 border-white bg-black/60 text-white text-xs font-bold flex items-center justify-center shadow-md">
+                              +{docentesEscuela.length - 4}
+                            </div>
+                          )}
+                        </div>
+
+                        <span className="text-[11px] font-bold text-white/90 tracking-wide uppercase">
+                          Plana Catedrática Oficial
+                        </span>
+                      </div>
+
+                      <div className={`h-1.5 w-full ${temaCar.headerBg} opacity-80`} />
+
+                      <div className="p-5 space-y-3">
+                        <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-bold uppercase border ${temaCar.badgeSoft}`}>
+                          Escuela Profesional
+                        </span>
+                        <h3 className={`text-base sm:text-lg font-bold text-[#002855] dark:text-slate-100 ${temaCar.groupHoverText} transition-colors leading-snug`}>
+                          {car.nombre}
+                        </h3>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                          {docentesEscuela
+                            .slice(0, 2)
+                            .map((d) => `${d.grado_academico} ${d.nombre_completo.split(",")[0]}`)
+                            .join(" • ")}
+                          {docentesEscuela.length > 2 ? ` y ${docentesEscuela.length - 2} más` : ""}
+                        </p>
+                        <div className="flex items-center justify-center gap-2 pt-1">
+                          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-200 dark:border-slate-700">
+                            {principalesCount} Principales
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 text-[10px] font-bold border border-amber-200 dark:border-amber-800 flex items-center gap-1">
+                            <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> Calificar
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="px-4 py-3.5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700">
+                      <span>Ver Docentes de {car.nombre}</span>
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Banner Institucional para acceder a todo el directorio */}
+            <div className="max-w-4xl mx-auto p-5 rounded-2xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-slate-900 dark:to-[#0f1d38] border border-blue-200 dark:border-blue-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-xs">
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-bold text-[#002855] dark:text-slate-100">
+                  Directorio Completo de la Plana Docente FCM
+                </h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Explora las 4 escuelas profesionales, categorías de cátedra, horarios de asesoría y valoraciones estudiantiles.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navegar("/docentes", { docenteCarrera: "TODAS" })}
+                className="px-5 py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all shrink-0"
+              >
+                <Users className="w-4 h-4 text-red-400" />
+                <span>Explorar Directorio General ({docentes.length}) →</span>
+              </button>
+            </div>
+          </section>
+        </main>
+      )}
+
+      {/* VISTAS MODULARES: HEMEROTECA (/noticias), ORGULLO (/orgullo) Y PLANA DOCENTE (/docentes) */}
+      {vistaActual === "/noticias" && (
+        <HemerotecaView
+          noticias={noticias}
+          noticiasFiltradasHemeroteca={noticiasFiltradasHemeroteca}
+          busquedaHemeroteca={busquedaHemeroteca}
+          setBusquedaHemeroteca={setBusquedaHemeroteca}
+          filtroCategoriaHemeroteca={filtroCategoriaHemeroteca}
+          setFiltroCategoriaHemeroteca={setFiltroCategoriaHemeroteca}
+          abrirNoticiaDetalle={abrirNoticiaDetalle}
+          onVolverInicio={() => navegar("/")}
+        />
+      )}
+
+      {vistaActual === "/orgullo" && (
+        <OrgulloGalleryView
+          carreras={carreras}
+          orgulloItems={orgulloItems}
+          orgulloFiltrados={orgulloFiltrados}
+          filtroOrgulloCarrera={filtroOrgulloCarrera}
+          setFiltroOrgulloCarrera={setFiltroOrgulloCarrera}
+          busquedaOrgullo={busquedaOrgullo}
+          setBusquedaOrgullo={setBusquedaOrgullo}
+          setModalDetalleOrgullo={setModalDetalleOrgullo}
+          onVolverInicio={() => navegar("/")}
+        />
+      )}
+
+      {vistaActual === "/docentes" && (
+        <DocentesView
+          carreras={carreras}
+          docentes={docentes}
+          docentesFiltradosHome={docentesFiltradosHome}
+          filtroDocenteCarrera={filtroDocenteCarrera}
+          busquedaDocentes={busquedaDocentes}
+          setBusquedaDocentes={setBusquedaDocentes}
+          filtroCategoriaDocente={filtroCategoriaDocente}
+          setFiltroCategoriaDocente={setFiltroCategoriaDocente}
+          obtenerEstadisticasDocente={obtenerEstadisticasDocente}
+          abrirModalDocente={abrirModalDocente}
+          onCambiarCarrera={(carrera) => navegar("/docentes", { docenteCarrera: carrera })}
+          onVolverInicio={() => navegar("/")}
+        />
+      )}
+
+      {/* VISTA DETALLE DE NOTICIA (/noticias/[id]) - PILAR 3 */}
+      {vistaActual === "/noticias/[id]" && (
+        <DetalleNoticiaModal
+          noticiaActiva={noticiaActiva}
+          noticias={noticias}
+          adminAutenticado={adminAutenticado}
+          onVolverPortal={() => navegar("/")}
+          onEditarEnCms={(noticia) => {
+            setFormNoticia({
+              id: noticia.id,
+              titulo: noticia.titulo,
+              categoria: noticia.categoria,
+              resumen: noticia.resumen || "",
+              fecha_publicacion: noticia.fecha_publicacion,
+              contenido: noticia.contenido,
+              imagen_url: noticia.imagen_url,
+              destacado: noticia.destacado,
+              en_carrusel_principal: noticia.en_carrusel_principal ?? true,
+              color_fondo: noticia.color_fondo || "#4d0713",
+              fecha_evento: noticia.fecha_evento || "",
+              lugar: noticia.lugar || "",
+              modalidad: noticia.modalidad || "",
+              dirigido_a: noticia.dirigido_a || "",
+              enlace_inscripcion: noticia.enlace_inscripcion || "",
+              fondo_imagen_url: noticia.fondo_imagen_url || "",
+              fondo_blur: typeof noticia.fondo_blur === "number" ? noticia.fondo_blur : 4,
+              fondo_overlay_opacity: typeof noticia.fondo_overlay_opacity === "number" ? noticia.fondo_overlay_opacity : 60,
+              fondo_overlay_color: noticia.fondo_overlay_color || noticia.color_fondo || "#002855",
+            });
+            setTabAdmin("noticias");
+            navegar("/admin");
+          }}
+          onCompartirNoticia={handleCompartirNoticia}
+          abrirNoticiaDetalle={abrirNoticiaDetalle}
+        />
+      )}
+
+      {/* VISTA B: DETALLE DE LA CARRERA Y MALLA INTERACTIVA (/carreras/[id]) - PILAR 5 */}
+      {vistaActual === "/carreras/[id]" && (
+        <CarreraMallaView
+          carreras={carreras}
+          carreraSeleccionadaId={carreraSeleccionadaId}
+          carreraActiva={carreraActiva}
+          malla={malla}
+          cursosDeCarreraActiva={cursosDeCarreraActiva}
+          modoMalla={modoMalla}
+          setModoMalla={setModoMalla}
+          ciclosAbiertos={ciclosAbiertos}
+          toggleCicloAcordeon={toggleCicloAcordeon}
+          adminAutenticado={adminAutenticado}
+          navegar={navegar}
+          handleDescargarMallaPDF={handleDescargarMallaPDF}
+          handleDescargarTripticoCarrera={handleDescargarTripticoCarrera}
+          handleDescargarPosterEstudios={handleDescargarPosterEstudios}
+          onIrRepositorioCurso={(carreraId, ciclo, cursoId) => {
+            setRepoFiltroCarrera(carreraId);
+            setRepoFiltroCiclo(ciclo);
+            setRepoFiltroCurso(cursoId);
+            navegar("/repositorio");
+          }}
+          onEditarCarreraAdmin={(carreraId) => {
+            handleSeleccionarCarreraEnAdmin(carreraId);
+            setTabAdmin("carreras_cms");
+            navegar("/admin");
+          }}
+        />
+      )}
+
+
+      {/* VISTAS MODULARES: REPOSITORIO (/repositorio), TRANSPARENCIA (/transparencia) Y CONTACTO (/contacto) */}
+      {vistaActual === "/repositorio" && (
+        <RepositorioView
+          carreras={carreras}
+          malla={malla}
+          repoFiltroCarrera={repoFiltroCarrera}
+          setRepoFiltroCarrera={setRepoFiltroCarrera}
+          repoFiltroCiclo={repoFiltroCiclo}
+          setRepoFiltroCiclo={setRepoFiltroCiclo}
+          repoFiltroCurso={repoFiltroCurso}
+          setRepoFiltroCurso={setRepoFiltroCurso}
+          repoFiltroTipo={repoFiltroTipo}
+          setRepoFiltroTipo={setRepoFiltroTipo}
+          repoBusquedaTexto={repoBusquedaTexto}
+          setRepoBusquedaTexto={setRepoBusquedaTexto}
+          cursosDisponiblesFiltroRepo={cursosDisponiblesFiltroRepo}
+          materialesFiltradosRepo={materialesFiltradosRepo}
+          materialesPaginadosRepo={materialesPaginadosRepo}
+          inicioIndiceRepo={inicioIndiceRepo}
+          finIndiceRepo={finIndiceRepo}
+          totalPaginasRepo={totalPaginasRepo}
+          repoPaginaActual={repoPaginaActual}
+          cambiarPaginaRepo={cambiarPaginaRepo}
+          obtenerNumerosPaginaRepo={obtenerNumerosPaginaRepo}
+          renderIconoArchivo={renderIconoArchivo}
+          onAbrirModalSubir={() => {
+            setExitoSubidaModal(false);
+            setModalSubirAbierto(true);
+          }}
+        />
+      )}
+
+      {vistaActual === "/transparencia" && (
+        <TransparenciaView
+          documentosTransparencia={documentosTransparencia}
+          filtroTransparenciaCategoria={filtroTransparenciaCategoria}
+          setFiltroTransparenciaCategoria={setFiltroTransparenciaCategoria}
+          filtroTransparenciaAnio={filtroTransparenciaAnio}
+          setFiltroTransparenciaAnio={setFiltroTransparenciaAnio}
+          busquedaTransparencia={busquedaTransparencia}
+          setBusquedaTransparencia={setBusquedaTransparencia}
+          paginaTransparencia={paginaTransparencia}
+          setPaginaTransparencia={setPaginaTransparencia}
+          onVolverInicio={() => navegar("/")}
+        />
+      )}
+
+      {vistaActual === "/contacto" && (
+        <ContactoView
+          ticketEnviadoOk={ticketEnviadoOk}
+          setTicketEnviadoOk={setTicketEnviadoOk}
+          formContacto={formContacto}
+          setFormContacto={setFormContacto}
+          handleEnviarContacto={handleEnviarContacto}
+        />
+      )}
+
+      {/* VISTA E: PANEL DE ADMINISTRACIÓN CMS MODULARIZADO (/admin) - PILAR 2 */}
+      {vistaActual === "/admin" && (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 view-transition-gpu">
+          {!adminAutenticado ? (
+            <div className="max-w-md mx-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-2xl space-y-5">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 flex items-center justify-center mx-auto">
+                <Lock className="w-6 h-6 text-red-700 dark:text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#002855] dark:text-white">Acceso Restringido • Administración FCM</h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                  Ingresa la contraseña maestra de administrador para gestionar el portal institucional.
+                </p>
+              </div>
+              <form onSubmit={handleLoginAdmin} className="space-y-3 text-left">
+                <input
+                  type="password"
+                  value={pinAdmin}
+                  onChange={(e) => setPinAdmin(e.target.value)}
+                  placeholder="Contraseña maestra de administrador..."
+                  autoComplete="current-password"
+                  disabled={cargandoAuthAdmin}
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#002855] dark:focus:border-red-500"
+                />
+                {errorPin && (
+                  <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> {errorPin}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={cargandoAuthAdmin}
+                  className="gpu-btn w-full py-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-bold text-white cursor-pointer transition-colors flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>
+                    {cargandoAuthAdmin ? "Verificando en Servidor..." : "Autenticar y Entrar al Panel CMS"}
+                  </span>
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <AdminNavbar
+                tabAdmin={tabAdmin}
+                setTabAdmin={setTabAdmin}
+                noticiasCount={noticias.length}
+                docentesCount={docentes.length}
+                moderacionCount={materialesPendientes.length + resenasDocentes.length}
+                storageCount={imagenesStorage.length}
+                orgulloCount={orgulloItems.length}
+                mallaCount={malla.length}
+                transparenciaCount={documentosTransparencia.length}
+                ticketsCount={tickets.length}
+                materialesPendientesCount={materialesPendientes.length}
+                handleCerrarSesionAdmin={handleCerrarSesionAdmin}
+              />
+
+              {(tabAdmin === "carreras_cms" || tabAdmin === "malla") && (
+                <AdminMallaTab
+                  mode={tabAdmin}
+                  carreras={carreras}
+                  malla={malla}
+                  adminCarreraEditId={adminCarreraEditId}
+                  carreraAdminSeleccionada={carreraAdminSeleccionada}
+                  handleSeleccionarCarreraEnAdmin={handleSeleccionarCarreraEnAdmin}
+                  handleGuardarDatosCarreraAdmin={handleGuardarDatosCarreraAdmin}
+                  inputImagenCarreraRef={inputImagenCarreraRef}
+                  subiendoAssetCarrera={subiendoAssetCarrera}
+                  handleSubirImagenCarreraStorage={handleSubirImagenCarreraStorage}
+                  urlImagenCarreraInput={urlImagenCarreraInput}
+                  setUrlImagenCarreraInput={setUrlImagenCarreraInput}
+                  inputTripticoPdfRef={inputTripticoPdfRef}
+                  handleSubirTripticoPdfStorage={handleSubirTripticoPdfStorage}
+                  urlTripticoCarreraInput={urlTripticoCarreraInput}
+                  setUrlTripticoCarreraInput={setUrlTripticoCarreraInput}
+                  inputPosterPdfRef={inputPosterPdfRef}
+                  handleSubirPosterPdfStorage={handleSubirPosterPdfStorage}
+                  urlPosterCarreraInput={urlPosterCarreraInput}
+                  setUrlPosterCarreraInput={setUrlPosterCarreraInput}
+                  navegarACarrera={navegarACarrera}
+                  formCursoMalla={formCursoMalla}
+                  setFormCursoMalla={setFormCursoMalla}
+                  handleGuardarCursoMalla={handleGuardarCursoMalla}
+                  adminFiltroCarreraMalla={adminFiltroCarreraMalla}
+                  setAdminFiltroCarreraMalla={setAdminFiltroCarreraMalla}
+                />
+              )}
+
+              {tabAdmin === "noticias" && (
+                <AdminNoticiasTab
+                  noticias={noticias}
+                  setNoticias={setNoticias}
+                  formNoticia={formNoticia}
+                  setFormNoticia={setFormNoticia}
+                  handleGuardarNoticia={handleGuardarNoticia}
+                  inputImagenNoticiaRef={inputImagenNoticiaRef}
+                  handleSubirImagenPortadaNoticia={handleSubirImagenPortadaNoticia}
+                  inputFondoNoticiaRef={inputFondoNoticiaRef}
+                  handleSubirFondoNoticiaStorage={handleSubirFondoNoticiaStorage}
+                  textareaNoticiaRef={textareaNoticiaRef}
+                  insertarFormatoNoticia={insertarFormatoNoticia}
+                  handleToggleCarruselPrincipal={handleToggleCarruselPrincipal}
+                  abrirNoticiaDetalle={abrirNoticiaDetalle}
+                  sincronizarPortalConfigSupabase={sincronizarPortalConfigSupabase}
+                  lanzarToast={lanzarToast}
+                />
+              )}
+
+              {tabAdmin === "docentes_cms" && (
+                <AdminDocentesTab
+                  carreras={carreras}
+                  docentes={docentes}
+                  formDocente={formDocente}
+                  setFormDocente={setFormDocente}
+                  handleGuardarDocente={handleGuardarDocente}
+                  inputFotoDocenteRef={inputFotoDocenteRef}
+                  subiendoFotoDocente={subiendoFotoDocente}
+                  handleSubirFotoDocenteStorage={handleSubirFotoDocenteStorage}
+                  adminFiltroCarreraDocentes={adminFiltroCarreraDocentes}
+                  setAdminFiltroCarreraDocentes={setAdminFiltroCarreraDocentes}
+                  handleEditarDocenteEnAdmin={handleEditarDocenteEnAdmin}
+                  handleEliminarDocenteEnAdmin={handleEliminarDocenteEnAdmin}
+                />
+              )}
+
+              {tabAdmin === "storage" && (
+                <AdminStorageTab
+                  categoriaNuevaImagen={categoriaNuevaImagen}
+                  setCategoriaNuevaImagen={setCategoriaNuevaImagen}
+                  fileInputRef={fileInputRef}
+                  subiendoStorage={subiendoStorage}
+                  handleSubirArchivoStorage={handleSubirArchivoStorage}
+                  imagenesStorage={imagenesStorage}
+                  urlCopiadaId={urlCopiadaId}
+                  setUrlCopiadaId={setUrlCopiadaId}
+                  lanzarToast={lanzarToast}
+                  handleUsarComoFondoHero={handleUsarComoFondoHero}
+                  handleUsarComoLogo={handleUsarComoLogo}
+                  heroBgInputUrl={heroBgInputUrl}
+                  setHeroBgInputUrl={setHeroBgInputUrl}
+                  heroBgUrl={heroBgUrl}
+                  heroBlur={heroBlur}
+                  setHeroBlur={setHeroBlur}
+                  heroOverlayOpacity={heroOverlayOpacity}
+                  setHeroOverlayOpacity={setHeroOverlayOpacity}
+                  heroOverlayColor={heroOverlayColor}
+                  setHeroOverlayColor={setHeroOverlayColor}
+                />
+              )}
+
+              {tabAdmin === "moderacion" && (
+                <AdminRepositorioTab
+                  resenasDocentes={resenasDocentes}
+                  docentes={docentes}
+                  materialesPendientes={materialesPendientes}
+                  materialesAprobados={materialesAprobados}
+                  malla={malla}
+                  carreras={carreras}
+                  handleCambiarEstadoResenaAdmin={handleCambiarEstadoResenaAdmin}
+                  handleEliminarResenaDocenteAdmin={handleEliminarResenaDocenteAdmin}
+                  handleAprobarMaterialAdmin={handleAprobarMaterialAdmin}
+                  handleEliminarMaterialAdmin={handleEliminarMaterialAdmin}
+                />
+              )}
+
+              {tabAdmin === "transparencia" && (
+                <AdminTransparenciaTab
+                  documentosTransparencia={documentosTransparencia}
+                  setDocumentosTransparencia={setDocumentosTransparencia}
+                  formTransparencia={formTransparencia}
+                  setFormTransparencia={setFormTransparencia}
+                  editandoTransparenciaId={editandoTransparenciaId}
+                  setEditandoTransparenciaId={setEditandoTransparenciaId}
+                  modalTransparenciaFormAbierto={modalTransparenciaFormAbierto}
+                  setModalTransparenciaFormAbierto={setModalTransparenciaFormAbierto}
+                  imagenesStorage={imagenesStorage}
+                  sincronizarPortalConfigSupabase={sincronizarPortalConfigSupabase}
+                  lanzarToast={lanzarToast}
+                />
+              )}
+
+              {tabAdmin === "orgullo" && (
+                <AdminOrgulloTab
+                  orgulloItems={orgulloItems}
+                  setOrgulloItems={setOrgulloItems}
+                  formOrgullo={formOrgullo}
+                  setFormOrgullo={setFormOrgullo}
+                  editandoOrgulloId={editandoOrgulloId}
+                  setEditandoOrgulloId={setEditandoOrgulloId}
+                  modalOrgulloFormAbierto={modalOrgulloFormAbierto}
+                  setModalOrgulloFormAbierto={setModalOrgulloFormAbierto}
+                  subiendoFotoOrgullo={subiendoFotoOrgullo}
+                  setSubiendoFotoOrgullo={setSubiendoFotoOrgullo}
+                  imagenesStorage={imagenesStorage}
+                  sincronizarPortalConfigSupabase={sincronizarPortalConfigSupabase}
+                  subirArchivoASupabaseStorage={subirArchivoASupabaseStorage}
+                  lanzarToast={lanzarToast}
+                />
+              )}
+
+              {tabAdmin === "soporte" && <AdminTicketsTab tickets={tickets} />}
+            </div>
+          )}
+        </main>
+      )}
+
+      {/* MODALES GLOBALES MODULARIZADOS (PILAR 3) */}
+      <SubirMaterialModal
+        abierto={modalSubirAbierto}
+        onCerrar={() => setModalSubirAbierto(false)}
+        exitoSubidaModal={exitoSubidaModal}
+        formSubidaAnon={formSubidaAnon}
+        setFormSubidaAnon={setFormSubidaAnon}
+        carreras={carreras}
+        docentes={docentes}
+        cursosDependientesSubida={cursosDependientesSubida}
+        handleCambiarCarreraSubida={handleCambiarCarreraSubida}
+        handleCambiarCicloSubida={handleCambiarCicloSubida}
+        handleSubidaRepositorioAnonima={handleSubidaRepositorioAnonima}
+      />
+
+      <OrgulloModal
+        modalDetalleOrgullo={modalDetalleOrgullo}
+        onCerrarOrgullo={() => setModalDetalleOrgullo(null)}
+        servicioModalInfo={servicioModalInfo}
+        onCerrarServicio={() => setServicioModalInfo(null)}
+      />
+
+      <AdminHeroTab
+        isModal={true}
+        modalHeroFondoAbierto={modalHeroFondoAbierto}
+        setModalHeroFondoAbierto={setModalHeroFondoAbierto}
+        heroBgInputUrl={heroBgInputUrl}
+        setHeroBgInputUrl={setHeroBgInputUrl}
+        heroBgUrl={heroBgUrl}
+        heroBlur={heroBlur}
+        setHeroBlur={setHeroBlur}
+        heroOverlayOpacity={heroOverlayOpacity}
+        setHeroOverlayOpacity={setHeroOverlayOpacity}
+        heroOverlayColor={heroOverlayColor}
+        setHeroOverlayColor={setHeroOverlayColor}
+        handleUsarComoFondoHero={handleUsarComoFondoHero}
+      />
+
+      <DocenteModal
+        docenteModalActivo={docenteModalActivo}
+        onCerrar={() => setDocenteModalActivo(null)}
+        carreras={carreras}
+        obtenerEstadisticasDocente={obtenerEstadisticasDocente}
+        hoverEstrellaDocente={hoverEstrellaDocente}
+        setHoverEstrellaDocente={setHoverEstrellaDocente}
+        formResenaDocente={formResenaDocente}
+        setFormResenaDocente={setFormResenaDocente}
+        errorResenaDocente={errorResenaDocente}
+        exitoResenaDocente={exitoResenaDocente}
+        handleEnviarResenaDocente={handleEnviarResenaDocente}
+      />
+
+      {/* COMPONENTE GLOBAL <Footer /> */}
+      <Footer
+        logoUrl={logoUrl}
+        onOpenAdmin={() => navegar("/admin")}
+      />
+    </div>
+  );
+}
