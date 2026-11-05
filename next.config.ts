@@ -1,6 +1,28 @@
 import type { NextConfig } from "next";
 
+const ContentSecurityPolicy = `
+  default-src 'self';
+  script-src 'self' 'unsafe-eval' 'unsafe-inline' https:;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  img-src 'self' blob: data: https:;
+  font-src 'self' data: https://fonts.gstatic.com;
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co https:;
+  media-src 'self' blob: data: https:;
+  frame-src 'self' https:;
+  frame-ancestors 'self';
+  base-uri 'self';
+  form-action 'self';
+  object-src 'none';
+  upgrade-insecure-requests;
+`
+  .replace(/\s{2,}/g, " ")
+  .trim();
+
 const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: ContentSecurityPolicy,
+  },
   {
     key: "X-DNS-Prefetch-Control",
     value: "on",
@@ -11,7 +33,7 @@ const securityHeaders = [
   },
   {
     key: "X-Frame-Options",
-    value: "DENY",
+    value: "SAMEORIGIN",
   },
   {
     key: "X-Content-Type-Options",
@@ -23,7 +45,11 @@ const securityHeaders = [
   },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+    value: "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=()",
+  },
+  {
+    key: "X-Permitted-Cross-Domain-Policies",
+    value: "none",
   },
   {
     key: "X-XSS-Protection",
@@ -34,6 +60,36 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 3600,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.unmsm.edu.pe",
+      },
+      {
+        protocol: "https",
+        hostname: "**.gstatic.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.wikimedia.org",
+      },
+      {
+        protocol: "https",
+        hostname: "**.googleusercontent.com",
+      },
+    ],
+  },
   turbopack: {
     rules: {
       "*.css": {

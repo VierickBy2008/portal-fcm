@@ -13,8 +13,18 @@ function generateAdminToken(secret: string): string {
   return crypto.createHmac("sha256", secret).update("fcm_admin_session_unmsm_2026").digest("hex");
 }
 
+/**
+ * Comparación en tiempo constante (Timing-Safe) para mitigar ataques de canal lateral (Timing Attacks)
+ */
+function safeCompareStrings(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const hashA = crypto.createHash("sha256").update(a).digest();
+  const hashB = crypto.createHash("sha256").update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
+
 // ============================================================================
-// ESCUDO DE SEGURIDAD 1: RATE LIMITER CONTRA FUERZA BRUTA (BRUTE-FORCE SHIELD)
+// ESCUDO DE SEGURIDAD: RATE LIMITER CON BLOQUEO PROGRESIVO POR IP
 // ============================================================================
 interface IntentoAuth {
   conteo: number;
@@ -57,16 +67,21 @@ export async function POST(req: NextRequest) {
           ok: false,
           error: `⚠️ Acceso temporalmente bloqueado por seguridad institucional tras múltiples intentos fallidos. Intente nuevamente en ${minutosRestantes} minuto(s).`,
         },
-        { status: 429 }
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(minutosRestantes * 60),
+          },
+        }
       );
     }
 
     const body = await req.json();
-    const password = (body?.password || "").trim();
+    const password = typeof body?.password === "string" ? body.password.trim() : "";
     const adminSecret = getAdminSecret();
 
-    // 2. Si la contraseña no coincide, registrar fallo y aplicar penalización
-    if (!password || password !== adminSecret) {
+    // 2. Comparación criptográfica en tiempo constante
+    if (!password || !safeCompareStrings(password, adminSecret)) {
       const nuevosIntentos = (infoIp?.conteo || 0) + 1;
       const bloqueo = nuevosIntentos >= MAX_INTENTOS_FALLIDOS ? ahora + TIEMPO_BLOQUEO_MS : 0;
       intentosPorIp.set(ip, { conteo: nuevosIntentos, bloqueadoHasta: bloqueo });
@@ -87,7 +102,11 @@ export async function POST(req: NextRequest) {
     intentosPorIp.delete(ip);
 
     const token = generateAdminToken(adminSecret);
-    const response = NextResponse.json({ ok: true, message: "Sesión autorizada correctamente.", token });
+    const response = NextResponse.json({
+      ok: true,
+      message: "Sesión autorizada correctamente.",
+      token,
+    });
 
     response.cookies.set("fcm_admin_token", token, {
       httpOnly: true,
@@ -99,7 +118,10 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch {
-    return NextResponse.json({ ok: false, error: "Error procesando solicitud de autenticación." }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Error procesando solicitud de autenticación." },
+      { status: 500 }
+    );
   }
 }
 
@@ -107,11 +129,14 @@ export async function GET(req: NextRequest) {
   const adminSecret = getAdminSecret();
   const validToken = generateAdminToken(adminSecret);
 
-  const cookieToken = req.cookies.get("fcm_admin_token")?.value;
-  const authHeader = req.headers.get("authorization");
-  const bearerToken = authHeader?.replace(/^Bearer\s+/i, "").trim();
+  const cookieToken = req.cookies.get("fcm_admin_token")?.value || "";
+  const authHeader = req.headers.get("authorization") || "";
+  const bearerToken = authHeader.replace(/^Bearer\s+/i, "").trim();
 
-  const authenticated = (cookieToken === validToken) || (bearerToken === validToken);
+  const authenticated =
+    safeCompareStrings(cookieToken, validToken) ||
+    safeCompareStrings(bearerToken, validToken);
+
   return NextResponse.json({ authenticated });
 }
 
