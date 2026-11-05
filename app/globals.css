@@ -106,8 +106,8 @@ body {
 
 /* Micro-animaciones fluidas de revelado al hacer scroll (Scroll-Reveal Optimizado GPU) */
 .reveal-on-scroll {
-  opacity: 0;
-  transform: translate3d(0, 20px, 0);
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   will-change: transform, opacity;
   transition:

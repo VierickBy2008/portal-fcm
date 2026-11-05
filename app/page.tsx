@@ -190,7 +190,7 @@ export default function PortalFacultadCienciasMatematicas() {
   const [heroBlur, setHeroBlur] = useState<number>(1);
   const [heroOverlayOpacity, setHeroOverlayOpacity] = useState<number>(45);
   const [heroOverlayColor, setHeroOverlayColor] = useState<string>("#0f172a");
-  const [cargandoConfig, setCargandoConfig] = useState<boolean>(true);
+  const [cargandoConfig, setCargandoConfig] = useState<boolean>(false);
 
   // Filtros y modal de la sección Plana Docente + Calificaciones y Reseñas
   const [filtroDocenteCarrera, setFiltroDocenteCarrera] = useState<"TODAS" | CarreraId>("TODAS");
@@ -1020,29 +1020,43 @@ export default function PortalFacultadCienciasMatematicas() {
   
   // Scroll-Reveal: Revelado animado fluido al bajar por la página
   useEffect(() => {
-    if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-          }
-        });
-      },
-      {
-        threshold: 0.05,
-        rootMargin: "0px 0px -20px 0px",
-      }
-    );
+    if (typeof window === "undefined") return;
+    const observer =
+      "IntersectionObserver" in window
+        ? new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("is-visible");
+                }
+              });
+            },
+            {
+              threshold: 0.02,
+              rootMargin: "0px 0px 50px 0px",
+            }
+          )
+        : null;
 
-    const elementos = document.querySelectorAll(".reveal-on-scroll");
-    elementos.forEach((el) => observer.observe(el));
+    const aplicarObservador = () => {
+      const elementos = document.querySelectorAll(".reveal-on-scroll");
+      elementos.forEach((el) => {
+        if (observer) {
+          observer.observe(el);
+        } else {
+          el.classList.add("is-visible");
+        }
+      });
+    };
+
+    aplicarObservador();
+    const timeout = setTimeout(aplicarObservador, 100);
 
     return () => {
-      elementos.forEach((el) => observer.unobserve(el));
-      observer.disconnect();
+      clearTimeout(timeout);
+      if (observer) observer.disconnect();
     };
-  }, [vistaActual, carreraSeleccionadaId]);
+  }, [vistaActual, carreraSeleccionadaId, cargandoConfig]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

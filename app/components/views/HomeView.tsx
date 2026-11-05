@@ -122,7 +122,7 @@ export function HomeView({
 }: HomeViewProps) {
   const touchStartXRef = useRef<number | null>(null);
 
-  if (cargandoConfig) {
+  if (cargandoConfig && carreras.length === 0) {
     return (
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-hidden">
         <HeroSkeleton />
