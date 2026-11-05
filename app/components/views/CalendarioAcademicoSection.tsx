@@ -14,7 +14,6 @@ import {
   ChevronUp,
   Maximize2,
   Minimize2,
-  FileText,
   CalendarDays,
   Flame,
 } from "lucide-react";
@@ -31,27 +30,27 @@ const BADGE_CATEGORIA: Record<
   matricula: {
     label: "Matrícula",
     className:
-      "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/70 dark:text-blue-300 dark:border-blue-800",
+      "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/70 dark:text-blue-300 dark:border-blue-800",
   },
   evaluacion: {
     label: "Evaluación",
     className:
-      "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/70 dark:text-amber-300 dark:border-amber-800",
+      "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/70 dark:text-amber-300 dark:border-amber-800",
   },
   clases: {
     label: "Clases",
     className:
-      "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/70 dark:text-emerald-300 dark:border-emerald-800",
+      "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/70 dark:text-emerald-300 dark:border-emerald-800",
   },
   actas: {
     label: "Notas y Actas",
     className:
-      "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950/70 dark:text-purple-300 dark:border-purple-800",
+      "bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/70 dark:text-purple-300 dark:border-purple-800",
   },
   tramite: {
     label: "Trámite SUM",
     className:
-      "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+      "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
   },
 };
 
@@ -165,7 +164,7 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
 
   return (
     <section id="calendario-academico" className="pt-4 space-y-6 reveal-on-scroll">
-      {/* Cabecera Principal de la Sección */}
+      {/* Cabecera Principal de la Sección (Adaptable a Modo Claro y Oscuro) */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b-2 border-blue-900 dark:border-blue-800 pb-4">
         <div className="space-y-1.5">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-900/60 text-[#002855] dark:text-blue-300 text-[11px] font-bold uppercase tracking-wider">
@@ -191,7 +190,7 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
               setDesplegadoI(abrir);
               setDesplegadoII(abrir);
             }}
-            className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-300 dark:border-slate-700 cursor-pointer transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-300 dark:border-slate-700 cursor-pointer transition-colors shadow-2xs"
           >
             {desplegadoI && desplegadoII ? (
               <>
@@ -227,7 +226,7 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar trámite o fecha en ambos semestres (ej. matrícula regular, convalidación, evaluación final, aplazados)..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#002855]"
+            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#002855] dark:focus:border-blue-400"
           />
         </div>
 
@@ -244,10 +243,10 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
               key={cat.id}
               type="button"
               onClick={() => setFiltroCategoria(cat.id)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ${
+              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ${
                 filtroCategoria === cat.id
                   ? "bg-[#002855] text-white shadow-2xs"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               }`}
             >
               {cat.label}
@@ -261,11 +260,11 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
         {/* ========================================================================= */}
         {/* TARJETA 1 (IZQUIERDA): SEMESTRE 2026-I (AZUL INSTITUCIONAL UNMSM)         */}
         {/* ========================================================================= */}
-        <div className="rounded-3xl border-2 border-blue-900/40 dark:border-blue-950 bg-gradient-to-b from-[#001738] via-[#001229] to-[#000a17] text-white shadow-xl overflow-hidden flex flex-col justify-between transition-all">
-          {/* Header Superior Azul tipo Bento (como en la imagen de referencia) */}
-          <div className="p-4 sm:p-5 bg-gradient-to-r from-[#002855] via-[#03346e] to-[#0b4b98] border-b border-blue-400/20 flex flex-wrap items-center justify-between gap-3">
+        <div className="rounded-3xl border-2 border-blue-200 dark:border-blue-900/60 bg-white dark:bg-gradient-to-b dark:from-[#001738] dark:via-[#001229] dark:to-[#000a17] text-slate-900 dark:text-white shadow-md hover:shadow-xl dark:shadow-2xl transition-all overflow-hidden flex flex-col justify-between">
+          {/* Header Superior Azul tipo Bento */}
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-[#002855] via-[#03346e] to-[#0b4b98] border-b border-blue-300/30 text-white flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="px-3 py-1 rounded-lg text-xs font-mono font-black tracking-wider bg-black/40 text-cyan-300 border border-cyan-400/30">
+              <span className="px-3 py-1 rounded-lg text-xs font-mono font-black tracking-wider bg-black/35 text-cyan-300 border border-cyan-400/30 shadow-2xs">
                 SEMESTRE 2026-I
               </span>
               <span className="text-[11px] font-bold uppercase tracking-wider text-blue-100">
@@ -273,74 +272,74 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white backdrop-blur-xs border border-white/10 flex items-center gap-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-xs border border-white/20 flex items-center gap-1">
                 <Clock className="w-3 h-3 text-cyan-300" />
                 <span>16 semanas</span>
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-400/20 text-cyan-200 border border-cyan-400/30">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-400/25 text-cyan-100 border border-cyan-300/40">
                 {act2026I.length} actividades
               </span>
             </div>
           </div>
 
-          {/* Cuerpo Principal de la Tarjeta 2026-I */}
-          <div className="p-5 sm:p-6 space-y-4">
+          {/* Cuerpo Principal de la Tarjeta 2026-I (Apto para Modo Claro y Oscuro) */}
+          <div className="p-5 sm:p-6 space-y-4 bg-gradient-to-b from-blue-50/40 via-white to-white dark:from-transparent dark:via-transparent dark:to-transparent">
             <div className="flex items-start gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 shadow-md shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 dark:bg-cyan-500/10 dark:border-cyan-400/30 flex items-center justify-center text-[#002855] dark:text-cyan-400 shadow-sm shrink-0">
                 <Calendar className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-cyan-400 block">
+                <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-blue-700 dark:text-cyan-400 block">
                   CICLO ACADÉMICO DE OTOÑO
                 </span>
-                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                <h3 className="text-xl sm:text-2xl font-black text-[#002855] dark:text-white tracking-tight">
                   Semestre Académico 2026-I
                 </h3>
               </div>
             </div>
 
-            {/* Píldoras de Hitos Clave (como en la imagen de referencia) */}
+            {/* Píldoras de Hitos Clave con legibilidad perfecta en Modo Claro */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-900/60 text-cyan-200 border border-blue-700/60 flex items-center gap-1.5 shadow-2xs">
-                <Sparkles className="w-3 h-3 text-cyan-400" />
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-900 border border-blue-200 dark:bg-blue-900/60 dark:text-cyan-200 dark:border-blue-700/60 flex items-center gap-1.5 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                 <span>Clases: 30 Mar - 18 Jul</span>
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-900/60 text-cyan-200 border border-blue-700/60 flex items-center gap-1.5 shadow-2xs">
-                <Sparkles className="w-3 h-3 text-cyan-400" />
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-900 border border-blue-200 dark:bg-blue-900/60 dark:text-cyan-200 dark:border-blue-700/60 flex items-center gap-1.5 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                 <span>Matrícula: 16 - 20 Mar</span>
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-900/60 text-cyan-200 border border-blue-700/60 flex items-center gap-1.5 shadow-2xs">
-                <Sparkles className="w-3 h-3 text-cyan-400" />
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-900 border border-blue-200 dark:bg-blue-900/60 dark:text-cyan-200 dark:border-blue-700/60 flex items-center gap-1.5 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                 <span>Parciales: 18 - 22 May</span>
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-900/60 text-cyan-200 border border-blue-700/60 flex items-center gap-1.5 shadow-2xs">
-                <Sparkles className="w-3 h-3 text-cyan-400" />
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-900 border border-blue-200 dark:bg-blue-900/60 dark:text-cyan-200 dark:border-blue-700/60 flex items-center gap-1.5 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                 <span>Finales: 13 - 17 Jul</span>
               </span>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Programación oficial del primer semestre académico. Contempla el proceso regular y extemporáneo de matrícula por el SUM, 16 semanas lectivas continuas y el periodo de exámenes de aplazados.
             </p>
 
-            {/* 2 Cajas Métricas Inferiores (como en la imagen) */}
+            {/* 2 Cajas Métricas Inferiores */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1 shadow-2xs">
+                <span className="text-[10px] font-mono font-bold uppercase text-slate-500 dark:text-slate-400 block">
                   PERIODO DE CLASES
                 </span>
-                <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <p className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>30 Marzo – 18 Julio 2026</span>
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">
+              <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-white/5 border border-blue-200 dark:border-white/10 space-y-1 shadow-2xs">
+                <span className="text-[10px] font-mono font-bold uppercase text-blue-700 dark:text-slate-400 block">
                   CIERRE DE ACTAS SUM
                 </span>
-                <p className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-amber-400" />
+                <p className="text-xs font-bold text-[#002855] dark:text-cyan-300 flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                   <span>Lunes 27 de julio de 2026</span>
                 </p>
               </div>
@@ -351,7 +350,7 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
               <button
                 type="button"
                 onClick={() => setDesplegadoI(!desplegadoI)}
-                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all"
+                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all"
               >
                 {desplegadoI ? (
                   <>
@@ -369,10 +368,10 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
               <button
                 type="button"
                 onClick={() => handleImprimirCronograma("2026-I")}
-                className="w-full sm:w-auto py-3 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 border border-white/15 cursor-pointer transition-colors"
+                className="w-full sm:w-auto py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#002855] dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-300 dark:border-white/15 cursor-pointer transition-colors shadow-2xs"
                 title="Descargar o imprimir solo el Semestre 2026-I en PDF"
               >
-                <Printer className="w-4 h-4 text-cyan-300" />
+                <Printer className="w-4 h-4 text-blue-700 dark:text-cyan-300" />
                 <span>PDF 2026-I</span>
               </button>
             </div>
@@ -380,12 +379,12 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
 
           {/* TABLA DESPLEGABLE CON LAS 18 ACTIVIDADES DEL 2026-I */}
           {desplegadoI && (
-            <div className="border-t border-blue-900/60 bg-slate-950/80 p-4 sm:p-5 space-y-2 animate-in fade-in duration-300">
-              <div className="flex items-center justify-between pb-2 border-b border-white/10 text-xs">
-                <span className="font-bold text-cyan-300">
+            <div className="border-t border-slate-200 dark:border-blue-900/60 bg-slate-50/80 dark:bg-slate-950/80 p-4 sm:p-5 space-y-2 animate-in fade-in duration-300">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10 text-xs">
+                <span className="font-bold text-[#002855] dark:text-cyan-300">
                   Actividades Oficiales ({act2026I.length})
                 </span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
                   Semestre 2026-I
                 </span>
               </div>
@@ -398,13 +397,13 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
                       key={item.id}
                       className={`p-3 rounded-xl border transition-all text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
                         item.destacado
-                          ? "bg-cyan-950/40 border-cyan-500/40 text-cyan-100"
-                          : "bg-white/5 border-white/5 text-slate-200 hover:bg-white/10"
+                          ? "bg-blue-50/90 border-blue-300 text-blue-950 dark:bg-cyan-950/40 dark:border-cyan-500/40 dark:text-cyan-100 font-semibold shadow-2xs"
+                          : "bg-white border-slate-200/90 text-slate-800 dark:bg-white/5 dark:border-white/5 dark:text-slate-200 hover:bg-blue-50/50 dark:hover:bg-white/10 shadow-2xs"
                       }`}
                     >
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-cyan-900/60 border border-cyan-400/30 text-cyan-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                          <span className="w-5 h-5 rounded-full bg-blue-100 border border-blue-300 text-[#002855] dark:bg-cyan-900/60 dark:border-cyan-400/30 dark:text-cyan-300 text-[10px] font-bold flex items-center justify-center shrink-0">
                             {idx + 1}
                           </span>
                           <span className="font-bold leading-snug">
@@ -420,8 +419,8 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-cyan-300 font-mono text-[11px] font-medium shrink-0 pl-7 sm:pl-0">
-                        <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                      <div className="flex items-center gap-1.5 text-[#002855] dark:text-cyan-300 font-mono text-[11px] font-bold shrink-0 pl-7 sm:pl-0">
+                        <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                         <span>{item.fecha}</span>
                       </div>
                     </div>
@@ -435,11 +434,11 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
         {/* ========================================================================= */}
         {/* TARJETA 2 (DERECHA): SEMESTRE 2026-II (ROJO GRANATE SAN MARCOS)           */}
         {/* ========================================================================= */}
-        <div className="rounded-3xl border-2 border-red-900/40 dark:border-red-950 bg-gradient-to-b from-[#2b050d] via-[#1a0308] to-[#0a0104] text-white shadow-xl overflow-hidden flex flex-col justify-between transition-all">
-          {/* Header Superior Rojo tipo Bento (como en la imagen de referencia) */}
-          <div className="p-4 sm:p-5 bg-gradient-to-r from-[#7f1d1d] via-[#991b1b] to-[#b91c1c] border-b border-red-400/20 flex flex-wrap items-center justify-between gap-3">
+        <div className="rounded-3xl border-2 border-red-200 dark:border-red-900/60 bg-white dark:bg-gradient-to-b dark:from-[#2b050d] dark:via-[#1a0308] dark:to-[#0a0104] text-slate-900 dark:text-white shadow-md hover:shadow-xl dark:shadow-2xl transition-all overflow-hidden flex flex-col justify-between">
+          {/* Header Superior Rojo tipo Bento */}
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-[#8b1515] via-[#a81c1c] to-[#c52222] border-b border-red-300/30 text-white flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="px-3 py-1 rounded-lg text-xs font-mono font-black tracking-wider bg-black/40 text-amber-300 border border-amber-400/30">
+              <span className="px-3 py-1 rounded-lg text-xs font-mono font-black tracking-wider bg-black/35 text-amber-300 border border-amber-400/30 shadow-2xs">
                 SEMESTRE 2026-II
               </span>
               <span className="text-[11px] font-bold uppercase tracking-wider text-red-100">
@@ -447,74 +446,74 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white backdrop-blur-xs border border-white/10 flex items-center gap-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-xs border border-white/20 flex items-center gap-1">
                 <Clock className="w-3 h-3 text-amber-300" />
                 <span>16 semanas</span>
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-200 border border-amber-400/30">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/25 text-amber-100 border border-amber-300/40">
                 {act2026II.length} actividades
               </span>
             </div>
           </div>
 
-          {/* Cuerpo Principal de la Tarjeta 2026-II */}
-          <div className="p-5 sm:p-6 space-y-4">
+          {/* Cuerpo Principal de la Tarjeta 2026-II (Apto para Modo Claro y Oscuro) */}
+          <div className="p-5 sm:p-6 space-y-4 bg-gradient-to-b from-red-50/40 via-white to-white dark:from-transparent dark:via-transparent dark:to-transparent">
             <div className="flex items-start gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-400/30 flex items-center justify-center text-amber-400 shadow-md shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 dark:bg-amber-500/10 dark:border-amber-400/30 flex items-center justify-center text-red-700 dark:text-amber-400 shadow-sm shrink-0">
                 <Calendar className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-400 block">
+                <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-red-700 dark:text-amber-400 block">
                   CICLO ACADÉMICO DE PRIMAVERA
                 </span>
-                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                <h3 className="text-xl sm:text-2xl font-black text-[#4a0812] dark:text-white tracking-tight">
                   Semestre Académico 2026-II
                 </h3>
               </div>
             </div>
 
-            {/* Píldoras de Hitos Clave (como en la imagen de referencia) */}
+            {/* Píldoras de Hitos Clave con legibilidad perfecta en Modo Claro */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-950/80 text-amber-200 border border-red-800/80 flex items-center gap-1.5 shadow-2xs">
-                <Sparkles className="w-3 h-3 text-amber-400" />
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-900 border border-red-200 dark:bg-red-950/80 dark:text-amber-200 dark:border-red-800/80 flex items-center gap-1.5 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-red-600 dark:text-amber-400" />
                 <span>Clases: 24 Ago - 12 Dic</span>
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-950/80 text-amber-200 border border-red-800/80 flex items-center gap-1.5 shadow-2xs">
-                <Sparkles className="w-3 h-3 text-amber-400" />
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-900 border border-red-200 dark:bg-red-950/80 dark:text-amber-200 dark:border-red-800/80 flex items-center gap-1.5 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-red-600 dark:text-amber-400" />
                 <span>Matrícula: 10 - 14 Ago</span>
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-950/80 text-amber-200 border border-red-800/80 flex items-center gap-1.5 shadow-2xs">
-                <Sparkles className="w-3 h-3 text-amber-400" />
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-900 border border-red-200 dark:bg-red-950/80 dark:text-amber-200 dark:border-red-800/80 flex items-center gap-1.5 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-red-600 dark:text-amber-400" />
                 <span>Parciales: 12 - 17 Oct</span>
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-950/80 text-amber-200 border border-red-800/80 flex items-center gap-1.5 shadow-2xs">
-                <Sparkles className="w-3 h-3 text-amber-400" />
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-900 border border-red-200 dark:bg-red-950/80 dark:text-amber-200 dark:border-red-800/80 flex items-center gap-1.5 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-red-600 dark:text-amber-400" />
                 <span>Finales: 07 - 12 Dic</span>
               </span>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Programación oficial del segundo semestre académico. Incluye pre-matrícula, matrícula regular, rectificación de asignaturas, evaluaciones parciales/finales y exámenes de aplazados previos a fin de año.
             </p>
 
-            {/* 2 Cajas Métricas Inferiores (como en la imagen) */}
+            {/* 2 Cajas Métricas Inferiores */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1 shadow-2xs">
+                <span className="text-[10px] font-mono font-bold uppercase text-slate-500 dark:text-slate-400 block">
                   PERIODO DE CLASES
                 </span>
-                <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <p className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>24 Agosto – 12 Diciembre 2026</span>
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">
+              <div className="p-3 rounded-xl bg-red-50/70 dark:bg-white/5 border border-red-200 dark:border-white/10 space-y-1 shadow-2xs">
+                <span className="text-[10px] font-mono font-bold uppercase text-red-700 dark:text-slate-400 block">
                   CIERRE DE ACTAS SUM
                 </span>
-                <p className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-amber-400" />
+                <p className="text-xs font-bold text-red-900 dark:text-amber-300 flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                   <span>Lunes 21 de diciembre de 2026</span>
                 </p>
               </div>
@@ -525,7 +524,7 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
               <button
                 type="button"
                 onClick={() => setDesplegadoII(!desplegadoII)}
-                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-red-700 hover:bg-red-600 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all"
+                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all"
               >
                 {desplegadoII ? (
                   <>
@@ -543,10 +542,10 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
               <button
                 type="button"
                 onClick={() => handleImprimirCronograma("2026-II")}
-                className="w-full sm:w-auto py-3 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 border border-white/15 cursor-pointer transition-colors"
+                className="w-full sm:w-auto py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-red-800 dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-300 dark:border-white/15 cursor-pointer transition-colors shadow-2xs"
                 title="Descargar o imprimir solo el Semestre 2026-II en PDF"
               >
-                <Printer className="w-4 h-4 text-amber-300" />
+                <Printer className="w-4 h-4 text-red-700 dark:text-amber-300" />
                 <span>PDF 2026-II</span>
               </button>
             </div>
@@ -554,12 +553,12 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
 
           {/* TABLA DESPLEGABLE CON LAS 17 ACTIVIDADES DEL 2026-II */}
           {desplegadoII && (
-            <div className="border-t border-red-900/60 bg-slate-950/80 p-4 sm:p-5 space-y-2 animate-in fade-in duration-300">
-              <div className="flex items-center justify-between pb-2 border-b border-white/10 text-xs">
-                <span className="font-bold text-amber-300">
+            <div className="border-t border-slate-200 dark:border-red-900/60 bg-slate-50/80 dark:bg-slate-950/80 p-4 sm:p-5 space-y-2 animate-in fade-in duration-300">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10 text-xs">
+                <span className="font-bold text-red-800 dark:text-amber-300">
                   Actividades Oficiales ({act2026II.length})
                 </span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
                   Semestre 2026-II
                 </span>
               </div>
@@ -572,13 +571,13 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
                       key={item.id}
                       className={`p-3 rounded-xl border transition-all text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
                         item.destacado
-                          ? "bg-red-950/40 border-red-500/40 text-amber-100"
-                          : "bg-white/5 border-white/5 text-slate-200 hover:bg-white/10"
+                          ? "bg-red-50/90 border-red-300 text-red-950 dark:bg-red-950/40 dark:border-red-500/40 dark:text-amber-100 font-semibold shadow-2xs"
+                          : "bg-white border-slate-200/90 text-slate-800 dark:bg-white/5 dark:border-white/5 dark:text-slate-200 hover:bg-red-50/50 dark:hover:bg-white/10 shadow-2xs"
                       }`}
                     >
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-red-900/60 border border-red-400/30 text-amber-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                          <span className="w-5 h-5 rounded-full bg-red-100 border border-red-300 text-red-800 dark:bg-red-900/60 dark:border-red-400/30 dark:text-amber-300 text-[10px] font-bold flex items-center justify-center shrink-0">
                             {idx + 1}
                           </span>
                           <span className="font-bold leading-snug">
@@ -594,8 +593,8 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-amber-300 font-mono text-[11px] font-medium shrink-0 pl-7 sm:pl-0">
-                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      <div className="flex items-center gap-1.5 text-red-800 dark:text-amber-300 font-mono text-[11px] font-bold shrink-0 pl-7 sm:pl-0">
+                        <Clock className="w-3.5 h-3.5 text-red-600 dark:text-amber-400" />
                         <span>{item.fecha}</span>
                       </div>
                     </div>
@@ -608,8 +607,8 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
       </div>
 
       {/* DISPOSICIONES Y NOTAS AL PIE OFICIALES (*), (**), (***) */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/70 dark:bg-slate-900/80 border border-amber-200/80 dark:border-slate-800 space-y-2.5 text-xs text-slate-700 dark:text-slate-300 shadow-xs">
-        <div className="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-amber-200/60 dark:border-slate-800">
+      <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/90 dark:bg-slate-900/80 border border-amber-200 dark:border-slate-800 space-y-2.5 text-xs text-slate-700 dark:text-slate-300 shadow-xs">
+        <div className="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-amber-200/70 dark:border-slate-800">
           <span className="font-bold text-[#002855] dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
             <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             <span>Disposiciones y Notas Oficiales del Régimen Semestral</span>
@@ -626,19 +625,19 @@ export function CalendarioAcademicoSection({ config }: CalendarioAcademicoSectio
         </div>
 
         {config.nota_pie_1 && (
-          <p className="leading-relaxed bg-amber-100/60 dark:bg-slate-950 px-3 py-2 rounded-xl border border-amber-200/70 dark:border-slate-800">
+          <p className="leading-relaxed bg-white/90 dark:bg-slate-950 px-3 py-2 rounded-xl border border-amber-200/80 dark:border-slate-800 text-amber-950 dark:text-slate-300">
             {config.nota_pie_1}
           </p>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {config.nota_pie_2 && (
-            <p className="leading-relaxed bg-amber-100/60 dark:bg-slate-950 px-3 py-2 rounded-xl border border-amber-200/70 dark:border-slate-800">
+            <p className="leading-relaxed bg-white/90 dark:bg-slate-950 px-3 py-2 rounded-xl border border-amber-200/80 dark:border-slate-800 text-amber-950 dark:text-slate-300">
               {config.nota_pie_2}
             </p>
           )}
           {config.nota_pie_3 && (
-            <p className="leading-relaxed bg-amber-100/60 dark:bg-slate-950 px-3 py-2 rounded-xl border border-amber-200/70 dark:border-slate-800">
+            <p className="leading-relaxed bg-white/90 dark:bg-slate-950 px-3 py-2 rounded-xl border border-amber-200/80 dark:border-slate-800 text-amber-950 dark:text-slate-300">
               {config.nota_pie_3}
             </p>
           )}
