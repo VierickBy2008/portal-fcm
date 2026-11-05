@@ -39,7 +39,7 @@ const BENTO_META: Record<
 > = {
   "computacion-cientifica": {
     subtitulo: "Ingeniería de Software, Inteligencia Artificial & HPC",
-    pilares: ["Inteligencia Artificial", "Algoritmos Avanzados", "Software de Alto Rendimiento"],
+    pilares: ["Inteligencia Artificial", "Ciberseguridad", "Software de Alto Rendimiento"],
     glowClass: "from-blue-600/25 via-cyan-500/15 to-transparent",
     accentRing: "hover:border-blue-500 dark:hover:border-cyan-400 hover:shadow-blue-900/20",
     accentText: "text-blue-700 dark:text-cyan-400",
