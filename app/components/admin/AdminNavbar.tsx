@@ -5,6 +5,7 @@ import { Lock } from "lucide-react";
 
 export type AdminTabId =
   | "dashboard"
+  | "firewall"
   | "carreras_cms"
   | "calendario_cms"
   | "asistente_ia_cms"
@@ -53,6 +54,7 @@ export function AdminNavbar({
 }: AdminNavbarProps) {
   const tabs: { id: AdminTabId; label: string }[] = [
     { id: "dashboard", label: "📊 Resumen" },
+    { id: "firewall", label: "🛡️ Cortafuegos WAF" },
     { id: "carreras_cms", label: "🏛️ Carreras & Bento" },
     { id: "calendario_cms", label: `📅 Calendario 2026 (${calendarioCount})` },
     { id: "asistente_ia_cms", label: `🤖 Asistente IA (${asistenteFaqsCount})` },

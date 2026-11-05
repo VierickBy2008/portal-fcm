@@ -93,6 +93,7 @@ import { AdminOrgulloTab } from "@/app/components/admin/AdminOrgulloTab";
 import { AdminTransparenciaTab } from "@/app/components/admin/AdminTransparenciaTab";
 import { AdminStorageTab } from "@/app/components/admin/AdminStorageTab";
 import { AdminTicketsTab } from "@/app/components/admin/AdminTicketsTab";
+import { AdminFirewallTab } from "@/app/components/admin/AdminFirewallTab";
 
 export default function PortalFacultadCienciasMatematicas() {
   const [vistaActual, setVistaActual] = useState<VistaPortal>("/");
@@ -3244,6 +3245,10 @@ export default function PortalFacultadCienciasMatematicas() {
                   setAdminFiltroCarreraMalla={setAdminFiltroCarreraMalla}
                   onActualizarCarreraCompleta={handleActualizarCarreraCompleta}
                 />
+              )}
+
+              {tabAdmin === "firewall" && (
+                <AdminFirewallTab lanzarToast={lanzarToast} />
               )}
 
               {(tabAdmin === "calendario_cms" || tabAdmin === "asistente_ia_cms" || tabAdmin === "arquitectura_3a_cms") && (
