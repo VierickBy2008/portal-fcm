@@ -82,34 +82,39 @@ export function AccesibilidadWidget({ config }: AccesibilidadWidgetProps) {
   };
 
   return (
-    <div className="fixed bottom-5 left-5 z-50 flex flex-col items-start">
+    <div className="fixed bottom-[78px] sm:bottom-[84px] right-5 z-50 flex flex-col items-end">
       {abierto && (
-        <div className="mb-3 w-[310px] sm:w-[340px] rounded-3xl border-2 border-[#002855] dark:border-blue-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden modal-content-gpu">
+        <div className="mb-2.5 w-[310px] sm:w-[340px] rounded-3xl border-2 border-slate-200 dark:border-blue-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden modal-content-gpu">
+          {/* Cabecera del Panel */}
           <div className="bg-[#002855] text-white px-4 py-3 flex items-center justify-between border-b border-white/15">
             <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4 text-amber-300" />
+              <div className="w-7 h-7 rounded-lg bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
+                <Eye className="w-4 h-4" />
+              </div>
               <div>
-                <h3 className="text-xs font-bold">Accesibilidad Inclusiva WCAG 2.1</h3>
-                <p className="text-[10px] text-blue-200">Estándar Universitario SUNEDU / CONADIS</p>
+                <h3 className="text-xs font-bold leading-tight">Accesibilidad Inclusiva</h3>
+                <p className="text-[10px] text-blue-200">Estándar WCAG 2.1 • SUNEDU</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setAbierto(false)}
-              className="p-1 rounded-lg hover:bg-white/15 text-white/80 hover:text-white cursor-pointer"
+              className="p-1 rounded-lg hover:bg-white/15 text-white/80 hover:text-white cursor-pointer transition-colors"
+              title="Cerrar panel de accesibilidad"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="p-4 space-y-3.5 text-xs">
+          <div className="p-4 space-y-3.5 text-xs bg-white dark:bg-slate-900">
             {/* Tamaño de Texto */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                  <Type className="w-3.5 h-3.5 text-[#002855] dark:text-blue-400" /> Tamaño de Texto
+                  <Type className="w-3.5 h-3.5 text-[#002855] dark:text-blue-400" />
+                  <span>Tamaño de Texto</span>
                 </span>
-                <span className="font-mono font-bold text-[#002855] dark:text-blue-300">
+                <span className="font-mono font-bold text-[#002855] dark:text-blue-300 bg-blue-50 dark:bg-blue-950/80 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-800">
                   {escalaFuente}%
                 </span>
               </div>
@@ -126,8 +131,8 @@ export function AccesibilidadWidget({ config }: AccesibilidadWidgetProps) {
                     onClick={() => setEscalaFuente(opt.val)}
                     className={`py-1.5 rounded-xl font-bold border transition-all cursor-pointer ${
                       escalaFuente === opt.val
-                        ? "bg-[#002855] text-white border-[#002855] dark:bg-blue-600 dark:border-blue-500"
-                        : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"
+                        ? "bg-[#002855] text-white border-[#002855] dark:bg-blue-600 dark:border-blue-500 shadow-2xs"
+                        : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700"
                     }`}
                   >
                     {opt.label}
@@ -144,14 +149,15 @@ export function AccesibilidadWidget({ config }: AccesibilidadWidgetProps) {
                   onClick={() => setAltoContraste((p) => !p)}
                   className={`w-full px-3 py-2 rounded-xl border font-semibold flex items-center justify-between transition-colors cursor-pointer ${
                     altoContraste
-                      ? "bg-blue-50 dark:bg-blue-950/80 border-blue-500 text-[#002855] dark:text-blue-300"
-                      : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                      ? "bg-blue-50 border-blue-400 text-[#002855] dark:bg-blue-950/80 dark:border-blue-500 dark:text-blue-300"
+                      : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700"
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Contrast className="w-3.5 h-3.5" /> Alto Contraste Nitidez
+                    <Contrast className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                    <span>Alto Contraste y Nitidez</span>
                   </span>
-                  {altoContraste && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                  {altoContraste && <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
                 </button>
               )}
 
@@ -161,14 +167,15 @@ export function AccesibilidadWidget({ config }: AccesibilidadWidgetProps) {
                   onClick={() => setEscalaGrises((p) => !p)}
                   className={`w-full px-3 py-2 rounded-xl border font-semibold flex items-center justify-between transition-colors cursor-pointer ${
                     escalaGrises
-                      ? "bg-blue-50 dark:bg-blue-950/80 border-blue-500 text-[#002855] dark:text-blue-300"
-                      : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                      ? "bg-blue-50 border-blue-400 text-[#002855] dark:bg-blue-950/80 dark:border-blue-500 dark:text-blue-300"
+                      : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700"
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Eye className="w-3.5 h-3.5" /> Modo Monocromático (Daltónico)
+                    <Eye className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
+                    <span>Modo Monocromático (Daltónico)</span>
                   </span>
-                  {escalaGrises && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                  {escalaGrises && <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
                 </button>
               )}
 
@@ -178,14 +185,15 @@ export function AccesibilidadWidget({ config }: AccesibilidadWidgetProps) {
                   onClick={() => setReducirAnimaciones((p) => !p)}
                   className={`w-full px-3 py-2 rounded-xl border font-semibold flex items-center justify-between transition-colors cursor-pointer ${
                     reducirAnimaciones
-                      ? "bg-blue-50 dark:bg-blue-950/80 border-blue-500 text-[#002855] dark:text-blue-300"
-                      : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                      ? "bg-blue-50 border-blue-400 text-[#002855] dark:bg-blue-950/80 dark:border-blue-500 dark:text-blue-300"
+                      : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700"
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5" /> Reducir Movimiento / Animaciones
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <span>Reducir Animaciones</span>
                   </span>
-                  {reducirAnimaciones && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                  {reducirAnimaciones && <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
                 </button>
               )}
 
@@ -193,20 +201,22 @@ export function AccesibilidadWidget({ config }: AccesibilidadWidgetProps) {
                 <button
                   type="button"
                   onClick={toggleLecturaVoz}
-                  className={`w-full px-3 py-2.5 rounded-xl border font-bold flex items-center justify-between transition-colors cursor-pointer ${
+                  className={`w-full px-3 py-2.5 rounded-xl border font-bold flex items-center justify-between transition-colors cursor-pointer shadow-2xs ${
                     leyendoVoz
                       ? "bg-red-700 text-white border-red-800"
-                      : "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300"
+                      : "bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 dark:text-emerald-300 dark:border-emerald-800"
                   }`}
                 >
                   <span className="flex items-center gap-2">
                     {leyendoVoz ? (
                       <>
-                        <VolumeX className="w-4 h-4" /> Detener Lectura por Voz
+                        <VolumeX className="w-4 h-4 text-white animate-pulse" />
+                        <span>Detener Lectura por Voz</span>
                       </>
                     ) : (
                       <>
-                        <Volume2 className="w-4 h-4" /> Escuchar Resumen del Portal (TTS)
+                        <Volume2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                        <span>Escuchar Resumen del Portal (TTS)</span>
                       </>
                     )}
                   </span>
@@ -217,22 +227,28 @@ export function AccesibilidadWidget({ config }: AccesibilidadWidgetProps) {
             <button
               type="button"
               onClick={restablecerTodo}
-              className="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700 font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> Restablecer Valores por Defecto
+              <RotateCcw className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+              <span>Restablecer Valores</span>
             </button>
           </div>
         </div>
       )}
 
+      {/* Botón Flotante de Accesibilidad: SOLO ÍCONO DEL OJITO (CON VERSIÓN CLARA Y OSCURA) */}
       <button
         type="button"
         onClick={() => setAbierto((p) => !p)}
-        className="gpu-btn flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-[#002855] hover:bg-blue-900 text-white shadow-lg border-2 border-white/25 cursor-pointer"
-        title="Opciones de Accesibilidad WCAG 2.1 y Lector de Voz"
+        className="gpu-btn group flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white hover:bg-amber-50/90 text-amber-600 border-2 border-amber-300 hover:border-amber-500 dark:bg-[#002855] dark:hover:bg-blue-900 dark:text-amber-300 dark:border-white/20 shadow-md hover:shadow-xl cursor-pointer transition-all"
+        title="Opciones de Accesibilidad Inclusiva WCAG 2.1"
+        aria-label="Abrir opciones de accesibilidad"
       >
-        <Eye className="w-4 h-4 text-amber-300" />
-        <span className="text-[11px] font-bold hidden sm:inline">Accesibilidad</span>
+        {abierto ? (
+          <X className="w-5 h-5 text-amber-700 dark:text-white" />
+        ) : (
+          <Eye className="w-5 h-5 text-amber-600 dark:text-amber-300 group-hover:scale-110 transition-transform" />
+        )}
       </button>
     </div>
   );

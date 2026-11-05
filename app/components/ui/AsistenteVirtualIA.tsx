@@ -8,9 +8,7 @@ import {
   Sparkles,
   ExternalLink,
   RotateCcw,
-  Calendar,
   BookOpen,
-  GraduationCap,
 } from "lucide-react";
 import type {
   AsistenteIAConfig,
@@ -98,19 +96,10 @@ export function AsistenteVirtualIA({
       const pregNorm = normalizarTexto(faq.pregunta);
       let score = 0;
 
-      if (pregNorm.includes(q) || q.includes(pregNorm)) {
-        score += 5;
+      for (const pal of palabras) {
+        if (pal && q.includes(pal)) score += 3;
       }
-      for (const kw of palabras) {
-        if (kw && q.includes(kw)) {
-          score += 3;
-        } else {
-          const tokens = kw.split(/\s+/).filter((t) => t.length > 3);
-          for (const tk of tokens) {
-            if (q.includes(tk)) score += 1;
-          }
-        }
-      }
+      if (pregNorm && q.includes(pregNorm)) score += 5;
       if (score > maxScore) {
         maxScore = score;
         mejorFaq = faq;
@@ -125,117 +114,112 @@ export function AsistenteVirtualIA({
       };
     }
 
-    // 2. Buscar en cursos de la Malla Curricular (por código o nombre)
-    const cursoEncontrado = malla.find((c) => {
-      const cod = normalizarTexto(c.codigo);
-      const nom = normalizarTexto(c.nombre_curso);
-      return (cod.length >= 4 && q.includes(cod)) || (nom.length >= 5 && q.includes(nom));
-    });
+    // 2. Consultas automáticas en vivo del Calendario Académico 2026
+    if (q.includes("calendario") || q.includes("cronograma") || q.includes("fecha") || q.includes("cuando")) {
+      if (q.includes("matricula")) {
+        const matI = calendario.actividades.find((a) => a.semestre === "2026-I" && a.actividad.toLowerCase().includes("matrícula regular"));
+        const matII = calendario.actividades.find((a) => a.semestre === "2026-II" && a.actividad.toLowerCase().includes("matrícula regular"));
+        return {
+          texto: `📅 Fechas Oficiales de Matrícula Regular 2026 (SUM):\n• Semestre 2026-I: ${matI ? matI.fecha : "16 al 20 de marzo de 2026"}\n• Semestre 2026-II: ${matII ? matII.fecha : "10 al 14 de agosto de 2026"}\n\nRecuerda revisar la fecha límite para reactualización de matrícula en la sección de cronograma.`,
+          enlaceUrl: "https://sum.unmsm.edu.pe/alumnoWebSum/login",
+          enlaceTexto: "Ir al SUM UNMSM",
+        };
+      }
 
-    if (cursoEncontrado) {
-      const esc = carreras.find((c) => c.id === cursoEncontrado.carrera_id);
-      const prereqs =
-        cursoEncontrado.prerequisitos.length > 0
-          ? cursoEncontrado.prerequisitos.join(", ")
-          : "Ninguno (curso de ingreso directo)";
+      if (q.includes("clase") || q.includes("inicio")) {
+        const claI = calendario.actividades.find((a) => a.semestre === "2026-I" && a.actividad.toLowerCase().startsWith("clases"));
+        const claII = calendario.actividades.find((a) => a.semestre === "2026-II" && a.actividad.toLowerCase().startsWith("clases"));
+        return {
+          texto: `🎓 Periodo de Clases 2026 (16 Semanas Lectivas):\n• Semestre 2026-I: ${claI ? claI.fecha : "Inicio: Lunes 30 de marzo / Término: Sábado 18 de julio"}\n• Semestre 2026-II: ${claII ? claII.fecha : "Inicio: Lunes 24 de agosto / Término: Sábado 12 de diciembre"}`,
+        };
+      }
+
+      if (q.includes("examen") || q.includes("parcial") || q.includes("final") || q.includes("sustitutorio")) {
+        return {
+          texto: `📝 Periodo de Evaluaciones Oficiales:\n• Semestre 2026-I:\n  - Parciales: 18 al 22 de mayo\n  - Finales: 13 al 17 de julio\n  - Sustitutorios / Rezagados: 20 y 21 de julio\n• Semestre 2026-II:\n  - Parciales: 12 al 17 de octubre\n  - Finales: 07 al 12 de diciembre\n  - Sustitutorios: 14 al 16 de diciembre`,
+        };
+      }
+    }
+
+    // 3. Consultas sobre Carreras y Escuelas Profesionales
+    for (const car of carreras) {
+      const nombreNorm = normalizarTexto(car.nombre);
+      const codigoNorm = normalizarTexto(car.codigo_escuela);
+      if (q.includes(nombreNorm) || q.includes(codigoNorm) || (car.id === "computacion-cientifica" && (q.includes("computacion") || q.includes("hpc") || q.includes("software")))) {
+        const totalCursos = malla.filter((m) => m.carrera_id === car.id).length;
+        const especializaciones = car.pilares_bento?.join(", ") || "Áreas de especialidad oficial";
+        return {
+          texto: `🏛️ Escuela Profesional de ${car.nombre} (${car.codigo_escuela}):\n\n${car.descripcion.slice(0, 220)}...\n\n• Duración: 5 años (10 ciclos)\n• Grado: ${car.grado_academico}\n• Especialidades del Póster: ${especializaciones}\n• Asignaturas en Malla: ${totalCursos} registradas.`,
+          carreraAccion: car.id,
+        };
+      }
+    }
+
+    // 4. Consultas sobre Catedráticos y Docentes
+    if (q.includes("docente") || q.includes("profesor") || q.includes("catedra")) {
+      const palabrasQ = q.split(" ").filter((p) => p.length > 3);
+      const docenteEncontrado = docentes.find((d) => {
+        const nomNorm = normalizarTexto(d.nombre_completo);
+        const espNorm = normalizarTexto(d.especialidad);
+        return palabrasQ.some((pal) => nomNorm.includes(pal) || espNorm.includes(pal));
+      });
+
+      if (docenteEncontrado) {
+        return {
+          texto: `👨‍🏫 Ficha de Cátedra:\n${docenteEncontrado.grado_academico} ${docenteEncontrado.nombre_completo}\n• Categoría: ${docenteEncontrado.categoria_docente} (${docenteEncontrado.condicion})\n• Especialidad: ${docenteEncontrado.especialidad}\n• Correo: ${docenteEncontrado.correo}\n• Asesoría: ${docenteEncontrado.horario_asesoria}`,
+          enlaceUrl: docenteEncontrado.cti_vitae_url || undefined,
+          enlaceTexto: docenteEncontrado.cti_vitae_url ? "Ver CTI Vitae CONCYTEC" : undefined,
+        };
+      }
+
       return {
-        texto: `📚 Asignatura encontrada: [${cursoEncontrado.codigo}] ${cursoEncontrado.nombre_curso} • Escuela: ${esc?.nombre || cursoEncontrado.carrera_id} • Ciclo ${cursoEncontrado.ciclo} • ${cursoEncontrado.creditos} créditos (${cursoEncontrado.tipo_curso === "O" ? "Obligatorio" : "Electivo"}). Prerrequisitos: ${prereqs}.`,
-        carreraAccion: cursoEncontrado.carrera_id,
+        texto: `Puedes consultar la plana docente completa de las 4 escuelas profesionales en la sección de Docentes de la facultad, incluyendo horarios de asesoría y valoraciones estudiantiles.`,
       };
     }
 
-    // 3. Buscar en la Plana Docente
-    const docenteEncontrado = docentes.find((d) => {
-      const nom = normalizarTexto(d.nombre_completo);
-      const apellidos = nom.split(/\s+/).filter((w) => w.length > 3);
-      return q.includes(nom) || apellidos.some((ap) => q.includes(ap));
-    });
-
-    if (docenteEncontrado) {
-      return {
-        texto: `👨‍🏫 ${docenteEncontrado.grado_academico} ${docenteEncontrado.nombre_completo} (${docenteEncontrado.categoria_docente} - ${docenteEncontrado.condicion}). Especialidad: ${docenteEncontrado.especialidad}. Horario de asesoría: ${docenteEncontrado.horario_asesoria}. Correo: ${docenteEncontrado.correo}.`,
-      };
-    }
-
-    // 4. Buscar actividades específicas en el Calendario Semestral 2026-I / 2026-II
-    const actsCoincidentes = calendario.actividades.filter((a) => {
-      const actNorm = normalizarTexto(a.actividad);
-      return (
-        actNorm.includes(q) ||
-        (q.includes("parcial") && actNorm.includes("parcial")) ||
-        (q.includes("final") && actNorm.includes("final")) ||
-        (q.includes("aplazado") && actNorm.includes("aplazado")) ||
-        (q.includes("rectificacion") && actNorm.includes("rectificacion")) ||
-        (q.includes("anulacion") && actNorm.includes("anulacion")) ||
-        (q.includes("clases") && actNorm.includes("clases")) ||
-        (q.includes("matricula") && actNorm.includes("matricula regular"))
-      );
-    });
-
-    if (actsCoincidentes.length > 0) {
-      const resumen = actsCoincidentes
-        .slice(0, 4)
-        .map((a) => `• [${a.semestre}] ${a.actividad}: ${a.fecha}`)
-        .join("\n");
-      return {
-        texto: `📅 Según el Régimen Semestral Oficial 2026:\n${resumen}`,
-      };
-    }
-
-    // 5. Buscar por Escuela Profesional
-    const carreraMatch = carreras.find((c) => q.includes(normalizarTexto(c.nombre)));
-    if (carreraMatch) {
-      const esp =
-        carreraMatch.pilares_bento && carreraMatch.pilares_bento.length > 0
-          ? carreraMatch.pilares_bento.join(", ")
-          : "Ver póster oficial";
-      return {
-        texto: `🏛️ Escuela Profesional de ${carreraMatch.nombre} (${carreraMatch.codigo_escuela}): Otorga el grado de ${carreraMatch.grado_academico} y título de ${carreraMatch.titulo_profesional}. Líneas de especialización del póster: ${esp}.`,
-        carreraAccion: carreraMatch.id,
-      };
-    }
-
-    // Respuesta orientativa por defecto
+    // Respuesta General si no hubo coincidencia exacta
     return {
-      texto:
-        "Puedo ayudarte con fechas exactas del Régimen Semestral 2026-I y 2026-II (matrícula, clases, parciales, finales, aplazados), especializaciones de las 4 escuelas (Matemática, Estadística, Investigación Operativa y Computación Científica), prerrequisitos de cursos por código (ej. CS112, 2314131) o información de docentes.",
+      texto: `Disculpa, no encontré una respuesta exacta para "${consultaRaw}". Puedo ayudarte con:\n• Fechas de matrícula, clases y exámenes del Calendario 2026.\n• Información y mallas de Computación Científica, Matemática, Estadística e Investigación Operativa.\n• Horarios de asesoría de docentes o trámites del SUM.`,
     };
   };
 
-  const enviarConsulta = (textoConsulta: string) => {
-    const limpio = textoConsulta.trim();
-    if (!limpio) return;
+  const enviarConsulta = (textoPregunta: string) => {
+    const limpia = textoPregunta.trim();
+    if (!limpia) return;
 
-    const msgUser: MensajeChat = {
+    const userMsg: MensajeChat = {
       id: `usr-${Date.now()}`,
       emisor: "usuario",
-      texto: limpio,
+      texto: limpia,
     };
 
-    const respuesta = generarRespuestaInteligente(limpio);
-    const msgBot: MensajeChat = {
-      id: `bot-${Date.now() + 1}`,
-      emisor: "bot",
-      ...respuesta,
-    };
-
-    setMensajes((prev) => [...prev, msgUser, msgBot]);
+    setMensajes((prev) => [...prev, userMsg]);
     setInputPregunta("");
+
+    setTimeout(() => {
+      const respuesta = generarRespuestaInteligente(limpia);
+      const botMsg: MensajeChat = {
+        id: `bot-${Date.now()}`,
+        emisor: "bot",
+        ...respuesta,
+      };
+      setMensajes((prev) => [...prev, botMsg]);
+    }, 380);
   };
 
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
-      {/* Panel de Chat Abierto */}
+      {/* Ventana Flotante del Chat */}
       {abierto && (
-        <div className="mb-3 w-[340px] sm:w-[390px] max-h-[540px] rounded-3xl border-2 border-blue-900/80 dark:border-blue-700/80 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden flex flex-col modal-content-gpu">
-          {/* Cabecera del Chatbot */}
-          <div className="bg-gradient-to-r from-[#002855] via-blue-900 to-red-800 text-white px-4 py-3.5 flex items-center justify-between border-b border-white/15">
+        <div className="mb-3 w-[320px] sm:w-[370px] h-[510px] rounded-3xl border-2 border-blue-200 dark:border-blue-700 bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden modal-content-gpu">
+          {/* Cabecera del Chat */}
+          <div className="bg-gradient-to-r from-[#002855] to-blue-900 text-white px-4 py-3.5 flex items-center justify-between border-b border-white/15">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center">
-                <Bot className="w-5 h-5 text-amber-300" />
+              <div className="w-8 h-8 rounded-xl bg-white/10 backdrop-blur-xs border border-white/20 flex items-center justify-center text-amber-300 shadow-xs">
+                <Bot className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-xs sm:text-sm font-bold leading-tight flex items-center gap-1.5">
+                <h3 className="text-xs font-bold flex items-center gap-1.5 leading-tight">
                   <span>{config.nombre_bot}</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 </h3>
@@ -271,7 +255,7 @@ export function AsistenteVirtualIA({
           </div>
 
           {/* Historial de Mensajes */}
-          <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[310px] bg-slate-50/70 dark:bg-slate-950/60">
+          <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[300px] bg-slate-50/90 dark:bg-slate-950/80">
             {mensajes.map((m) => (
               <div
                 key={m.id}
@@ -283,7 +267,7 @@ export function AsistenteVirtualIA({
                   className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-line ${
                     m.emisor === "usuario"
                       ? "bg-[#002855] text-white rounded-br-xs shadow-xs"
-                      : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-bl-xs shadow-2xs"
+                      : "bg-white text-slate-800 border border-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700 rounded-bl-xs shadow-2xs"
                   }`}
                 >
                   {m.texto}
@@ -293,7 +277,7 @@ export function AsistenteVirtualIA({
                       href={m.enlaceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 font-bold text-[11px] border border-blue-200 dark:border-blue-800 hover:underline"
+                      className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-[#002855] border border-blue-200 font-bold text-[11px] hover:underline dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800"
                     >
                       <span>{m.enlaceTexto || "Abrir enlace oficial"}</span>
                       <ExternalLink className="w-3 h-3" />
@@ -307,7 +291,7 @@ export function AsistenteVirtualIA({
                         onExplorarCarrera(m.carreraAccion!);
                         setAbierto(false);
                       }}
-                      className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-700 text-white font-bold text-[11px] hover:bg-red-800 cursor-pointer"
+                      className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-700 text-white font-bold text-[11px] hover:bg-red-800 cursor-pointer shadow-2xs"
                     >
                       <BookOpen className="w-3 h-3" />
                       <span>Ver Malla Interactiva</span>
@@ -321,13 +305,13 @@ export function AsistenteVirtualIA({
 
           {/* Píldoras de Preguntas Rápidas */}
           {config.preguntas_rapidas.length > 0 && (
-            <div className="px-3 py-2 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <div className="px-3 py-2 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
               {config.preguntas_rapidas.map((preg, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => enviarConsulta(preg)}
-                  className="shrink-0 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] hover:text-white dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-slate-700 text-[10px] font-bold transition-colors cursor-pointer"
+                  className="shrink-0 px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-[10px] font-bold transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-blue-600 dark:text-blue-300 dark:border-slate-700"
                 >
                   {preg}
                 </button>
@@ -348,11 +332,11 @@ export function AsistenteVirtualIA({
               value={inputPregunta}
               onChange={(e) => setInputPregunta(e.target.value)}
               placeholder="Pregunta sobre matrícula, cursos, docentes..."
-              className="flex-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#002855]"
+              className="flex-1 rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#002855] dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:border-blue-400"
             />
             <button
               type="submit"
-              className="gpu-btn p-2.5 rounded-xl bg-[#002855] hover:bg-red-700 text-white cursor-pointer"
+              className="gpu-btn p-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white cursor-pointer shadow-2xs"
               title="Enviar consulta"
             >
               <Send className="w-3.5 h-3.5" />
@@ -361,19 +345,24 @@ export function AsistenteVirtualIA({
         </div>
       )}
 
-      {/* Botón Flotante Principal del Asistente IA */}
+      {/* Botón Flotante Principal del Asistente IA: SOLO ÍCONO DEL BOTSITO (CON VERSIÓN CLARA Y OSCURA) */}
       <button
         type="button"
         onClick={() => setAbierto((prev) => !prev)}
-        className="gpu-btn group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-[#002855] via-blue-900 to-red-800 text-white shadow-xl hover:shadow-2xl border-2 border-white/25 cursor-pointer"
+        className="gpu-btn group relative flex items-center justify-center w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-white hover:bg-blue-50/90 text-[#002855] border-2 border-blue-200 hover:border-[#002855] dark:bg-gradient-to-r dark:from-[#002855] dark:via-blue-900 dark:to-red-900 dark:text-white dark:border-white/20 shadow-lg hover:shadow-2xl cursor-pointer transition-all"
+        title="Asistente Virtual IA FCM"
+        aria-label="Abrir Asistente Virtual IA"
       >
-        <div className="relative">
-          <Bot className="w-5 h-5 text-amber-300" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-[#002855]" />
+        <div className="relative flex items-center justify-center">
+          {abierto ? (
+            <X className="w-5 h-5 text-[#002855] dark:text-white" />
+          ) : (
+            <>
+              <Bot className="w-6 h-6 text-[#002855] dark:text-amber-300 group-hover:scale-110 transition-transform" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#002855] shadow-xs" />
+            </>
+          )}
         </div>
-        <span className="text-xs font-bold tracking-wide hidden sm:inline">
-          Asistente IA FCM
-        </span>
       </button>
     </div>
   );
