@@ -26,49 +26,18 @@ export interface WafStats {
 let currentWafMode: WafMode = "normal";
 
 let wafStats: WafStats = {
-  totalBlocked: 14, // Eventos de baseline para visualización inicial
-  sqliBlocked: 3,
-  xssBlocked: 2,
-  scannersBlocked: 5,
-  pathProbesBlocked: 4,
+  totalBlocked: 0,
+  sqliBlocked: 0,
+  xssBlocked: 0,
+  scannersBlocked: 0,
+  pathProbesBlocked: 0,
   rateLimited: 0,
   activeMode: "normal",
   lastUpdated: new Date().toISOString(),
 };
 
-// Ring buffer de los últimos 50 eventos bloqueados
-const recentEvents: WafBlockedEvent[] = [
-  {
-    id: "fcm-waf-001",
-    timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    ip: "185.220.101.42",
-    threatType: "Scanner",
-    reason: "User-Agent clasificado como escáner de vulnerabilidades (sqlmap/1.7)",
-    path: "/api/carreras",
-    userAgent: "sqlmap/1.7#stable",
-    action: "blocked",
-  },
-  {
-    id: "fcm-waf-002",
-    timestamp: new Date(Date.now() - 1000 * 60 * 28).toISOString(),
-    ip: "194.26.29.115",
-    threatType: "PathProbe",
-    reason: "Intento de sondeo de archivo de entorno confidencial",
-    path: "/.env",
-    userAgent: "python-requests/2.31.0",
-    action: "blocked",
-  },
-  {
-    id: "fcm-waf-003",
-    timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-    ip: "45.154.255.89",
-    threatType: "SQLi",
-    reason: "Inyección de operador UNION SELECT detectada en query string",
-    path: "/repositorio?curso=' UNION SELECT 1,2,3--",
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    action: "blocked",
-  },
-];
+// Ring buffer de los últimos 50 eventos bloqueados reales
+const recentEvents: WafBlockedEvent[] = [];
 
 export function getWafStats(): WafStats {
   return {

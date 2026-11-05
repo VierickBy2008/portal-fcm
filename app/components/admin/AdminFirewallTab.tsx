@@ -23,11 +23,11 @@ interface AdminFirewallTabProps {
 
 export function AdminFirewallTab({ lanzarToast }: AdminFirewallTabProps) {
   const [stats, setStats] = useState<WafStats>({
-    totalBlocked: 14,
-    sqliBlocked: 3,
-    xssBlocked: 2,
-    scannersBlocked: 5,
-    pathProbesBlocked: 4,
+    totalBlocked: 0,
+    sqliBlocked: 0,
+    xssBlocked: 0,
+    scannersBlocked: 0,
+    pathProbesBlocked: 0,
     rateLimited: 0,
     activeMode: "normal",
     lastUpdated: new Date().toISOString(),
@@ -37,6 +37,22 @@ export function AdminFirewallTab({ lanzarToast }: AdminFirewallTabProps) {
   const [cambiandoModo, setCambiandoModo] = useState(false);
   const [ejecutandoTest, setEjecutandoTest] = useState(false);
 
+  // Inicializar estado persistente desde localStorage si existe
+  useEffect(() => {
+    try {
+      const localStats = localStorage.getItem("fcm_waf_stats");
+      const localEvents = localStorage.getItem("fcm_waf_events");
+      if (localStats) {
+        setStats(JSON.parse(localStats));
+      }
+      if (localEvents) {
+        setEvents(JSON.parse(localEvents));
+      }
+    } catch {
+      // noop
+    }
+  }, []);
+
   const cargarDatosWaf = useCallback(async () => {
     setCargando(true);
     try {
@@ -44,8 +60,22 @@ export function AdminFirewallTab({ lanzarToast }: AdminFirewallTabProps) {
       if (res.ok) {
         const data = await res.json();
         if (data.ok) {
-          if (data.stats) setStats(data.stats);
-          if (Array.isArray(data.events)) setEvents(data.events);
+          if (data.stats) {
+            setStats(data.stats);
+            try {
+              localStorage.setItem("fcm_waf_stats", JSON.stringify(data.stats));
+            } catch {
+              // noop
+            }
+          }
+          if (Array.isArray(data.events)) {
+            setEvents(data.events);
+            try {
+              localStorage.setItem("fcm_waf_events", JSON.stringify(data.events));
+            } catch {
+              // noop
+            }
+          }
         }
       }
     } catch {
@@ -70,6 +100,11 @@ export function AdminFirewallTab({ lanzarToast }: AdminFirewallTabProps) {
       const data = await res.json();
       if (res.ok && data.ok) {
         setStats(data.stats);
+        try {
+          localStorage.setItem("fcm_waf_stats", JSON.stringify(data.stats));
+        } catch {
+          // noop
+        }
         lanzarToast(`🛡️ Modo del Cortafuegos actualizado a: ${nuevoModo.toUpperCase()}`);
       }
     } catch {
@@ -91,6 +126,14 @@ export function AdminFirewallTab({ lanzarToast }: AdminFirewallTabProps) {
       if (res.ok && data.ok) {
         setStats(data.stats);
         if (Array.isArray(data.events)) setEvents(data.events);
+        try {
+          localStorage.setItem("fcm_waf_stats", JSON.stringify(data.stats));
+          if (Array.isArray(data.events)) {
+            localStorage.setItem("fcm_waf_events", JSON.stringify(data.events));
+          }
+        } catch {
+          // noop
+        }
         lanzarToast("⚡ Ataque simulado interceptado en 0 ms por las reglas WAF.");
       }
     } catch {
@@ -114,6 +157,26 @@ export function AdminFirewallTab({ lanzarToast }: AdminFirewallTabProps) {
       if (res.ok && data.ok) {
         setEvents([]);
         if (data.stats) setStats(data.stats);
+        try {
+          localStorage.removeItem("fcm_waf_events");
+          localStorage.setItem(
+            "fcm_waf_stats",
+            JSON.stringify(
+              data.stats || {
+                totalBlocked: 0,
+                sqliBlocked: 0,
+                xssBlocked: 0,
+                scannersBlocked: 0,
+                pathProbesBlocked: 0,
+                rateLimited: 0,
+                activeMode: "normal",
+                lastUpdated: new Date().toISOString(),
+              }
+            )
+          );
+        } catch {
+          // noop
+        }
         lanzarToast("🗑️ Historial de eventos y contadores vaciados a 0.");
       }
     } catch {
