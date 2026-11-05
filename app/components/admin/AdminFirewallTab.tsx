@@ -113,7 +113,8 @@ export function AdminFirewallTab({ lanzarToast }: AdminFirewallTabProps) {
       const data = await res.json();
       if (res.ok && data.ok) {
         setEvents([]);
-        lanzarToast("🗑️ Historial de eventos de seguridad vaciado.");
+        if (data.stats) setStats(data.stats);
+        lanzarToast("🗑️ Historial de eventos y contadores vaciados a 0.");
       }
     } catch {
       lanzarToast("Error al limpiar historial");

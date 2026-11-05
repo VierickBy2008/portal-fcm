@@ -115,6 +115,13 @@ export function recordBlockedEvent(
 
 export function clearWafEvents(): void {
   recentEvents.length = 0;
+  wafStats.totalBlocked = 0;
+  wafStats.sqliBlocked = 0;
+  wafStats.xssBlocked = 0;
+  wafStats.scannersBlocked = 0;
+  wafStats.pathProbesBlocked = 0;
+  wafStats.rateLimited = 0;
+  wafStats.lastUpdated = new Date().toISOString();
 }
 
 /**

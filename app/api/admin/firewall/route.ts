@@ -55,7 +55,8 @@ export async function POST(req: NextRequest) {
       clearWafEvents();
       return NextResponse.json({
         ok: true,
-        mensaje: "Historial de eventos de seguridad limpiado.",
+        mensaje: "Historial de eventos de seguridad y contadores vaciados a 0.",
+        stats: getWafStats(),
         events: getWafEvents(),
       });
     }
