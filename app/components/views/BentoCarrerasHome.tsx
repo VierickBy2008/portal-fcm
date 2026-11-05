@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { Carrera, CarreraId, CursoMalla } from "@/app/types/portal";
 import { TEMA_CARRERA } from "@/app/data/portalInitialData";
+import { BENTO_ESPECIALIZACIONES_DEFAULT } from "@/app/data/portalExtrasData";
 
 interface BentoCarrerasHomeProps {
   carreras: Carrera[];
@@ -38,44 +39,44 @@ const BENTO_META: Record<
   }
 > = {
   "computacion-cientifica": {
-    subtitulo: "Ingeniería de Software, Inteligencia Artificial & HPC",
-    pilares: ["Inteligencia Artificial", "Ciberseguridad", "Software de Alto Rendimiento"],
+    subtitulo: BENTO_ESPECIALIZACIONES_DEFAULT["computacion-cientifica"].subtitulo,
+    pilares: BENTO_ESPECIALIZACIONES_DEFAULT["computacion-cientifica"].pilares,
     glowClass: "from-blue-600/25 via-cyan-500/15 to-transparent",
     accentRing: "hover:border-blue-500 dark:hover:border-cyan-400 hover:shadow-blue-900/20",
     accentText: "text-blue-700 dark:text-cyan-400",
     badgePill: "bg-blue-50 dark:bg-blue-950/70 text-blue-800 dark:text-cyan-300 border-blue-200 dark:border-blue-800",
     bentoSpan: "lg:col-span-6",
-    creditosReferencia: 220,
+    creditosReferencia: BENTO_ESPECIALIZACIONES_DEFAULT["computacion-cientifica"].creditos,
   },
   matematica: {
-    subtitulo: "Rigor Científico, Abstracción & Modelado Teórico",
-    pilares: ["Análisis Puro", "Álgebra y Geometría", "Ecuaciones Diferenciales"],
+    subtitulo: BENTO_ESPECIALIZACIONES_DEFAULT["matematica"].subtitulo,
+    pilares: BENTO_ESPECIALIZACIONES_DEFAULT["matematica"].pilares,
     glowClass: "from-red-600/25 via-rose-500/15 to-transparent",
     accentRing: "hover:border-red-600 dark:hover:border-red-400 hover:shadow-red-900/20",
     accentText: "text-red-700 dark:text-red-400",
     badgePill: "bg-red-50 dark:bg-red-950/70 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800",
     bentoSpan: "lg:col-span-6",
-    creditosReferencia: 216,
+    creditosReferencia: BENTO_ESPECIALIZACIONES_DEFAULT["matematica"].creditos,
   },
   estadistica: {
-    subtitulo: "Ciencia de Datos, Inferencia & Modelado Predictivo",
-    pilares: ["Ciencia de Datos", "Bioestadística", "Inferencia Cuantitativa"],
+    subtitulo: BENTO_ESPECIALIZACIONES_DEFAULT["estadistica"].subtitulo,
+    pilares: BENTO_ESPECIALIZACIONES_DEFAULT["estadistica"].pilares,
     glowClass: "from-orange-500/25 via-amber-500/15 to-transparent",
     accentRing: "hover:border-orange-500 dark:hover:border-amber-400 hover:shadow-orange-900/20",
     accentText: "text-orange-600 dark:text-amber-400",
     badgePill: "bg-orange-50 dark:bg-orange-950/70 text-orange-800 dark:text-amber-300 border-orange-200 dark:border-orange-800",
     bentoSpan: "lg:col-span-6",
-    creditosReferencia: 218,
+    creditosReferencia: BENTO_ESPECIALIZACIONES_DEFAULT["estadistica"].creditos,
   },
   "investigacion-operativa": {
-    subtitulo: "Optimización Matemática, Logística & Toma de Decisiones",
-    pilares: ["Optimización Matemática", "Logística y Redes", "Toma de Decisiones"],
+    subtitulo: BENTO_ESPECIALIZACIONES_DEFAULT["investigacion-operativa"].subtitulo,
+    pilares: BENTO_ESPECIALIZACIONES_DEFAULT["investigacion-operativa"].pilares,
     glowClass: "from-emerald-600/25 via-teal-500/15 to-transparent",
     accentRing: "hover:border-emerald-600 dark:hover:border-emerald-400 hover:shadow-emerald-900/20",
     accentText: "text-emerald-700 dark:text-emerald-400",
     badgePill: "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
     bentoSpan: "lg:col-span-6",
-    creditosReferencia: 218,
+    creditosReferencia: BENTO_ESPECIALIZACIONES_DEFAULT["investigacion-operativa"].creditos,
   },
 };
 
@@ -111,7 +112,7 @@ export function BentoCarrerasHome({
           </h2>
         </div>
         <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 max-w-md">
-          Explora las 4 carreras oficiales de pregrado, su mapa interactivo de prerrequisitos y descarga directa de trípticos en PDF.
+          Explora las 4 carreras oficiales de pregrado, sus especializaciones de póster, mapa interactivo de prerrequisitos y descarga directa de trípticos en PDF.
         </p>
       </div>
 
@@ -122,7 +123,28 @@ export function BentoCarrerasHome({
           const totalCreditosMalla = cursosCar.reduce((acc, c) => acc + c.creditos, 0);
           const temaCar = TEMA_CARRERA[car.id];
           const meta = BENTO_META[car.id];
-          const creditosMostrar = totalCreditosMalla >= 180 ? totalCreditosMalla.toFixed(0) : String(meta.creditosReferencia);
+
+          const subtituloMostrar =
+            car.subtitulo_bento && car.subtitulo_bento.trim().length > 0
+              ? car.subtitulo_bento
+              : meta.subtitulo;
+
+          const pilaresMostrar =
+            Array.isArray(car.pilares_bento) && car.pilares_bento.filter((p) => p.trim().length > 0).length > 0
+              ? car.pilares_bento.filter((p) => p.trim().length > 0)
+              : meta.pilares;
+
+          const duracionMostrar =
+            car.duracion_bento && car.duracion_bento.trim().length > 0
+              ? car.duracion_bento
+              : "5 años • 10 ciclos";
+
+          const creditosMostrar =
+            typeof car.creditos_bento === "number" && car.creditos_bento > 0
+              ? String(car.creditos_bento)
+              : totalCreditosMalla >= 180
+              ? totalCreditosMalla.toFixed(0)
+              : String(meta.creditosReferencia);
 
           return (
             <div
@@ -150,7 +172,7 @@ export function BentoCarrerasHome({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-bold bg-white/15 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-white/20 flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> 5 años • 10 ciclos
+                      <Clock className="w-3 h-3" /> {duracionMostrar}
                     </span>
                     <span className="text-[11px] font-mono font-bold bg-black/30 px-2.5 py-1 rounded-lg border border-white/15">
                       {creditosMostrar} cr.
@@ -168,7 +190,7 @@ export function BentoCarrerasHome({
                     </div>
                     <div className="space-y-1 min-w-0">
                       <span className={`text-[11px] font-bold uppercase tracking-wider block ${meta.accentText}`}>
-                        {meta.subtitulo}
+                        {subtituloMostrar}
                       </span>
                       <h3 className="text-xl sm:text-2xl font-bold text-[#002855] dark:text-white group-hover:text-red-700 dark:group-hover:text-white transition-colors leading-tight">
                         E.P. de {car.nombre}
@@ -176,9 +198,9 @@ export function BentoCarrerasHome({
                     </div>
                   </div>
 
-                  {/* Pilares académicos en micro-badges */}
+                  {/* Pilares académicos / Especializaciones del Póster en micro-badges */}
                   <div className="flex flex-wrap items-center gap-2">
-                    {meta.pilares.map((pilar) => (
+                    {pilaresMostrar.map((pilar) => (
                       <span
                         key={pilar}
                         className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border ${meta.badgePill}`}

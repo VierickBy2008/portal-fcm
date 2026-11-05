@@ -118,7 +118,9 @@ export function AdminStorageTab({
       </div>
 
       <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 h-fit">
-        {imagenesStorage.map((img) => (
+        {imagenesStorage
+          .filter((img) => !img.id?.startsWith("__fcm_"))
+          .map((img) => (
           <div
             key={img.id}
             className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex flex-col justify-between"

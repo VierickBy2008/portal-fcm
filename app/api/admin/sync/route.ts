@@ -51,6 +51,9 @@ const ALLOWED_SYNC_KEYS = new Set([
   "storage_data",
   "orgullo_data",
   "transparencia_data",
+  "calendario_data",
+  "asistente_ia_data",
+  "accesibilidad_data",
 ]);
 
 const MAX_PAYLOAD_BYTES = 4 * 1024 * 1024; // 4 MB límite de seguridad
@@ -118,10 +121,21 @@ export async function POST(req: NextRequest) {
       .select();
 
     if (error) {
-      // Intento de respaldo robusto si las columnas orgullo_data o transparencia_data aún no existen como columnas directas en SQL:
-      const existingStorage = Array.isArray(cambios.storage_data)
+      // Intento de respaldo robusto si las columnas extendidas aún no existen como columnas directas en SQL:
+      let existingStorage = Array.isArray(cambios.storage_data)
         ? [...(cambios.storage_data as Record<string, unknown>[])]
         : [];
+
+      if (existingStorage.length === 0) {
+        const { data: currentRow } = await supabaseServer
+          .from("portal_config")
+          .select("storage_data")
+          .eq("id", 1)
+          .maybeSingle();
+        if (currentRow && Array.isArray(currentRow.storage_data)) {
+          existingStorage = [...(currentRow.storage_data as Record<string, unknown>[])];
+        }
+      }
 
       if (Array.isArray(cambios.orgullo_data)) {
         const idx = existingStorage.findIndex((x) => x && x.id === "__fcm_orgullo_config__");
@@ -140,12 +154,45 @@ export async function POST(req: NextRequest) {
         else existingStorage.push(metaTrans);
       }
 
+      if (cambios.calendario_data && typeof cambios.calendario_data === "object") {
+        const idx = existingStorage.findIndex((x) => x && x.id === "__fcm_calendario_config__");
+        const metaCal = {
+          id: "__fcm_calendario_config__",
+          calendario_config: cambios.calendario_data,
+        };
+        if (idx !== -1) existingStorage[idx] = metaCal;
+        else existingStorage.push(metaCal);
+      }
+
+      if (cambios.asistente_ia_data && typeof cambios.asistente_ia_data === "object") {
+        const idx = existingStorage.findIndex((x) => x && x.id === "__fcm_asistente_ia_config__");
+        const metaAi = {
+          id: "__fcm_asistente_ia_config__",
+          asistente_ia_config: cambios.asistente_ia_data,
+        };
+        if (idx !== -1) existingStorage[idx] = metaAi;
+        else existingStorage.push(metaAi);
+      }
+
+      if (cambios.accesibilidad_data && typeof cambios.accesibilidad_data === "object") {
+        const idx = existingStorage.findIndex((x) => x && x.id === "__fcm_accesibilidad_config__");
+        const metaAcc = {
+          id: "__fcm_accesibilidad_config__",
+          accesibilidad_config: cambios.accesibilidad_data,
+        };
+        if (idx !== -1) existingStorage[idx] = metaAcc;
+        else existingStorage.push(metaAcc);
+      }
+
       const {
         hero_blur,
         hero_overlay_opacity,
         hero_overlay_color,
         orgullo_data,
         transparencia_data,
+        calendario_data,
+        asistente_ia_data,
+        accesibilidad_data,
         ...resto
       } = cambios;
       void hero_blur;
@@ -153,6 +200,9 @@ export async function POST(req: NextRequest) {
       void hero_overlay_color;
       void orgullo_data;
       void transparencia_data;
+      void calendario_data;
+      void asistente_ia_data;
+      void accesibilidad_data;
 
       const retryPayload = {
         id: 1,

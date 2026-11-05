@@ -6,6 +6,9 @@ import { Lock } from "lucide-react";
 export type AdminTabId =
   | "dashboard"
   | "carreras_cms"
+  | "calendario_cms"
+  | "asistente_ia_cms"
+  | "arquitectura_3a_cms"
   | "noticias"
   | "docentes_cms"
   | "moderacion"
@@ -27,6 +30,8 @@ interface AdminNavbarProps {
   transparenciaCount: number;
   ticketsCount: number;
   materialesPendientesCount: number;
+  calendarioCount?: number;
+  asistenteFaqsCount?: number;
   handleCerrarSesionAdmin: () => void;
 }
 
@@ -42,15 +47,20 @@ export function AdminNavbar({
   transparenciaCount,
   ticketsCount,
   materialesPendientesCount,
+  calendarioCount = 35,
+  asistenteFaqsCount = 5,
   handleCerrarSesionAdmin,
 }: AdminNavbarProps) {
   const tabs: { id: AdminTabId; label: string }[] = [
     { id: "dashboard", label: "📊 Resumen" },
-    { id: "carreras_cms", label: "🏛️ Gestión de Carreras" },
+    { id: "carreras_cms", label: "🏛️ Carreras & Bento" },
+    { id: "calendario_cms", label: `📅 Calendario 2026 (${calendarioCount})` },
+    { id: "asistente_ia_cms", label: `🤖 Asistente IA (${asistenteFaqsCount})` },
+    { id: "arquitectura_3a_cms", label: "♿ Accesibilidad & DB 3A" },
     { id: "noticias", label: `📰 Noticias (${noticiasCount})` },
     { id: "docentes_cms", label: `👨‍🏫 Docentes (${docentesCount})` },
     { id: "moderacion", label: `🛡️ Moderación (${moderacionCount})` },
-    { id: "storage", label: `🖼️ Imágenes Storage (${storageCount})` },
+    { id: "storage", label: `🖼️ Storage (${storageCount})` },
     { id: "orgullo", label: `🏆 Orgullo FCM (${orgulloCount})` },
     { id: "malla", label: `🎓 Mallas (${mallaCount})` },
     { id: "transparencia", label: `📜 Transparencia (${transparenciaCount})` },
@@ -92,15 +102,46 @@ export function AdminNavbar({
       </div>
 
       {tabAdmin === "dashboard" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 view-transition-gpu">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 view-transition-gpu">
           <div
             onClick={() => setTabAdmin("carreras_cms")}
             className="gpu-card rounded-2xl border-2 border-blue-200 dark:border-blue-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-[#002855] dark:hover:border-blue-400 transition-all"
           >
             <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">
-              Gestión de Carreras
+              Carreras, Píldoras & Bento
             </p>
-            <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">4 Escuelas</p>
+            <p className="text-2xl font-bold text-[#002855] dark:text-white mt-2">4 Escuelas</p>
+          </div>
+          <div
+            onClick={() => setTabAdmin("calendario_cms")}
+            className="gpu-card rounded-2xl border-2 border-emerald-200 dark:border-emerald-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-emerald-700 dark:hover:border-emerald-400 transition-all"
+          >
+            <p className="text-xs text-emerald-700 dark:text-emerald-400 font-bold uppercase">
+              Régimen Semestral 2026-I/II
+            </p>
+            <p className="text-2xl font-bold text-[#002855] dark:text-white mt-2">
+              {calendarioCount} Fechas
+            </p>
+          </div>
+          <div
+            onClick={() => setTabAdmin("asistente_ia_cms")}
+            className="gpu-card rounded-2xl border-2 border-amber-200 dark:border-amber-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-amber-600 dark:hover:border-amber-400 transition-all"
+          >
+            <p className="text-xs text-amber-700 dark:text-amber-400 font-bold uppercase">
+              Asistente Virtual IA
+            </p>
+            <p className="text-2xl font-bold text-[#002855] dark:text-white mt-2">
+              {asistenteFaqsCount} FAQs Entrenadas
+            </p>
+          </div>
+          <div
+            onClick={() => setTabAdmin("arquitectura_3a_cms")}
+            className="gpu-card rounded-2xl border-2 border-purple-200 dark:border-purple-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-purple-700 dark:hover:border-purple-400 transition-all"
+          >
+            <p className="text-xs text-purple-700 dark:text-purple-400 font-bold uppercase">
+              Accesibilidad WCAG & DB 3A
+            </p>
+            <p className="text-2xl font-bold text-[#002855] dark:text-white mt-2">SQL + RLS</p>
           </div>
           <div
             onClick={() => setTabAdmin("noticias")}
@@ -109,16 +150,16 @@ export function AdminNavbar({
             <p className="text-xs text-red-700 dark:text-red-400 font-bold uppercase">
               Noticias Activas
             </p>
-            <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{noticiasCount}</p>
+            <p className="text-2xl font-bold text-[#002855] dark:text-white mt-2">{noticiasCount}</p>
           </div>
           <div
             onClick={() => setTabAdmin("docentes_cms")}
-            className="gpu-card rounded-2xl border-2 border-emerald-200 dark:border-emerald-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-emerald-700 dark:hover:border-emerald-400 transition-all"
+            className="gpu-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-[#002855] dark:hover:border-blue-400 transition-all"
           >
-            <p className="text-xs text-emerald-700 dark:text-emerald-400 font-bold uppercase">
+            <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">
               Plana Docente
             </p>
-            <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{docentesCount}</p>
+            <p className="text-2xl font-bold text-[#002855] dark:text-white mt-2">{docentesCount}</p>
           </div>
           <div
             onClick={() => setTabAdmin("moderacion")}
@@ -127,7 +168,7 @@ export function AdminNavbar({
             <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">
               Archivos Pendientes
             </p>
-            <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">
+            <p className="text-2xl font-bold text-[#002855] dark:text-white mt-2">
               {materialesPendientesCount}
             </p>
           </div>
@@ -138,7 +179,7 @@ export function AdminNavbar({
             <p className="text-xs text-[#002855] dark:text-blue-300 font-bold uppercase">
               Supabase Storage & Logo
             </p>
-            <p className="text-3xl font-bold text-[#002855] dark:text-white mt-2">{storageCount}</p>
+            <p className="text-2xl font-bold text-[#002855] dark:text-white mt-2">{storageCount}</p>
           </div>
         </div>
       )}

@@ -133,3 +133,16 @@ body {
     animation: none !important;
   }
 }
+
+html.reduce-motion-wcag *,
+html.reduce-motion-wcag .reveal-on-scroll,
+html.reduce-motion-wcag .view-transition-gpu,
+html.reduce-motion-wcag .modal-backdrop-gpu,
+html.reduce-motion-wcag .modal-panel-gpu,
+html.reduce-motion-wcag .gpu-card,
+html.reduce-motion-wcag .gpu-btn {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

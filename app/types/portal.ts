@@ -124,6 +124,57 @@ export interface Carrera {
   triptico_nombre_archivo?: string;
   poster_pdf_url?: string;
   poster_nombre_archivo?: string;
+  subtitulo_bento?: string;
+  pilares_bento?: string[];
+  creditos_bento?: number;
+  duracion_bento?: string;
+}
+
+export interface ActividadCalendario {
+  id: string;
+  semestre: "2026-I" | "2026-II";
+  actividad: string;
+  fecha: string;
+  categoria?: "matricula" | "evaluacion" | "clases" | "actas" | "tramite";
+  destacado?: boolean;
+}
+
+export interface CalendarioSemestralConfig {
+  titulo: string;
+  subtitulo: string;
+  semestre_activo_default: "2026-I" | "2026-II" | "ambos";
+  actividades: ActividadCalendario[];
+  nota_pie_1: string;
+  nota_pie_2: string;
+  nota_pie_3: string;
+}
+
+export interface FaqAsistenteIA {
+  id: string;
+  pregunta: string;
+  palabras_clave: string;
+  respuesta: string;
+  categoria: "Matrícula" | "Mallas y Cursos" | "Trámites y Grados" | "Servicios FCM" | "General";
+  enlace_accion?: string;
+  texto_enlace?: string;
+}
+
+export interface AsistenteIAConfig {
+  habilitado: boolean;
+  nombre_bot: string;
+  subtitulo_bot: string;
+  mensaje_bienvenida: string;
+  preguntas_rapidas: string[];
+  faqs: FaqAsistenteIA[];
+}
+
+export interface AccesibilidadConfig {
+  habilitado: boolean;
+  mostrar_lector_voz: boolean;
+  mostrar_alto_contraste: boolean;
+  mostrar_escala_grises: boolean;
+  mostrar_reduccion_animaciones: boolean;
+  texto_lectura_institucional: string;
 }
 
 export interface CursoMalla {
