@@ -3213,9 +3213,6 @@ export default function PortalFacultadCienciasMatematicas() {
             onDescargarTripticoCarrera={handleDescargarTripticoPorCarrera}
           />
 
-          {/* 1C: CALENDARIO ACADÉMICO DINÁMICO (RÉGIMEN SEMESTRAL 2026-I Y 2026-II) */}
-          <CalendarioAcademicoSection config={calendarioConfig} />
-
 
           {/* SECCIÓN DE NOTICIAS CON GRID LIMITADO A 4 + TARJETA "VER MÁS NOTICIAS" (IMAGEN 1) */}
           <section className="space-y-5 reveal-on-scroll">
@@ -3647,6 +3644,9 @@ export default function PortalFacultadCienciasMatematicas() {
               </button>
             </div>
           </section>
+
+          {/* 1C: CALENDARIO ACADÉMICO DINÁMICO (RÉGIMEN SEMESTRAL 2026-I Y 2026-II EN 2 BLOQUES DESPLEGABLES) */}
+          <CalendarioAcademicoSection config={calendarioConfig} />
         </main>
       )}
 
