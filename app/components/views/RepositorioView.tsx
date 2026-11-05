@@ -4,6 +4,7 @@ import React from "react";
 import { Download, Filter, FolderGit2, Search, Upload, UserCheck } from "lucide-react";
 import type { Carrera, CarreraId, CursoMalla, MaterialRepositorio, TipoArchivo } from "@/app/types/portal";
 import { TEMA_CARRERA } from "@/app/data/portalInitialData";
+import { sanitizarTextoEnriquecido, sanitizarUrlSegura } from "@/app/utils/securitySanitizer";
 
 interface RepositorioViewProps {
   carreras: Carrera[];
@@ -225,7 +226,7 @@ export function RepositorioView({
                           </div>
                           <div className="space-y-1">
                             <h3 className="font-bold text-sm text-[#002855] dark:text-white leading-snug">
-                              {mat.titulo}
+                              {sanitizarTextoEnriquecido(mat.titulo)}
                             </h3>
                             <p className="text-xs text-red-700 font-bold">
                               Curso: {curso?.nombre_curso}
@@ -233,7 +234,7 @@ export function RepositorioView({
                             <p className="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pt-0.5">
                               <UserCheck className="w-3.5 h-3.5 text-[#002855]" />
                               <span>
-                                Docente: <strong>{mat.docente}</strong>
+                                Docente: <strong>{sanitizarTextoEnriquecido(mat.docente)}</strong>
                               </span>
                             </p>
                           </div>
@@ -243,13 +244,13 @@ export function RepositorioView({
                         <span className="text-slate-500 dark:text-slate-400">
                           Subido por:{" "}
                           <strong className="text-slate-800 dark:text-slate-200">
-                            {mat.autor_alias}
+                            {sanitizarTextoEnriquecido(mat.autor_alias)}
                           </strong>
                         </span>
                         <a
-                          href={mat.url_archivo}
+                          href={sanitizarUrlSegura(mat.url_archivo)}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="px-3.5 py-1.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-bold flex items-center gap-1.5"
                         >
                           <Download className="w-3.5 h-3.5" /> Descargar

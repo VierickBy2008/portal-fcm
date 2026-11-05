@@ -11,7 +11,11 @@ import {
 } from "lucide-react";
 import type { Carrera, Docente, ResenaDocente } from "@/app/types/portal";
 import { TEMA_CARRERA } from "@/app/data/portalInitialData";
-import { formatearFechaEspanol, obtenerInicialesDocente } from "@/app/utils/portalFormatters";
+import {
+  formatearFechaEspanol,
+  obtenerInicialesDocente,
+  sanitizarTextoEnriquecido,
+} from "@/app/utils/portalFormatters";
 
 interface FormResenaDocenteState {
   puntuacion: number;
@@ -507,12 +511,12 @@ export function DocenteModal({
                             ))}
                           </div>
                           <span className="text-xs font-bold text-[#002855] dark:text-white">
-                            {resena.autor_alias}
+                            {sanitizarTextoEnriquecido(resena.autor_alias)}
                           </span>
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${temaDoc.badgeSoft}`}
                           >
-                            {resena.curso}
+                            {sanitizarTextoEnriquecido(resena.curso)}
                           </span>
                         </div>
                         <span className="text-[11px] text-slate-400 font-medium">
@@ -520,7 +524,7 @@ export function DocenteModal({
                         </span>
                       </div>
                       <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {resena.comentario}
+                        {sanitizarTextoEnriquecido(resena.comentario)}
                       </p>
                     </div>
                   ))}

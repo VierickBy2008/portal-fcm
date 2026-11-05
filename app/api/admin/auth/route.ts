@@ -1,39 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
-function getAdminSecret(): string {
-  return (
-    process.env.ADMIN_PASSWORD ||
-    process.env.NEXT_PUBLIC_ADMIN_PASSWORD ||
-    "FCM_Unmsm$2026#Admin!94xK"
-  ).trim();
-}
+const ADMIN_COOKIE_NAME = "fcm_admin_session";
+const SESSION_TTL_SECONDS = 60 * 60 * 12; // 12 horas
 
-function generateAdminToken(secret: string): string {
-  return crypto.createHmac("sha256", secret).update("fcm_admin_session_unmsm_2026").digest("hex");
-}
+// ==========================================================================
+// PILAR 6: RATE LIMITING EN SERVIDOR CONTRA FUERZA BRUTA (IP LOCKOUT)
+// ==========================================================================
+const MAX_INTENTOS_FALLIDOS = 5;
+const TIEMPO_BLOQUEO_SEGUNDOS = 900; // 15 minutos = 900 segundos
+const TIEMPO_BLOQUEO_MS = TIEMPO_BLOQUEO_SEGUNDOS * 1000;
 
-/**
- * Comparación en tiempo constante (Timing-Safe) para mitigar ataques de canal lateral (Timing Attacks)
- */
-function safeCompareStrings(a: string, b: string): boolean {
-  if (!a || !b) return false;
-  const hashA = crypto.createHash("sha256").update(a).digest();
-  const hashB = crypto.createHash("sha256").update(b).digest();
-  return crypto.timingSafeEqual(hashA, hashB);
-}
-
-// ============================================================================
-// ESCUDO DE SEGURIDAD: RATE LIMITER CON BLOQUEO PROGRESIVO POR IP
-// ============================================================================
-interface IntentoAuth {
-  conteo: number;
+interface EstadoIpAuth {
+  intentos: number;
   bloqueadoHasta: number;
 }
 
-const intentosPorIp = new Map<string, IntentoAuth>();
-const MAX_INTENTOS_FALLIDOS = 5;
-const TIEMPO_BLOQUEO_MS = 15 * 60 * 1000; // 15 minutos
+const intentosPorIp = new Map<string, EstadoIpAuth>();
 
 function obtenerIpCliente(req: NextRequest): string {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -43,105 +26,186 @@ function obtenerIpCliente(req: NextRequest): string {
   return req.headers.get("x-real-ip") || "127.0.0.1";
 }
 
-function limpiarIntentosAntiguos() {
-  const ahora = Date.now();
-  for (const [ip, data] of intentosPorIp.entries()) {
-    if (data.bloqueadoHasta > 0 && ahora > data.bloqueadoHasta) {
-      intentosPorIp.delete(ip);
-    }
+function getAdminPassword(): string {
+  return (
+    process.env.ADMIN_MASTER_PASSWORD ||
+    process.env.NEXT_PUBLIC_ADMIN_PASSWORD ||
+    "FCM_Unmsm$2026#Admin!94xK"
+  ).trim();
+}
+
+function getSigningSecret(): string {
+  return (
+    process.env.ADMIN_SESSION_SECRET ||
+    `fcm-unmsm-hmac-secret-2026-${getAdminPassword()}`
+  );
+}
+
+export function createAdminToken(): string {
+  const exp = Date.now() + SESSION_TTL_SECONDS * 1000;
+  const payload = `admin:${exp}`;
+  const sig = crypto
+    .createHmac("sha256", getSigningSecret())
+    .update(payload)
+    .digest("hex");
+  return `${payload}.${sig}`;
+}
+
+export function verifyAdminToken(token: string | undefined): boolean {
+  if (!token) return false;
+  const parts = token.split(".");
+  if (parts.length !== 2) return false;
+  const [payload, sig] = parts;
+  const [, expStr] = payload.split(":");
+  const exp = Number(expStr);
+  if (!exp || Number.isNaN(exp) || Date.now() > exp) return false;
+
+  const expectedSig = crypto
+    .createHmac("sha256", getSigningSecret())
+    .update(payload)
+    .digest("hex");
+
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(sig, "hex"),
+      Buffer.from(expectedSig, "hex")
+    );
+  } catch {
+    return false;
   }
+}
+
+export async function GET(req: NextRequest) {
+  const ip = obtenerIpCliente(req);
+  const ahora = Date.now();
+  const infoIp = intentosPorIp.get(ip);
+
+  if (infoIp && infoIp.bloqueadoHasta > ahora) {
+    const segundosRestantes = Math.max(1, Math.ceil((infoIp.bloqueadoHasta - ahora) / 1000));
+    return NextResponse.json({
+      authenticated: false,
+      locked: true,
+      retryAfterSeconds: segundosRestantes,
+    });
+  }
+
+  const token = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
+  const authenticated = verifyAdminToken(token);
+  return NextResponse.json({
+    authenticated,
+    locked: false,
+    retryAfterSeconds: 0,
+  });
 }
 
 export async function POST(req: NextRequest) {
   try {
     const ip = obtenerIpCliente(req);
     const ahora = Date.now();
-    limpiarIntentosAntiguos();
+    const infoIp = intentosPorIp.get(ip) || { intentos: 0, bloqueadoHasta: 0 };
 
-    // 1. Verificar si la IP está en periodo de penalización / bloqueo
-    const infoIp = intentosPorIp.get(ip);
-    if (infoIp && infoIp.bloqueadoHasta > ahora) {
-      const minutosRestantes = Math.ceil((infoIp.bloqueadoHasta - ahora) / 60000);
+    // 1. Verificar si la IP se encuentra temporalmente bloqueada por intentos fallidos
+    if (infoIp.bloqueadoHasta > ahora) {
+      const segundosRestantes = Math.max(1, Math.ceil((infoIp.bloqueadoHasta - ahora) / 1000));
+      const minutosRestantes = Math.ceil(segundosRestantes / 60);
       return NextResponse.json(
         {
           ok: false,
-          error: `⚠️ Acceso temporalmente bloqueado por seguridad institucional tras múltiples intentos fallidos. Intente nuevamente en ${minutosRestantes} minuto(s).`,
+          locked: true,
+          retryAfterSeconds: segundosRestantes,
+          remainingAttempts: 0,
+          error: `Demasiados intentos fallidos desde esta dirección IP. Acceso bloqueado temporalmente por seguridad (${minutosRestantes} min restantes).`,
         },
         {
           status: 429,
           headers: {
-            "Retry-After": String(minutosRestantes * 60),
+            "Retry-After": String(segundosRestantes),
           },
         }
       );
     }
 
     const body = await req.json();
-    const password = typeof body?.password === "string" ? body.password.trim() : "";
-    const adminSecret = getAdminSecret();
+    const entered = typeof body?.password === "string" ? body.password.trim() : "";
+    const expected = getAdminPassword();
 
-    // 2. Comparación criptográfica en tiempo constante
-    if (!password || !safeCompareStrings(password, adminSecret)) {
-      const nuevosIntentos = (infoIp?.conteo || 0) + 1;
-      const bloqueo = nuevosIntentos >= MAX_INTENTOS_FALLIDOS ? ahora + TIEMPO_BLOQUEO_MS : 0;
-      intentosPorIp.set(ip, { conteo: nuevosIntentos, bloqueadoHasta: bloqueo });
+    const enteredHash = crypto.createHash("sha256").update(entered).digest();
+    const expectedHash = crypto.createHash("sha256").update(expected).digest();
+    const match =
+      entered.length > 0 && crypto.timingSafeEqual(enteredHash, expectedHash);
 
-      const restantes = Math.max(0, MAX_INTENTOS_FALLIDOS - nuevosIntentos);
-      const aviso =
-        restantes > 0
-          ? ` Le quedan ${restantes} intento(s) antes del bloqueo temporal.`
-          : " Se ha alcanzado el límite de intentos; acceso bloqueado por 15 minutos.";
-
-      return NextResponse.json(
-        { ok: false, error: `Contraseña incorrecta.${aviso}` },
-        { status: 401 }
-      );
+    if (!match) {
+      const nuevosIntentos = infoIp.intentos + 1;
+      if (nuevosIntentos >= MAX_INTENTOS_FALLIDOS) {
+        const bloqueadoHasta = ahora + TIEMPO_BLOQUEO_MS;
+        intentosPorIp.set(ip, {
+          intentos: nuevosIntentos,
+          bloqueadoHasta,
+        });
+        return NextResponse.json(
+          {
+            ok: false,
+            locked: true,
+            retryAfterSeconds: TIEMPO_BLOQUEO_SEGUNDOS,
+            remainingAttempts: 0,
+            error:
+              "Se alcanzaron 5 intentos fallidos consecutivos. Tu dirección IP ha sido bloqueada durante 15 minutos (900 s).",
+          },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": String(TIEMPO_BLOQUEO_SEGUNDOS),
+            },
+          }
+        );
+      } else {
+        const restantes = MAX_INTENTOS_FALLIDOS - nuevosIntentos;
+        intentosPorIp.set(ip, { intentos: nuevosIntentos, bloqueadoHasta: 0 });
+        return NextResponse.json(
+          {
+            ok: false,
+            locked: false,
+            retryAfterSeconds: 0,
+            remainingAttempts: restantes,
+            error: `Contraseña maestra incorrecta. Te quedan ${restantes} ${
+              restantes === 1 ? "intento" : "intentos"
+            } antes del bloqueo temporal de 15 minutos.`,
+          },
+          { status: 401 }
+        );
+      }
     }
 
-    // 3. Login exitoso: restablecer registro de fallos para esta IP
+    // 2. Éxito: limpiar historial de intentos fallidos de esta IP
     intentosPorIp.delete(ip);
 
-    const token = generateAdminToken(adminSecret);
-    const response = NextResponse.json({
+    const token = createAdminToken();
+    const res = NextResponse.json({
       ok: true,
-      message: "Sesión autorizada correctamente.",
-      token,
+      authenticated: true,
+      locked: false,
+      retryAfterSeconds: 0,
     });
-
-    response.cookies.set("fcm_admin_token", token, {
+    res.cookies.set(ADMIN_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24, // 24 horas
+      maxAge: SESSION_TTL_SECONDS,
     });
-
-    return response;
+    return res;
   } catch {
     return NextResponse.json(
-      { ok: false, error: "Error procesando solicitud de autenticación." },
-      { status: 500 }
+      { ok: false, error: "Solicitud de autenticación inválida." },
+      { status: 400 }
     );
   }
 }
 
-export async function GET(req: NextRequest) {
-  const adminSecret = getAdminSecret();
-  const validToken = generateAdminToken(adminSecret);
-
-  const cookieToken = req.cookies.get("fcm_admin_token")?.value || "";
-  const authHeader = req.headers.get("authorization") || "";
-  const bearerToken = authHeader.replace(/^Bearer\s+/i, "").trim();
-
-  const authenticated =
-    safeCompareStrings(cookieToken, validToken) ||
-    safeCompareStrings(bearerToken, validToken);
-
-  return NextResponse.json({ authenticated });
-}
-
 export async function DELETE() {
-  const response = NextResponse.json({ ok: true, message: "Sesión cerrada correctamente." });
-  response.cookies.delete("fcm_admin_token");
-  return response;
+  const res = NextResponse.json({ ok: true, authenticated: false });
+  res.cookies.delete(ADMIN_COOKIE_NAME);
+  return res;
 }
+
+export { ADMIN_COOKIE_NAME };

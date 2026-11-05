@@ -2,6 +2,9 @@
 
 import React from "react";
 import { ExternalLink, createLucideIcon } from "lucide-react";
+import { sanitizarHtml, sanitizarTextoEnriquecido, sanitizarUrlSegura } from "./securitySanitizer";
+
+export { sanitizarHtml, sanitizarTextoEnriquecido, sanitizarUrlSegura };
 
 // Íconos de Redes Sociales con createLucideIcon de lucide-react (compatible con lucide-react v1+)
 export const Facebook = createLucideIcon("Facebook", [
@@ -50,31 +53,34 @@ export function obtenerInicialesDocente(nombre: string): string {
   return `${partes[0][0]}${partes[1][0]}`.toUpperCase();
 }
 
-// Motor seguro de renderizado inline (**negrita**, *cursiva*, [texto](url) y URLs automáticas)
+// Motor seguro de renderizado inline (**negrita**, *cursiva*, [texto](url) y URLs automáticas) con sanitización anti-XSS
 export function renderTextoEnriquecidoLinea(texto: string, keyPrefix: string): React.ReactNode[] {
-  const tokenRegex = /(\[[^\]]+\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s<]+|\*\*[^*]+\*\*|\*[^*]+\*)/g;
-  const partes = texto.split(tokenRegex);
+  const textoSeguro = sanitizarTextoEnriquecido(texto);
+  const tokenRegex = /(\[[^\]]+\]\([^)]+\)|https?:\/\/[^\s<]+|\*\*[^*]+\*\*|\*[^*]+\*)/g;
+  const partes = textoSeguro.split(tokenRegex);
   return partes.map((parte, idx) => {
     const key = `${keyPrefix}-${idx}`;
     if (!parte) return null;
-    const matchLinkMd = parte.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+    const matchLinkMd = parte.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (matchLinkMd) {
+      const label = sanitizarTextoEnriquecido(matchLinkMd[1]);
+      const safeHref = sanitizarUrlSegura(matchLinkMd[2]);
       return (
         <a
           key={key}
-          href={matchLinkMd[2]}
+          href={safeHref}
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
           className="text-red-700 hover:text-red-800 font-bold underline decoration-red-400 underline-offset-2 break-all inline-flex items-center gap-1"
         >
-          <span>{matchLinkMd[1]}</span>
+          <span>{label}</span>
           <ExternalLink className="w-3 h-3 inline shrink-0" />
         </a>
       );
     }
     if (/^https?:\/\/[^\s<]+$/.test(parte)) {
-      const urlLimpia = parte.replace(/[.,;)]+$/, "");
+      const urlLimpia = sanitizarUrlSegura(parte.replace(/[.,;)]+$/, ""));
       return (
         <a
           key={key}
@@ -107,17 +113,11 @@ export function renderTextoEnriquecidoLinea(texto: string, keyPrefix: string): R
   });
 }
 
-// Motor seguro de bloques Markdown ligero para noticias (sin dangerouslySetInnerHTML)
+// Motor de bloques para el cuerpo de las noticias con protección anti-XSS (DOMPurify + lista blanca)
 export function renderizarContenidoNoticia(contenido: string): React.ReactNode {
-  if (!contenido || !contenido.trim()) {
-    return <p className="text-slate-500 italic">Sin contenido adicional.</p>;
-  }
-  const textoNormalizado =
-    !contenido.includes("\n") && contenido.includes("• ")
-      ? contenido.replace(/\s*•\s*/g, "\n- ")
-      : contenido;
-
-  const lineas = textoNormalizado.split(/\r?\n/);
+  if (!contenido) return null;
+  const contenidoLimpio = sanitizarTextoEnriquecido(contenido);
+  const lineas = contenidoLimpio.split(/\r?\n/);
   const elementos: React.ReactNode[] = [];
   let listaViñetasActual: string[] = [];
   let listaNumeradaActual: string[] = [];
