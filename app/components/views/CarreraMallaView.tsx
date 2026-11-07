@@ -12,10 +12,17 @@ import {
   Target,
   X,
 } from "lucide-react";
-import type { Carrera, CarreraId, CursoMalla, VistaPortal } from "@/app/types/portal";
+import type {
+  Carrera,
+  CarreraId,
+  CursoMalla,
+  DisenoPortadaId,
+  VistaPortal,
+} from "@/app/types/portal";
 import { TEMA_CARRERA } from "@/app/data/portalInitialData";
 
 interface CarreraMallaViewProps {
+  disenoActivo?: DisenoPortadaId;
   carreras: Carrera[];
   carreraSeleccionadaId: CarreraId;
   carreraActiva: Carrera;
@@ -43,6 +50,7 @@ interface CarreraMallaViewProps {
 }
 
 export function CarreraMallaView({
+  disenoActivo = "bento_moderno",
   carreras,
   carreraSeleccionadaId,
   carreraActiva,
@@ -60,6 +68,7 @@ export function CarreraMallaView({
   onIrRepositorioCurso,
   onEditarCarreraAdmin,
 }: CarreraMallaViewProps) {
+  const esHarvard = disenoActivo === "harvard_editorial";
   const temaActivo = TEMA_CARRERA[carreraActiva.id];
 
   // Estado para el Resaltado Inteligente de Prerrequisitos (Hover en Desktop / Tap en Móvil)
@@ -93,7 +102,11 @@ export function CarreraMallaView({
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8 view-transition-gpu">
       {/* Selector de Escuela Profesional */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-4 print:hidden">
+      <div
+        className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 shadow-sm flex flex-wrap items-center justify-between gap-4 print:hidden ${
+          esHarvard ? "rounded-none border-t-4 border-t-[#8B1515]" : "rounded-2xl"
+        }`}
+      >
         <div className="flex flex-wrap gap-2">
           {carreras.map((c) => {
             const count = malla.filter((m) => m.carrera_id === c.id).length;
@@ -107,16 +120,24 @@ export function CarreraMallaView({
                   setCursoHoverCodigo(null);
                   navegar("/carreras/[id]", { carreraId: c.id, skipScroll: true });
                 }}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer gpu-btn ${
+                className={`px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer gpu-btn ${
+                  esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+                } ${
                   esActiva
-                    ? temaTab.tabActive
+                    ? esHarvard
+                      ? "bg-[#8B1515] text-white shadow-md border-b-2 border-amber-400"
+                      : temaTab.tabActive
                     : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                 }`}
               >
                 <span>{c.nombre}</span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] ${
-                    esActiva ? temaTab.tabPillActive : "bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
+                  className={`px-2 py-0.5 text-[10px] ${esHarvard ? "rounded-none" : "rounded-full"} ${
+                    esActiva
+                      ? esHarvard
+                        ? "bg-amber-400 text-slate-950 font-bold"
+                        : temaTab.tabPillActive
+                      : "bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
                   }`}
                 >
                   {count} cursos
@@ -131,9 +152,17 @@ export function CarreraMallaView({
       </div>
 
       {/* ENCABEZADO DE LA CARRERA CON COLOR PROPIO POR ESCUELA */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <section
+        className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden ${
+          esHarvard ? "rounded-none border-t-4 border-t-[#8B1515]" : "rounded-3xl"
+        }`}
+      >
         <div
-          className={`${temaActivo.headerBg} text-white px-6 sm:px-8 py-6 border-b-4 ${temaActivo.borderAccent} flex flex-col lg:flex-row lg:items-center justify-between gap-6`}
+          className={`${
+            esHarvard
+              ? "bg-gradient-to-r from-[#8B1515] via-[#2b070c] to-[#002855] border-b-4 border-amber-400"
+              : `${temaActivo.headerBg} border-b-4 ${temaActivo.borderAccent}`
+          } text-white px-6 sm:px-8 py-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6`}
         >
           <div className="space-y-2 max-w-3xl">
             <div className="flex items-center gap-2.5">
@@ -144,7 +173,11 @@ export function CarreraMallaView({
                 10 Ciclos Académicos • {cursosDeCarreraActiva.length} Asignaturas Registradas
               </span>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-bold text-white">
+            <h1
+              className={`text-2xl sm:text-4xl font-bold text-white ${
+                esHarvard ? "font-harvard-serif tracking-tight" : ""
+              }`}
+            >
               Escuela Profesional de {carreraActiva.nombre}
             </h1>
             <p className="text-xs sm:text-sm text-white/90 leading-relaxed">
@@ -155,14 +188,18 @@ export function CarreraMallaView({
           <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 print:hidden">
             <button
               onClick={handleDescargarMallaPDF}
-              className="px-5 py-3.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer gpu-btn"
+              className={`px-5 py-3.5 bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer gpu-btn ${
+                esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+              }`}
             >
               <Download className={`w-4 h-4 ${temaActivo.textAccent}`} />
               <span>📥 Descargar Malla Curricular (PDF)</span>
             </button>
             <button
               onClick={() => onIrRepositorioCurso(carreraActiva.id, "TODOS", "TODOS")}
-              className="px-4 py-2.5 rounded-xl bg-black/20 hover:bg-black/30 text-white text-xs font-semibold flex items-center justify-center gap-2 border border-white/25 cursor-pointer gpu-btn"
+              className={`px-4 py-2.5 bg-black/20 hover:bg-black/30 text-white text-xs font-semibold flex items-center justify-center gap-2 border border-white/25 cursor-pointer gpu-btn ${
+                esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+              }`}
             >
               <FolderGit2 className="w-4 h-4 text-white" />
               <span>Ir al Repositorio de {carreraActiva.nombre}</span>
@@ -179,7 +216,11 @@ export function CarreraMallaView({
               {carreraActiva.perfil_egreso}
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 p-4 space-y-1.5 text-xs">
+          <div
+            className={`bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 p-4 space-y-1.5 text-xs ${
+              esHarvard ? "rounded-none border-l-4 border-l-[#8B1515]" : "rounded-2xl"
+            }`}
+          >
             <p className={`font-bold uppercase ${temaActivo.textAccent}`}>Grados y Títulos Oficiales</p>
             <p className="text-slate-600 dark:text-slate-400">
               Grado: <strong className="text-slate-900 dark:text-white">{carreraActiva.grado_academico}</strong>
@@ -192,7 +233,11 @@ export function CarreraMallaView({
       </section>
 
       {/* SECCIÓN A 2 COLUMNAS: PERFIL / CAMPO LABORAL + BOTÓN TRÍPTICO PDF Y FOTO REFERENCIAL */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
+      <section
+        className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm ${
+          esHarvard ? "rounded-none border-t-4 border-t-[#002855]" : "rounded-3xl"
+        }`}
+      >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-7 space-y-5">
             <div>
@@ -294,10 +339,18 @@ export function CarreraMallaView({
 
       {/* MALLA CURRICULAR INTERACTIVA CON RESALTADO DE PRERREQUISITOS (PILAR 5) */}
       <section className="space-y-5">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4 print:hidden">
+        <div
+          className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 print:hidden ${
+            esHarvard ? "rounded-none border-t-4 border-t-[#8B1515]" : "rounded-2xl"
+          }`}
+        >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-[#002855] dark:text-white flex items-center gap-2">
+              <h2
+                className={`text-lg sm:text-xl font-bold text-[#002855] dark:text-white flex items-center gap-2 ${
+                  esHarvard ? "font-harvard-serif text-2xl" : ""
+                }`}
+              >
                 <span>Malla Curricular de {carreraActiva.nombre} (Ciclo 1 al Ciclo 10)</span>
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400">
@@ -307,9 +360,13 @@ export function CarreraMallaView({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setModoMalla("acordeon")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer gpu-btn ${
+                className={`px-3.5 py-2 text-xs font-bold border cursor-pointer gpu-btn ${
+                  esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+                } ${
                   modoMalla === "acordeon"
-                    ? `${temaActivo.badgeSolid}`
+                    ? esHarvard
+                      ? "bg-[#8B1515] text-white border-[#8B1515]"
+                      : `${temaActivo.badgeSolid}`
                     : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700"
                 }`}
               >
@@ -317,9 +374,13 @@ export function CarreraMallaView({
               </button>
               <button
                 onClick={() => setModoMalla("roadmap")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer gpu-btn ${
+                className={`px-3.5 py-2 text-xs font-bold border cursor-pointer gpu-btn ${
+                  esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+                } ${
                   modoMalla === "roadmap"
-                    ? `${temaActivo.badgeSolid}`
+                    ? esHarvard
+                      ? "bg-[#8B1515] text-white border-[#8B1515]"
+                      : `${temaActivo.badgeSolid}`
                     : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700"
                 }`}
               >
@@ -327,7 +388,9 @@ export function CarreraMallaView({
               </button>
               <button
                 onClick={handleDescargarMallaPDF}
-                className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer gpu-btn"
+                className={`px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer gpu-btn ${
+                  esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+                }`}
               >
                 <Printer className="w-3.5 h-3.5" /> Exportar Malla PDF
               </button>

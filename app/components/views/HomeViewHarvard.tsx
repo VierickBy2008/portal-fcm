@@ -35,6 +35,7 @@ import {
 
 export function HomeViewHarvard({
   cargandoConfig,
+  heroConfigHarvard,
   slideActivoHero,
   totalSlidesHero,
   anteriorSlideHero,
@@ -82,6 +83,26 @@ export function HomeViewHarvard({
   const slideNoticiaActiva =
     slideActivoHero > 0 ? noticiasDestacadas[slideActivoHero - 1] : null;
 
+  const bgUrlHarvard =
+    heroConfigHarvard?.hero_bg_url ||
+    "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1600&q=85" ||
+    heroBgUrl ||
+    heroDefaultBgUrl;
+  const blurHarvard = heroConfigHarvard?.hero_blur ?? heroBlur;
+  const overlayColorHarvard = heroConfigHarvard?.hero_overlay_color || "#1a0508";
+  const overlayOpacityHarvard = heroConfigHarvard?.hero_overlay_opacity ?? 72;
+  const lemaHarvard =
+    heroConfigHarvard?.lema_institucional ||
+    "VERITAS ET SCIENTIA • DECANA DE AMÉRICA • FUNDADA EN 1551";
+  const subtituloEscuelaHarvard =
+    heroConfigHarvard?.subtitulo_escuela || "Facultad de Ciencias Matemáticas • UNMSM";
+  const tituloEditorialHarvard =
+    heroConfigHarvard?.titulo_editorial ||
+    "Excelencia en Ciencias Exactas, Estadística y Computación Científica";
+  const citaDecanatoHarvard =
+    heroConfigHarvard?.cita_decanato ||
+    "Formando investigadores, matemáticos y científicos de datos con rigor demostrativo y compromiso con el desarrollo científico del Perú y del mundo.";
+
   return (
     <main className="flex-1 w-full bg-[#fcfbf8] dark:bg-[#070b14] text-slate-900 dark:text-slate-100 transition-colors view-transition-gpu">
       {/* =====================================================================
@@ -90,16 +111,16 @@ export function HomeViewHarvard({
       <section className="relative border-b-4 border-[#8B1515] bg-[#140507] text-white overflow-hidden">
         {/* Imagen de fondo arquitectónica con filtro editorial */}
         <img
-          src={heroBgUrl || heroDefaultBgUrl}
+          src={bgUrlHarvard}
           alt="Claustro Facultad de Ciencias Matemáticas UNMSM"
           className="absolute inset-0 w-full h-full object-cover pointer-events-none transition-all duration-700"
-          style={{ filter: `blur(${heroBlur}px) grayscale(20%)` }}
+          style={{ filter: `blur(${blurHarvard}px) grayscale(20%)` }}
         />
         <div
           className="absolute inset-0 pointer-events-none transition-all duration-300"
           style={{
-            backgroundColor: heroOverlayColor || "#1a0508",
-            opacity: Math.min(0.94, Math.max(0.55, heroOverlayOpacity / 100)),
+            backgroundColor: overlayColorHarvard,
+            opacity: Math.min(0.94, Math.max(0.45, overlayOpacityHarvard / 100)),
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#2b070c]/95 via-[#001733]/85 to-black/75 pointer-events-none" />
@@ -109,7 +130,7 @@ export function HomeViewHarvard({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-[11px] tracking-[0.18em] uppercase font-semibold text-amber-200/90">
             <div className="flex items-center gap-2">
               <Landmark className="w-3.5 h-3.5 text-amber-400" />
-              <span>VERITAS ET SCIENTIA • DECANA DE AMÉRICA • FUNDADA EN 1551</span>
+              <span>{lemaHarvard}</span>
             </div>
             <div className="flex items-center gap-4">
               <button
@@ -136,7 +157,7 @@ export function HomeViewHarvard({
                     className="inline-flex items-center gap-1.5 text-amber-300 hover:text-white font-bold cursor-pointer"
                   >
                     <Sliders className="w-3.5 h-3.5" />
-                    <span>Ajustar Portada ({heroOverlayOpacity}%)</span>
+                    <span>Editar Banner Harvard ({overlayOpacityHarvard}%)</span>
                   </button>
                 </>
               )}
@@ -150,16 +171,15 @@ export function HomeViewHarvard({
             {/* Columna Izquierda: Identidad Editorial Clásica + Buscador HOLLIS */}
             <div className="lg:col-span-7 space-y-6 text-left">
               <div className="inline-flex items-center gap-2.5 px-3.5 py-1 border-l-4 border-amber-400 bg-white/10 backdrop-blur-xs text-amber-200 text-xs font-bold uppercase tracking-widest">
-                <span>Facultad de Ciencias Matemáticas • UNMSM</span>
+                <span>{subtituloEscuelaHarvard}</span>
               </div>
 
               <h1 className="font-harvard-serif text-3xl sm:text-5xl lg:text-[52px] font-bold tracking-tight text-white leading-[1.12] drop-shadow-sm">
-                Excelencia en Ciencias Exactas, Estadística y Computación Científica
+                {tituloEditorialHarvard}
               </h1>
 
               <blockquote className="border-l-2 border-red-400/70 pl-4 py-1 text-slate-200 text-xs sm:text-sm md:text-base italic leading-relaxed max-w-2xl font-harvard-body">
-                &ldquo;Formando investigadores, matemáticos y científicos de datos con rigor
-                demostrativo y compromiso con el desarrollo científico del Perú y del mundo.&rdquo;
+                &ldquo;{citaDecanatoHarvard}&rdquo;
               </blockquote>
 
               {/* Buscador Global estilo Catálogo Académico de Harvard */}

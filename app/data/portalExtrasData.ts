@@ -3,7 +3,34 @@ import {
   AsistenteIAConfig,
   AccesibilidadConfig,
   CarreraId,
+  HeroBentoConfig,
+  HeroHarvardConfig,
 } from "@/app/types/portal";
+import { HERO_BG_DEFAULT } from "@/app/data/portalInitialData";
+
+export const HERO_CONFIG_BENTO_INICIAL: HeroBentoConfig = {
+  hero_bg_url: HERO_BG_DEFAULT,
+  hero_blur: 1,
+  hero_overlay_opacity: 45,
+  hero_overlay_color: "#0f172a",
+  subtitulo_superior: "Facultad de Ciencias Matemáticas • UNMSM",
+  titulo_principal:
+    "Portal Académico e Investigación en Ciencias Exactas y Computación Científica",
+};
+
+export const HERO_CONFIG_HARVARD_INICIAL: HeroHarvardConfig = {
+  hero_bg_url:
+    "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1600&q=85",
+  hero_blur: 1,
+  hero_overlay_opacity: 72,
+  hero_overlay_color: "#1a0508",
+  lema_institucional: "VERITAS ET SCIENTIA • DECANA DE AMÉRICA • FUNDADA EN 1551",
+  subtitulo_escuela: "Facultad de Ciencias Matemáticas • UNMSM",
+  titulo_editorial:
+    "Excelencia en Ciencias Exactas, Estadística y Computación Científica",
+  cita_decanato:
+    "Formando investigadores, matemáticos y científicos de datos con rigor demostrativo y compromiso con el desarrollo científico del Perú y del mundo.",
+};
 
 export const BENTO_ESPECIALIZACIONES_DEFAULT: Record<
   CarreraId,
@@ -409,4 +436,6 @@ export const ACCESIBILIDAD_INICIAL: AccesibilidadConfig = {
     "Bienvenido al Portal Oficial de la Facultad de Ciencias Matemáticas de la Universidad Nacional Mayor de San Marcos. Aquí encontrarás las cuatro escuelas profesionales: Matemática, Estadística, Investigación Operativa y Computación Científica, además del Régimen Semestral 2026-I y 2026-II, directorio docente, repositorio académico y portal de transparencia.",
   tipografia_activa: "inter",
   diseno_portada_activo: "bento_moderno",
+  hero_config_bento: HERO_CONFIG_BENTO_INICIAL,
+  hero_config_harvard: HERO_CONFIG_HARVARD_INICIAL,
 };

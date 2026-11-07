@@ -2,12 +2,13 @@
 
 import React from "react";
 import { ArrowLeft, ChevronRight, Filter, Search, Star, Users } from "lucide-react";
-import type { Carrera, CarreraId, Docente } from "@/app/types/portal";
+import type { Carrera, CarreraId, DisenoPortadaId, Docente } from "@/app/types/portal";
 import { CARRERAS_INICIALES, TEMA_CARRERA } from "@/app/data/portalInitialData";
 import { obtenerInicialesDocente } from "@/app/utils/portalFormatters";
 import { OptimizedImage } from "@/app/components/ui/OptimizedImage";
 
 interface DocentesViewProps {
+  disenoActivo?: DisenoPortadaId;
   carreras: Carrera[];
   docentes: Docente[];
   docentesFiltradosHome: Docente[];
@@ -23,6 +24,7 @@ interface DocentesViewProps {
 }
 
 export function DocentesView({
+  disenoActivo = "bento_moderno",
   carreras,
   docentes,
   docentesFiltradosHome,
@@ -36,6 +38,7 @@ export function DocentesView({
   onCambiarCarrera,
   onVolverInicio,
 }: DocentesViewProps) {
+  const esHarvard = disenoActivo === "harvard_editorial";
   const esTodas = filtroDocenteCarrera === "TODAS";
   const escuelaObj = esTodas
     ? null
@@ -45,11 +48,17 @@ export function DocentesView({
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8 view-transition-gpu">
       {/* Barra superior de retorno */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl shadow-xs">
+      <div
+        className={`flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 shadow-xs ${
+          esHarvard ? "rounded-none border-l-4 border-l-[#8B1515]" : "rounded-2xl"
+        }`}
+      >
         <button
           type="button"
           onClick={onVolverInicio}
-          className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#002855] hover:text-white text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+          className={`px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-[#002855] hover:text-white text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer ${
+            esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+          }`}
         >
           <ArrowLeft className="w-4 h-4" />
           <span>← Volver al Portal Principal</span>
@@ -63,25 +72,37 @@ export function DocentesView({
 
       {/* Banner Institucional Superior de la Escuela o de la Facultad */}
       <div
-        className={`rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden ${
-          esTodas
-            ? "bg-gradient-to-r from-[#002855] via-[#001c3d] to-[#4d0713]"
-            : `${temaEsc?.headerBg} border-b-4 ${temaEsc?.borderAccent}`
+        className={`p-6 sm:p-8 text-white shadow-md relative overflow-hidden ${
+          esHarvard
+            ? "rounded-none bg-gradient-to-r from-[#8B1515] via-[#2b070c] to-[#002855] border-t-4 border-t-amber-400 border-b-4 border-b-[#8B1515]"
+            : `rounded-3xl ${
+                esTodas
+                  ? "bg-gradient-to-r from-[#002855] via-[#001c3d] to-[#4d0713]"
+                  : `${temaEsc?.headerBg} border-b-4 ${temaEsc?.borderAccent}`
+              }`
         }`}
       >
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 text-xs font-bold uppercase tracking-wider">
+            <div
+              className={`inline-flex items-center gap-2 px-3 py-1 bg-white/15 backdrop-blur-xs border border-white/20 text-xs font-bold uppercase tracking-wider ${
+                esHarvard ? "rounded-none text-amber-300" : "rounded-full"
+              }`}
+            >
               <Users className="w-3.5 h-3.5 text-red-300" />
               <span>
                 {esTodas
-                  ? "4 Escuelas Profesionales • UNMSM"
+                  ? "CLAUSTRO ACADÉMICO • 4 ESCUELAS PROFESIONALES UNMSM"
                   : `${escuelaObj?.codigo_escuela} • Plana Catedrática Oficial`}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
+            <h1
+              className={`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight ${
+                esHarvard ? "font-harvard-serif" : ""
+              }`}
+            >
               {esTodas
-                ? "Plana Docente e Investigadores FCM"
+                ? "Claustro Docente e Investigadores FCM"
                 : `Docentes de la Escuela Profesional de ${escuelaObj?.nombre}`}
             </h1>
             <p className="text-xs sm:text-sm text-white/85 max-w-2xl leading-relaxed">
@@ -92,12 +113,20 @@ export function DocentesView({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="bg-white/10 backdrop-blur-xs border border-white/20 rounded-2xl p-4 text-center min-w-[120px]">
-              <span className="text-2xl sm:text-3xl font-bold block">
+            <div
+              className={`bg-white/10 backdrop-blur-xs border border-white/20 p-4 text-center min-w-[120px] ${
+                esHarvard ? "rounded-none border-t-2 border-t-amber-400" : "rounded-2xl"
+              }`}
+            >
+              <span
+                className={`text-2xl sm:text-3xl font-bold block ${
+                  esHarvard ? "font-harvard-serif text-amber-300" : ""
+                }`}
+              >
                 {docentesFiltradosHome.length}
               </span>
               <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
-                {docentesFiltradosHome.length === 1 ? "Docente" : "Docentes"}
+                {docentesFiltradosHome.length === 1 ? "Catedrático" : "Catedráticos"}
               </span>
             </div>
           </div>
@@ -105,21 +134,29 @@ export function DocentesView({
       </div>
 
       {/* Barra de Filtros: Pestañas de Escuela, Buscador y Categoría */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+      <div
+        className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 ${
+          esHarvard ? "rounded-none border-t-4 border-t-[#8B1515]" : "rounded-2xl"
+        }`}
+      >
         {/* Pestañas de Escuela */}
         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
           <button
             type="button"
             onClick={() => onCambiarCarrera("TODAS")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4 py-2 text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+            } ${
               filtroDocenteCarrera === "TODAS"
-                ? "bg-[#002855] text-white shadow-md border-b-2 border-red-600"
+                ? esHarvard
+                  ? "bg-[#8B1515] text-white shadow-md border-b-2 border-amber-400"
+                  : "bg-[#002855] text-white shadow-md border-b-2 border-red-600"
                 : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
             }`}
           >
             <span>Todas (FCM)</span>
             <span
-              className={`px-2 py-0.5 rounded-full text-[10px] ${
+              className={`px-2 py-0.5 text-[10px] ${esHarvard ? "rounded-none" : "rounded-full"} ${
                 filtroDocenteCarrera === "TODAS"
                   ? "bg-red-700 text-white"
                   : "bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
@@ -138,7 +175,9 @@ export function DocentesView({
                 key={car.id}
                 type="button"
                 onClick={() => onCambiarCarrera(car.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+                } ${
                   activo
                     ? temaCar.tabActive
                     : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
@@ -146,7 +185,7 @@ export function DocentesView({
               >
                 <span>{car.nombre}</span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  className={`px-2 py-0.5 text-[10px] ${esHarvard ? "rounded-none" : "rounded-full"} ${
                     activo
                       ? temaCar.tabPillActive
                       : "bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
@@ -168,7 +207,9 @@ export function DocentesView({
               value={busquedaDocentes}
               onChange={(e) => setBusquedaDocentes(e.target.value)}
               placeholder="Buscar profesor por apellido, especialidad o asignatura que dicta..."
-              className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
+              className={`w-full pl-10 pr-20 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500 ${
+                esHarvard ? "rounded-none" : "rounded-xl"
+              }`}
             />
             {busquedaDocentes && (
               <button
@@ -186,7 +227,9 @@ export function DocentesView({
             <select
               value={filtroCategoriaDocente}
               onChange={(e) => setFiltroCategoriaDocente(e.target.value)}
-              className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
+              className={`w-full py-2.5 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-[#002855] dark:focus:border-blue-500 ${
+                esHarvard ? "rounded-none" : "rounded-xl"
+              }`}
             >
               <option value="TODAS">Todas las Categorías</option>
               <option value="Principal">Profesor Principal</option>
@@ -200,7 +243,11 @@ export function DocentesView({
 
       {/* Grid de Profesores */}
       {docentesFiltradosHome.length === 0 ? (
-        <div className="max-w-xl mx-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-4 shadow-sm">
+        <div
+          className={`max-w-xl mx-auto border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-4 shadow-sm ${
+            esHarvard ? "rounded-none border-t-4 border-t-[#8B1515]" : "rounded-3xl"
+          }`}
+        >
           <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
             <Users className="w-8 h-8" />
           </div>
@@ -237,12 +284,20 @@ export function DocentesView({
                 {filtroDocenteCarrera === "TODAS" && (
                   <div className="flex items-center justify-between border-b-2 border-slate-200 dark:border-slate-800 pb-2.5">
                     <div className="flex items-center gap-2.5">
-                      <span className={`w-3.5 h-3.5 rounded-full ${temaGrupo.headerBg}`} />
-                      <h2 className="text-lg font-bold text-[#002855] dark:text-white">
+                      <span
+                        className={`w-3.5 h-3.5 ${esHarvard ? "rounded-none bg-[#8B1515]" : `rounded-full ${temaGrupo.headerBg}`}`}
+                      />
+                      <h2
+                        className={`text-lg font-bold text-[#002855] dark:text-white ${
+                          esHarvard ? "font-harvard-serif text-xl" : ""
+                        }`}
+                      >
                         E.P. de {escuelaGrupo.nombre}
                       </h2>
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${temaGrupo.badgeSoft}`}
+                        className={`px-2.5 py-0.5 text-[11px] font-bold border ${
+                          esHarvard ? "rounded-none" : "rounded-full"
+                        } ${temaGrupo.badgeSoft}`}
                       >
                         {listaDocentesGrupo.length}{" "}
                         {listaDocentesGrupo.length === 1 ? "docente" : "docentes"}
@@ -268,7 +323,11 @@ export function DocentesView({
                       <div
                         key={doc.id}
                         onClick={() => abrirModalDocente(doc)}
-                        className={`group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${temaDoc.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
+                        className={`group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden cursor-pointer flex flex-col justify-between text-center ${
+                          esHarvard
+                            ? "rounded-none border-t-4 border-t-[#8B1515] harvard-card-gpu"
+                            : `rounded-2xl ${temaDoc.cardHoverBorder} hover:shadow-xl transition-all gpu-card`
+                        }`}
                       >
                         <div>
                           {/* Fotografía Superior Uniforme o Avatar Institucional */}
@@ -281,28 +340,46 @@ export function DocentesView({
                               />
                             ) : (
                               <div
-                                className={`w-full h-full ${temaDoc.headerBg} flex items-center justify-center text-white text-3xl font-bold tracking-wider`}
+                                className={`w-full h-full ${
+                                  esHarvard ? "bg-[#001a38]" : temaDoc.headerBg
+                                } flex items-center justify-center text-white text-3xl font-bold tracking-wider ${
+                                  esHarvard ? "font-harvard-serif" : ""
+                                }`}
                               >
                                 {obtenerInicialesDocente(doc.nombre_completo)}
                               </div>
                             )}
-                            <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-black/70 text-white backdrop-blur-xs z-10">
+                            <span
+                              className={`absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[10px] font-bold bg-black/75 text-white backdrop-blur-xs z-10 ${
+                                esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-md"
+                              }`}
+                            >
                               {doc.categoria_docente}
                             </span>
                           </div>
 
                           {/* Franja de color de su Escuela Profesional */}
-                          <div className={`h-1.5 w-full ${temaDoc.headerBg}`} />
+                          <div
+                            className={`h-1.5 w-full ${
+                              esHarvard ? "bg-[#8B1515]" : temaDoc.headerBg
+                            }`}
+                          />
 
                           {/* Información Centrada */}
                           <div className="p-5 space-y-2">
                             <span
-                              className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${temaDoc.badgeSoft}`}
+                              className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase border ${
+                                esHarvard ? "rounded-none" : "rounded-full"
+                              } ${temaDoc.badgeSoft}`}
                             >
                               {nombreEscuela}
                             </span>
                             <h3
-                              className={`text-sm sm:text-base font-bold text-[#002855] dark:text-white ${temaDoc.groupHoverText} transition-colors leading-snug`}
+                              className={`text-sm sm:text-base font-bold text-[#002855] dark:text-white ${
+                                esHarvard
+                                  ? "font-harvard-serif group-hover:text-[#8B1515] dark:group-hover:text-amber-300"
+                                  : temaDoc.groupHoverText
+                              } transition-colors leading-snug`}
                             >
                               {doc.grado_academico} {doc.nombre_completo}
                             </h3>
@@ -310,7 +387,11 @@ export function DocentesView({
                             {/* Calificación y Estrellas */}
                             <div className="flex items-center justify-center">
                               {statsDoc.total > 0 ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-bold text-amber-800">
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-50 border border-amber-200 text-[11px] font-bold text-amber-800 ${
+                                    esHarvard ? "rounded-none" : "rounded-full"
+                                  }`}
+                                >
                                   <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                                   <span>{statsDoc.promedio.toFixed(1)}</span>
                                   <span className="text-amber-600 font-semibold">
@@ -318,7 +399,11 @@ export function DocentesView({
                                   </span>
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600 ${
+                                    esHarvard ? "rounded-none" : "rounded-full"
+                                  }`}
+                                >
                                   <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                                   <span>Nuevo • Calificar</span>
                                 </span>
@@ -331,8 +416,10 @@ export function DocentesView({
                           </div>
                         </div>
 
-                        <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700 dark:group-hover:text-red-400">
-                          <span>Ver Ficha y Calificar</span>
+                        <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#002855] dark:text-blue-300 group-hover:text-[#8B1515] dark:group-hover:text-red-400">
+                          <span className={esHarvard ? "uppercase tracking-wider" : ""}>
+                            Ver Ficha y Calificar
+                          </span>
                           <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                         </div>
                       </div>

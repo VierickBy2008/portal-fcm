@@ -7,6 +7,7 @@ import {
   Eye,
   LayoutGrid,
   RotateCcw,
+  Sliders,
   Sparkles,
   Type,
 } from "lucide-react";
@@ -19,6 +20,7 @@ interface AdminAparienciaSelectorProps {
   onCambiarTipografia: (nuevaTipografia: TipografiaPortalId) => void;
   onRestaurarOriginal: () => void;
   onIrAPortada?: () => void;
+  onAbrirEditorHero?: () => void;
 }
 
 const CATALOGO_DISENOS: Array<{
@@ -116,6 +118,7 @@ export function AdminAparienciaSelector({
   onCambiarTipografia,
   onRestaurarOriginal,
   onIrAPortada,
+  onAbrirEditorHero,
 }: AdminAparienciaSelectorProps) {
   const esOriginal =
     disenoPortadaActivo === "bento_moderno" && tipografiaActiva === "inter";
@@ -126,27 +129,37 @@ export function AdminAparienciaSelector({
       <div className="bg-gradient-to-r from-[#002855] via-[#001d3d] to-[#8B1515] p-6 sm:p-7 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-300 text-[11px] font-extrabold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> Personalización Institucional en Vivo
+            <Sparkles className="w-3.5 h-3.5" /> Design System Global & Carrusel Independiente
           </div>
           <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-            Conmutador de Diseño Principal y Tipografía Global
+            Conmutador Global de Diseño (Todas las Vistas) y Tipografía
           </h3>
           <p className="text-xs sm:text-sm text-blue-100/90 mt-1 max-w-3xl">
-            Alterna en tiempo real entre el <strong>Diseño Moderno Bento Grid FCM</strong> y el{" "}
-            <strong>Diseño Académico Editorial estilo Harvard University</strong>, o cambia la
-            familia tipográfica de todo el portal. Los cambios se sincronizan automáticamente en Supabase.
+            El diseño elegido transforma <strong>todas las secciones del portal</strong> (Portada,
+            Carreras, Docentes, Repositorio, Noticias, Orgullo, Transparencia y Contacto). Además,
+            cada diseño cuenta con su propio editor independiente de carrusel/portada.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          {onAbrirEditorHero && (
+            <button
+              type="button"
+              onClick={onAbrirEditorHero}
+              className="gpu-btn px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+            >
+              <Sliders className="w-4 h-4 text-sky-300" />
+              Editar Carrusel (Bento / Harvard)
+            </button>
+          )}
           {onIrAPortada && (
             <button
               type="button"
               onClick={onIrAPortada}
-              className="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+              className="gpu-btn px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
             >
               <Eye className="w-4 h-4 text-amber-300" />
-              Ver Portada en Vivo
+              Ver Portal en Vivo
             </button>
           )}
           <button

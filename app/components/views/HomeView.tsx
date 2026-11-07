@@ -8,6 +8,8 @@ import type {
   CursoMalla,
   DisenoPortadaId,
   Docente,
+  HeroBentoConfig,
+  HeroHarvardConfig,
   MaterialRepositorio,
   Noticia,
   OrgulloItem,
@@ -20,6 +22,8 @@ import { HomeViewHarvard } from "@/app/components/views/HomeViewHarvard";
 export interface HomeViewProps {
   cargandoConfig: boolean;
   disenoPortadaActivo?: DisenoPortadaId;
+  heroConfigBento?: HeroBentoConfig;
+  heroConfigHarvard?: HeroHarvardConfig;
   slideActivoHero: number;
   totalSlidesHero: number;
   setPausarSliderHero: (v: boolean) => void;

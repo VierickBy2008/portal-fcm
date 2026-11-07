@@ -2,24 +2,42 @@
 
 import React from "react";
 import { GraduationCap, Lock, Mail, MapPin, Phone } from "lucide-react";
+import type { DisenoPortadaId } from "@/app/types/portal";
 import { Facebook, Instagram, Linkedin, Youtube } from "@/app/utils/portalFormatters";
 
 interface FooterProps {
   logoUrl: string;
   onOpenAdmin: () => void;
+  disenoActivo?: DisenoPortadaId;
 }
 
-export function Footer({ logoUrl, onOpenAdmin }: FooterProps) {
+export function Footer({ logoUrl, onOpenAdmin, disenoActivo = "bento_moderno" }: FooterProps) {
+  const esHarvard = disenoActivo === "harvard_editorial";
+
   return (
-    <footer className="bg-[#001833] text-white border-t-4 border-red-700 pt-12 pb-8 mt-16 print:hidden">
+    <footer
+      className={`text-white pt-12 pb-8 mt-16 print:hidden ${
+        esHarvard
+          ? "bg-[#0d0507] border-t-4 border-[#8B1515]"
+          : "bg-[#001833] border-t-4 border-red-700"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <img src={logoUrl} alt="Escudo UNMSM" className="h-11 w-auto object-contain" />
               <div>
-                <p className="font-bold text-sm tracking-wide text-white">FACULTAD DE CIENCIAS MATEMÁTICAS</p>
-                <p className="text-xs text-blue-200">Universidad Nacional Mayor de San Marcos</p>
+                <p
+                  className={`font-bold text-sm tracking-wide text-white ${
+                    esHarvard ? "font-harvard-serif text-base" : ""
+                  }`}
+                >
+                  FACULTAD DE CIENCIAS MATEMÁTICAS
+                </p>
+                <p className="text-xs text-blue-200">
+                  Universidad Nacional Mayor de San Marcos • Decana de América
+                </p>
               </div>
             </div>
             <p className="text-xs text-blue-200/90 leading-relaxed">

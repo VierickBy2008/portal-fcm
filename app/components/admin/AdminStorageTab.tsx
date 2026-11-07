@@ -2,7 +2,12 @@
 
 import React from "react";
 import { Image as ImageIcon, Upload, Check, Copy } from "lucide-react";
-import { ImagenStorage } from "../../types/portal";
+import {
+  DisenoPortadaId,
+  HeroBentoConfig,
+  HeroHarvardConfig,
+  ImagenStorage,
+} from "../../types/portal";
 import { AdminHeroTab } from "./AdminHeroTab";
 
 interface AdminStorageTabProps {
@@ -31,6 +36,11 @@ interface AdminStorageTabProps {
   setHeroOverlayOpacity: React.Dispatch<React.SetStateAction<number>>;
   heroOverlayColor: string;
   setHeroOverlayColor: React.Dispatch<React.SetStateAction<string>>;
+  disenoPortadaActivo?: DisenoPortadaId;
+  heroConfigBento?: HeroBentoConfig;
+  heroConfigHarvard?: HeroHarvardConfig;
+  onGuardarHeroBento?: (cfg: HeroBentoConfig) => Promise<void> | void;
+  onGuardarHeroHarvard?: (cfg: HeroHarvardConfig) => Promise<void> | void;
 }
 
 export function AdminStorageTab({
@@ -54,6 +64,11 @@ export function AdminStorageTab({
   setHeroOverlayOpacity,
   heroOverlayColor,
   setHeroOverlayColor,
+  disenoPortadaActivo,
+  heroConfigBento,
+  heroConfigHarvard,
+  onGuardarHeroBento,
+  onGuardarHeroHarvard,
 }: AdminStorageTabProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 view-transition-gpu">
@@ -114,6 +129,11 @@ export function AdminStorageTab({
           heroOverlayColor={heroOverlayColor}
           setHeroOverlayColor={setHeroOverlayColor}
           handleUsarComoFondoHero={handleUsarComoFondoHero}
+          disenoPortadaActivo={disenoPortadaActivo}
+          heroConfigBento={heroConfigBento}
+          heroConfigHarvard={heroConfigHarvard}
+          onGuardarHeroBento={onGuardarHeroBento}
+          onGuardarHeroHarvard={onGuardarHeroHarvard}
         />
       </div>
 

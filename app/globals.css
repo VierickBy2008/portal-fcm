@@ -67,6 +67,33 @@ html.dark {
   font-family: var(--font-merriweather), Georgia, Cambria, "Times New Roman", serif;
 }
 
+/* ==========================================================================
+   PROPAGACIÓN GLOBAL DEL DESIGN SYSTEM EN TODAS LAS VISTAS (MÓDULO 1)
+   ========================================================================== */
+
+[data-portal-theme="harvard_editorial"]:not(.dark) {
+  background-color: #fcfbf8;
+}
+
+[data-portal-theme="harvard_editorial"] h1,
+[data-portal-theme="harvard_editorial"] h2,
+[data-portal-theme="harvard_editorial"] .harvard-heading {
+  font-family: var(--font-playfair), var(--font-merriweather), Georgia, Cambria, serif;
+}
+
+[data-portal-theme="harvard_editorial"] .gpu-card {
+  border-radius: 0.25rem;
+}
+
+[data-portal-theme="harvard_editorial"] .gpu-card:hover {
+  transform: translate3d(0, -2px, 0);
+  border-color: #8B1515;
+}
+
+html.dark [data-portal-theme="harvard_editorial"] .gpu-card:hover {
+  border-color: #f87171;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

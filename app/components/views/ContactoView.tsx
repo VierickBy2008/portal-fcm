@@ -2,6 +2,7 @@
 
 import React from "react";
 import { CheckCircle2, Mail, Share2 } from "lucide-react";
+import type { DisenoPortadaId } from "@/app/types/portal";
 import { Facebook, Instagram, Youtube } from "@/app/utils/portalFormatters";
 
 interface FormContactoState {
@@ -13,6 +14,7 @@ interface FormContactoState {
 }
 
 interface ContactoViewProps {
+  disenoActivo?: DisenoPortadaId;
   formContacto: FormContactoState;
   setFormContacto: React.Dispatch<React.SetStateAction<FormContactoState>>;
   ticketEnviadoOk: boolean;
@@ -21,20 +23,29 @@ interface ContactoViewProps {
 }
 
 export function ContactoView({
+  disenoActivo = "bento_moderno",
   formContacto,
   setFormContacto,
   ticketEnviadoOk,
   setTicketEnviadoOk,
   handleEnviarContacto,
 }: ContactoViewProps) {
+  const esHarvard = disenoActivo === "harvard_editorial";
+
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 view-transition-gpu">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <section className="lg:col-span-5 space-y-4">
-          <span className="text-xs font-bold uppercase text-red-700">
-            Directorio Telefónico e Institucional FCM
+          <span className="text-xs font-bold uppercase text-red-700 tracking-wider">
+            {esHarvard
+              ? "SECRETARÍA ACADÉMICA Y DIRECTORIO DECANAL • FCM"
+              : "Directorio Telefónico e Institucional FCM"}
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white">
+          <h1
+            className={`text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white ${
+              esHarvard ? "font-harvard-serif text-4xl" : ""
+            }`}
+          >
             Directorio y Mesa de Ayuda
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-300">
@@ -66,13 +77,25 @@ export function ContactoView({
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-1"
+                className={`border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-1 ${
+                  esHarvard
+                    ? "rounded-none border-l-4 border-l-[#8B1515] harvard-card-gpu"
+                    : "rounded-2xl gpu-card"
+                }`}
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-[#002855] dark:text-white flex items-center gap-2">
+                  <h3
+                    className={`text-xs font-bold text-[#002855] dark:text-white flex items-center gap-2 ${
+                      esHarvard ? "font-harvard-serif text-sm" : ""
+                    }`}
+                  >
                     <Mail className="w-4 h-4 text-red-700" /> {item.area}
                   </h3>
-                  <span className="text-[11px] font-mono font-bold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/70 border dark:border-red-800/60 px-2 py-0.5 rounded">
+                  <span
+                    className={`text-[11px] font-mono font-bold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/70 border dark:border-red-800/60 px-2 py-0.5 ${
+                      esHarvard ? "rounded-none" : "rounded"
+                    }`}
+                  >
                     {item.anexo}
                   </span>
                 </div>
@@ -81,7 +104,11 @@ export function ContactoView({
             ))}
 
             {/* Redes Sociales y Canales Oficiales FCM */}
-            <div className="rounded-2xl border border-blue-200 dark:border-slate-800 bg-gradient-to-br from-blue-50/60 to-white dark:from-slate-900 dark:to-slate-900 p-4 shadow-xs space-y-2.5">
+            <div
+              className={`border border-blue-200 dark:border-slate-800 bg-gradient-to-br from-blue-50/60 to-white dark:from-slate-900 dark:to-slate-900 p-4 shadow-xs space-y-2.5 ${
+                esHarvard ? "rounded-none border-t-4 border-t-[#002855]" : "rounded-2xl"
+              }`}
+            >
               <div className="flex items-center gap-2">
                 <Share2 className="w-4 h-4 text-red-700" />
                 <h3 className="text-xs font-bold text-[#002855] dark:text-white">
@@ -96,7 +123,9 @@ export function ContactoView({
                   href="https://www.facebook.com/FacultadDeCienciasMatematicasOficial"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold transition-all shadow-2xs hover:scale-102"
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold transition-all shadow-2xs hover:scale-102 ${
+                    esHarvard ? "rounded-none" : "rounded-xl"
+                  }`}
                 >
                   <Facebook className="w-3.5 h-3.5" />
                   <span>Facebook</span>
@@ -105,7 +134,9 @@ export function ContactoView({
                   href="https://www.instagram.com/facultaddecienciasmatematicas/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-gradient-to-r hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 text-pink-700 hover:text-white border border-pink-200 dark:border-slate-700 text-xs font-bold transition-all shadow-2xs hover:scale-102"
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-gradient-to-r hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 text-pink-700 hover:text-white border border-pink-200 dark:border-slate-700 text-xs font-bold transition-all shadow-2xs hover:scale-102 ${
+                    esHarvard ? "rounded-none" : "rounded-xl"
+                  }`}
                 >
                   <Instagram className="w-3.5 h-3.5" />
                   <span>Instagram</span>
@@ -114,7 +145,9 @@ export function ContactoView({
                   href="https://www.youtube.com/@fcmunmsm/videos"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-[#FF0000] text-red-700 hover:text-white border border-red-200 dark:border-slate-700 text-xs font-bold transition-all shadow-2xs hover:scale-102"
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-[#FF0000] text-red-700 hover:text-white border border-red-200 dark:border-slate-700 text-xs font-bold transition-all shadow-2xs hover:scale-102 ${
+                    esHarvard ? "rounded-none" : "rounded-xl"
+                  }`}
                 >
                   <Youtube className="w-3.5 h-3.5" />
                   <span>YouTube</span>
@@ -125,19 +158,35 @@ export function ContactoView({
         </section>
 
         <section className="lg:col-span-7">
-          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-5">
-            <h2 className="text-xl font-bold text-[#002855] dark:text-white">
+          <div
+            className={`border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-5 ${
+              esHarvard
+                ? "rounded-none border-t-4 border-t-[#8B1515]"
+                : "rounded-3xl"
+            }`}
+          >
+            <h2
+              className={`text-xl font-bold text-[#002855] dark:text-white ${
+                esHarvard ? "font-harvard-serif text-2xl" : ""
+              }`}
+            >
               Formulario de Soporte Estudiantil
             </h2>
             {ticketEnviadoOk ? (
-              <div className="rounded-2xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 p-6 text-center space-y-3">
+              <div
+                className={`border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 p-6 text-center space-y-3 ${
+                  esHarvard ? "rounded-none" : "rounded-2xl"
+                }`}
+              >
                 <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   ¡Consulta enviada correctamente!
                 </h3>
                 <button
                   onClick={() => setTicketEnviadoOk(false)}
-                  className="px-4 py-2 rounded-xl bg-[#002855] text-xs font-bold text-white cursor-pointer"
+                  className={`px-4 py-2 bg-[#002855] text-xs font-bold text-white cursor-pointer ${
+                    esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
+                  }`}
                 >
                   Enviar otro mensaje
                 </button>
@@ -162,7 +211,9 @@ export function ContactoView({
                     value={formContacto.nombre}
                     onChange={(e) => setFormContacto({ ...formContacto, nombre: e.target.value })}
                     placeholder="Nombre completo *"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
+                    className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500 ${
+                      esHarvard ? "rounded-none" : "rounded-xl"
+                    }`}
                   />
                   <input
                     type="email"
@@ -170,7 +221,9 @@ export function ContactoView({
                     value={formContacto.email}
                     onChange={(e) => setFormContacto({ ...formContacto, email: e.target.value })}
                     placeholder="Correo institucional (@unmsm.edu.pe) *"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
+                    className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500 ${
+                      esHarvard ? "rounded-none" : "rounded-xl"
+                    }`}
                   />
                 </div>
                 <input
@@ -179,7 +232,9 @@ export function ContactoView({
                   value={formContacto.asunto}
                   onChange={(e) => setFormContacto({ ...formContacto, asunto: e.target.value })}
                   placeholder="Asunto de la consulta *"
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
+                  className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500 ${
+                    esHarvard ? "rounded-none" : "rounded-xl"
+                  }`}
                 />
                 <textarea
                   rows={4}
@@ -187,11 +242,17 @@ export function ContactoView({
                   value={formContacto.mensaje}
                   onChange={(e) => setFormContacto({ ...formContacto, mensaje: e.target.value })}
                   placeholder="Describe tu solicitud..."
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500"
+                  className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#002855] dark:focus:border-blue-500 ${
+                    esHarvard ? "rounded-none" : "rounded-xl"
+                  }`}
                 />
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-[#002855] hover:bg-blue-900 text-xs font-bold text-white cursor-pointer"
+                  className={`w-full py-3 text-xs font-bold text-white cursor-pointer gpu-btn ${
+                    esHarvard
+                      ? "rounded-none bg-[#8B1515] hover:bg-[#002855] uppercase tracking-wider"
+                      : "rounded-xl bg-[#002855] hover:bg-blue-900"
+                  }`}
                 >
                   Enviar Mensaje a Soporte
                 </button>

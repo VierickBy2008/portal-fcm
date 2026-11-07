@@ -1,12 +1,20 @@
 "use client";
 
 import React from "react";
-import { Download, Filter, FolderGit2, Search, Upload, UserCheck } from "lucide-react";
-import type { Carrera, CarreraId, CursoMalla, MaterialRepositorio, TipoArchivo } from "@/app/types/portal";
+import { BookOpen, Download, Filter, FolderGit2, Search, Upload, UserCheck } from "lucide-react";
+import type {
+  Carrera,
+  CarreraId,
+  CursoMalla,
+  DisenoPortadaId,
+  MaterialRepositorio,
+  TipoArchivo,
+} from "@/app/types/portal";
 import { TEMA_CARRERA } from "@/app/data/portalInitialData";
 import { sanitizarTextoEnriquecido, sanitizarUrlSegura } from "@/app/utils/securitySanitizer";
 
 interface RepositorioViewProps {
+  disenoActivo?: DisenoPortadaId;
   carreras: Carrera[];
   malla: CursoMalla[];
   repoFiltroCarrera: "TODAS" | CarreraId;
@@ -33,6 +41,7 @@ interface RepositorioViewProps {
 }
 
 export function RepositorioView({
+  disenoActivo = "bento_moderno",
   carreras,
   malla,
   repoFiltroCarrera,
@@ -57,34 +66,71 @@ export function RepositorioView({
   renderIconoArchivo,
   onAbrirModalSubir,
 }: RepositorioViewProps) {
+  const esHarvard = disenoActivo === "harvard_editorial";
+
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-8 view-transition-gpu">
-      <div className="rounded-3xl bg-[#002855] text-white p-6 sm:p-8 border-b-4 border-red-700 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1.5">
-          <span className="text-xs font-mono uppercase text-red-300 font-bold">
-            Comunidad Académica FCM • /repositorio
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">
-            Repositorio Académico de la Facultad
-          </h1>
-          <p className="text-xs sm:text-sm text-blue-100 max-w-2xl">
-            Filtra exámenes resueltos, apuntes en LaTeX, libros y código por{" "}
-            <strong>Carrera ➔ Ciclo ➔ Curso ➔ Formato</strong>.
-          </p>
+      {esHarvard ? (
+        <div className="rounded-none bg-gradient-to-r from-[#8B1515] via-[#2b070c] to-[#002855] text-white p-6 sm:p-10 border-t-4 border-amber-400 border-b-4 border-b-[#8B1515] shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <span className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.2em] text-amber-300 font-bold">
+              <BookOpen className="w-3.5 h-3.5" />
+              CATÁLOGO BIBLIOGRÁFICO Y REPOSITORIO ACADÉMICO • FCM HOLLIS
+            </span>
+            <h1 className="text-2xl sm:text-4xl font-bold text-white font-harvard-serif tracking-tight">
+              Biblioteca Digital y Archivo de Cátedra
+            </h1>
+            <p className="text-xs sm:text-sm text-amber-100/90 max-w-2xl leading-relaxed">
+              Consulta monografías, exámenes resueltos, apuntes en LaTeX, sílabos oficiales y código científico indexado por{" "}
+              <strong className="text-white">I. Escuela ➔ II. Ciclo ➔ III. Asignatura ➔ IV. Formato</strong>.
+            </p>
+          </div>
+          <button
+            onClick={onAbrirModalSubir}
+            className="px-6 py-3.5 rounded-none bg-amber-400 hover:bg-amber-300 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-950 shadow-lg flex items-center gap-2 shrink-0 cursor-pointer gpu-btn"
+          >
+            <Upload className="w-4 h-4" /> Aportar Manuscrito / Recurso
+          </button>
         </div>
-        <button
-          onClick={onAbrirModalSubir}
-          className="px-5 py-3.5 rounded-xl bg-red-700 hover:bg-red-600 text-xs sm:text-sm font-bold text-white shadow-lg flex items-center gap-2 shrink-0 cursor-pointer"
-        >
-          <Upload className="w-4 h-4" /> ➕ Aportar Material Académico
-        </button>
-      </div>
+      ) : (
+        <div className="rounded-3xl bg-[#002855] text-white p-6 sm:p-8 border-b-4 border-red-700 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5">
+            <span className="text-xs font-mono uppercase text-red-300 font-bold">
+              Comunidad Académica FCM • /repositorio
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">
+              Repositorio Académico de la Facultad
+            </h1>
+            <p className="text-xs sm:text-sm text-blue-100 max-w-2xl">
+              Filtra exámenes resueltos, apuntes en LaTeX, libros y código por{" "}
+              <strong>Carrera ➔ Ciclo ➔ Curso ➔ Formato</strong>.
+            </p>
+          </div>
+          <button
+            onClick={onAbrirModalSubir}
+            className="px-5 py-3.5 rounded-xl bg-red-700 hover:bg-red-600 text-xs sm:text-sm font-bold text-white shadow-lg flex items-center gap-2 shrink-0 cursor-pointer gpu-btn"
+          >
+            <Upload className="w-4 h-4" /> ➕ Aportar Material Académico
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <aside className="lg:col-span-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-5 h-fit shadow-sm">
+        <aside
+          className={`lg:col-span-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-5 h-fit shadow-sm ${
+            esHarvard
+              ? "rounded-none border-t-4 border-t-[#8B1515]"
+              : "rounded-2xl"
+          }`}
+        >
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-            <h3 className="text-sm font-bold text-[#002855] dark:text-white flex items-center gap-2">
-              <Filter className="w-4 h-4 text-red-700" /> Filtros Acumulativos
+            <h3
+              className={`text-sm font-bold text-[#002855] dark:text-white flex items-center gap-2 ${
+                esHarvard ? "font-harvard-serif uppercase tracking-wider" : ""
+              }`}
+            >
+              <Filter className="w-4 h-4 text-[#8B1515] dark:text-red-400" />{" "}
+              {esHarvard ? "Índice de Catalogación" : "Filtros Acumulativos"}
             </h3>
             <button
               onClick={() => {
@@ -102,7 +148,7 @@ export function RepositorioView({
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              1. Carrera Profesional
+              {esHarvard ? "I. Escuela Profesional" : "1. Carrera Profesional"}
             </label>
             <select
               value={repoFiltroCarrera}
@@ -110,7 +156,9 @@ export function RepositorioView({
                 setRepoFiltroCarrera(e.target.value as "TODAS" | CarreraId);
                 setRepoFiltroCurso("TODOS");
               }}
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
+              className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500 ${
+                esHarvard ? "rounded-none" : "rounded-xl"
+              }`}
             >
               <option value="TODAS">Todas las Carreras (4)</option>
               {carreras.map((c) => (
@@ -123,7 +171,7 @@ export function RepositorioView({
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              2. Ciclo Académico (1 - 10)
+              {esHarvard ? "II. Ciclo Académico (I - X)" : "2. Ciclo Académico (1 - 10)"}
             </label>
             <select
               value={repoFiltroCiclo}
@@ -131,7 +179,9 @@ export function RepositorioView({
                 setRepoFiltroCiclo(e.target.value === "TODOS" ? "TODOS" : Number(e.target.value));
                 setRepoFiltroCurso("TODOS");
               }}
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
+              className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500 ${
+                esHarvard ? "rounded-none" : "rounded-xl"
+              }`}
             >
               <option value="TODOS">Todos los Ciclos</option>
               {Array.from({ length: 10 }, (_, i) => i + 1).map((c) => (
@@ -144,12 +194,16 @@ export function RepositorioView({
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              3. Curso ({cursosDisponiblesFiltroRepo.length})
+              {esHarvard
+                ? `III. Asignatura (${cursosDisponiblesFiltroRepo.length})`
+                : `3. Curso (${cursosDisponiblesFiltroRepo.length})`}
             </label>
             <select
               value={repoFiltroCurso}
               onChange={(e) => setRepoFiltroCurso(e.target.value)}
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
+              className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500 ${
+                esHarvard ? "rounded-none" : "rounded-xl"
+              }`}
             >
               <option value="TODOS">Todos los cursos</option>
               {cursosDisponiblesFiltroRepo.map((cur) => (
@@ -162,12 +216,14 @@ export function RepositorioView({
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              4. Formato de Archivo
+              {esHarvard ? "IV. Tipo de Documento" : "4. Formato de Archivo"}
             </label>
             <select
               value={repoFiltroTipo}
               onChange={(e) => setRepoFiltroTipo(e.target.value as "TODOS" | TipoArchivo)}
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
+              className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-red-500 ${
+                esHarvard ? "rounded-none" : "rounded-xl"
+              }`}
             >
               <option value="TODOS">Todos los formatos</option>
               <option value="Examen">Examen Resuelto</option>
@@ -187,12 +243,18 @@ export function RepositorioView({
               value={repoBusquedaTexto}
               onChange={(e) => setRepoBusquedaTexto(e.target.value)}
               placeholder="Filtrar recursos por título, código de curso, nombre del curso o docente..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-red-500 shadow-xs"
+              className={`w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-red-500 shadow-xs ${
+                esHarvard ? "rounded-none border-l-4 border-l-[#8B1515]" : "rounded-xl"
+              }`}
             />
           </div>
 
           {materialesFiltradosRepo.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-3">
+            <div
+              className={`border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-3 ${
+                esHarvard ? "rounded-none border-t-4 border-t-[#8B1515]" : "rounded-2xl"
+              }`}
+            >
               <FolderGit2 className="w-10 h-10 text-slate-400 mx-auto" />
               <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
                 No hay materiales aprobados para esta selección
@@ -207,34 +269,52 @@ export function RepositorioView({
                   return (
                     <article
                       key={mat.id}
-                      className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-600 p-5 flex flex-col justify-between gap-4 shadow-sm"
+                      className={`border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 flex flex-col justify-between gap-4 shadow-sm ${
+                        esHarvard
+                          ? "rounded-none border-t-4 border-t-[#8B1515] harvard-card-gpu"
+                          : "rounded-2xl hover:border-[#002855] dark:hover:border-blue-600 gpu-card"
+                      }`}
                     >
                       <div className="space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-red-50 text-red-700 border border-red-200">
+                          <span
+                            className={`px-2.5 py-1 text-xs font-mono font-bold bg-red-50 dark:bg-red-950/60 text-[#8B1515] dark:text-red-300 border border-red-200 dark:border-red-800 ${
+                              esHarvard ? "rounded-none" : "rounded-md"
+                            }`}
+                          >
                             [{curso?.codigo || "CURSO"}] • Ciclo {mat.ciclo || curso?.ciclo || 1}
                           </span>
                           <span
-                            className={`px-2.5 py-1 rounded-md text-[11px] font-bold border ${TEMA_CARRERA[mat.carrera_id].badgeSoft}`}
+                            className={`px-2.5 py-1 text-[11px] font-bold border ${
+                              esHarvard ? "rounded-none" : "rounded-md"
+                            } ${TEMA_CARRERA[mat.carrera_id].badgeSoft}`}
                           >
                             {carrera?.nombre}
                           </span>
                         </div>
                         <div className="flex items-start gap-3">
-                          <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 mt-0.5">
+                          <div
+                            className={`p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 mt-0.5 ${
+                              esHarvard ? "rounded-none" : "rounded-xl"
+                            }`}
+                          >
                             {renderIconoArchivo(mat.tipo_archivo)}
                           </div>
                           <div className="space-y-1">
-                            <h3 className="font-bold text-sm text-[#002855] dark:text-white leading-snug">
+                            <h3
+                              className={`font-bold text-sm text-[#002855] dark:text-white leading-snug ${
+                                esHarvard ? "font-harvard-serif text-base" : ""
+                              }`}
+                            >
                               {sanitizarTextoEnriquecido(mat.titulo)}
                             </h3>
-                            <p className="text-xs text-red-700 font-bold">
-                              Curso: {curso?.nombre_curso}
+                            <p className="text-xs text-[#8B1515] dark:text-red-400 font-bold">
+                              Asignatura: {curso?.nombre_curso}
                             </p>
                             <p className="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pt-0.5">
-                              <UserCheck className="w-3.5 h-3.5 text-[#002855]" />
+                              <UserCheck className="w-3.5 h-3.5 text-[#002855] dark:text-blue-400" />
                               <span>
-                                Docente: <strong>{sanitizarTextoEnriquecido(mat.docente)}</strong>
+                                Cátedra: <strong>{sanitizarTextoEnriquecido(mat.docente)}</strong>
                               </span>
                             </p>
                           </div>
@@ -242,7 +322,7 @@ export function RepositorioView({
                       </div>
                       <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                         <span className="text-slate-500 dark:text-slate-400">
-                          Subido por:{" "}
+                          Aportado por:{" "}
                           <strong className="text-slate-800 dark:text-slate-200">
                             {sanitizarTextoEnriquecido(mat.autor_alias)}
                           </strong>
@@ -251,7 +331,11 @@ export function RepositorioView({
                           href={sanitizarUrlSegura(mat.url_archivo)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3.5 py-1.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white font-bold flex items-center gap-1.5"
+                          className={`px-3.5 py-1.5 text-white font-bold flex items-center gap-1.5 gpu-btn ${
+                            esHarvard
+                              ? "rounded-none bg-[#8B1515] hover:bg-[#002855] uppercase tracking-wider text-[11px]"
+                              : "rounded-xl bg-[#002855] hover:bg-blue-900"
+                          }`}
                         >
                           <Download className="w-3.5 h-3.5" /> Descargar
                         </a>
@@ -282,7 +366,9 @@ export function RepositorioView({
                       type="button"
                       onClick={() => cambiarPaginaRepo(repoPaginaActual - 1)}
                       disabled={repoPaginaActual <= 1}
-                      className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-[#002855] dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs"
+                      className={`px-3.5 py-2 text-xs font-bold transition-all flex items-center gap-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-[#002855] dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs ${
+                        esHarvard ? "rounded-none" : "rounded-xl"
+                      }`}
                     >
                       ← Anterior
                     </button>
@@ -305,9 +391,13 @@ export function RepositorioView({
                             key={`p-num-${p}`}
                             type="button"
                             onClick={() => cambiarPaginaRepo(p)}
-                            className={`min-w-[34px] sm:min-w-[38px] h-[34px] sm:h-[38px] px-2 rounded-xl text-xs sm:text-sm transition-all duration-150 flex items-center justify-center cursor-pointer ${
+                            className={`min-w-[34px] sm:min-w-[38px] h-[34px] sm:h-[38px] px-2 text-xs sm:text-sm transition-all duration-150 flex items-center justify-center cursor-pointer ${
+                              esHarvard ? "rounded-none" : "rounded-xl"
+                            } ${
                               esActiva
-                                ? "bg-[#002855] dark:bg-blue-600 text-white font-bold shadow-md scale-105 border border-[#002855] dark:border-blue-500"
+                                ? esHarvard
+                                  ? "bg-[#8B1515] text-white font-bold shadow-md border border-[#8B1515]"
+                                  : "bg-[#002855] dark:bg-blue-600 text-white font-bold shadow-md scale-105 border border-[#002855] dark:border-blue-500"
                                 : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-[#002855] font-bold border border-slate-200 dark:border-slate-700 shadow-xs"
                             }`}
                           >
@@ -321,7 +411,9 @@ export function RepositorioView({
                       type="button"
                       onClick={() => cambiarPaginaRepo(repoPaginaActual + 1)}
                       disabled={repoPaginaActual >= totalPaginasRepo}
-                      className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-[#002855] dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs"
+                      className={`px-3.5 py-2 text-xs font-bold transition-all flex items-center gap-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-[#002855] dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs ${
+                        esHarvard ? "rounded-none" : "rounded-xl"
+                      }`}
                     >
                       Siguiente →
                     </button>

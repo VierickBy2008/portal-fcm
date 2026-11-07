@@ -173,5 +173,7 @@ export const portalConfigSyncSchema = z
     diseno_portada_activo: z
       .enum(["bento_moderno", "harvard_editorial"])
       .optional(),
+    hero_config_bento: z.record(z.string(), z.unknown()).optional(),
+    hero_config_harvard: z.record(z.string(), z.unknown()).optional(),
   })
   .passthrough();

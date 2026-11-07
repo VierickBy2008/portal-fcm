@@ -32,6 +32,7 @@ import {
 
 export function HomeViewBento({
   cargandoConfig,
+  heroConfigBento,
   slideActivoHero,
   totalSlidesHero,
   setPausarSliderHero,
@@ -65,6 +66,15 @@ export function HomeViewBento({
   setTabAdmin,
 }: HomeViewProps) {
   const touchStartXRef = useRef<number | null>(null);
+  const bgUrlBento = heroConfigBento?.hero_bg_url || heroBgUrl || heroDefaultBgUrl;
+  const blurBento = heroConfigBento?.hero_blur ?? heroBlur;
+  const overlayColorBento = heroConfigBento?.hero_overlay_color || heroOverlayColor || "#0f172a";
+  const overlayOpacityBento = heroConfigBento?.hero_overlay_opacity ?? heroOverlayOpacity;
+  const subtituloBento =
+    heroConfigBento?.subtitulo_superior || "Facultad de Ciencias Matemáticas • UNMSM";
+  const tituloPrincipalBento =
+    heroConfigBento?.titulo_principal ||
+    "Portal Académico e Investigación en Ciencias Exactas y Computación Científica";
 
   if (cargandoConfig && carreras.length === 0) {
     return (
@@ -102,7 +112,7 @@ export function HomeViewBento({
         style={{
           backgroundColor:
             slideActivoHero === 0
-              ? heroOverlayColor || "#0f172a"
+              ? overlayColorBento
               : noticiasDestacadas[slideActivoHero - 1]?.color_fondo || "#4d0713",
         }}
         className="relative text-white rounded-3xl shadow-2xl border-b-4 border-red-900/70 overflow-hidden transition-colors duration-700 ease-in-out"
@@ -137,16 +147,16 @@ export function HomeViewBento({
           {/* SLIDE 0: HERO ACADÉMICO PERMANENTE CON BUSCADOR */}
           <div className="w-full shrink-0 relative min-h-[460px] sm:min-h-[520px] flex flex-col justify-center items-center text-center p-6 sm:p-12 overflow-hidden">
             <img
-              src={heroBgUrl || heroDefaultBgUrl}
+              src={bgUrlBento}
               alt="Facultad de Ciencias Matemáticas UNMSM"
               className="absolute inset-0 w-full h-full object-cover pointer-events-none transition-all duration-500"
-              style={{ filter: `blur(${heroBlur}px)` }}
+              style={{ filter: `blur(${blurBento}px)` }}
             />
             <div
               className="absolute inset-0 pointer-events-none transition-all duration-300"
               style={{
-                backgroundColor: heroOverlayColor || "#0f172a",
-                opacity: Math.min(0.95, Math.max(0, heroOverlayOpacity / 100)),
+                backgroundColor: overlayColorBento,
+                opacity: Math.min(0.95, Math.max(0, overlayOpacityBento / 100)),
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/30 pointer-events-none" />
@@ -156,11 +166,11 @@ export function HomeViewBento({
                 type="button"
                 onClick={() => setModalHeroFondoAbierto(true)}
                 className="absolute top-4 right-4 z-20 px-3.5 py-2 rounded-xl bg-black/65 hover:bg-black/90 text-white text-xs font-bold border border-white/25 backdrop-blur-md shadow-xl flex items-center gap-2 cursor-pointer transition-all active:scale-95"
-                title="Personalizar Fondo, Blur y Opacidad del Hero"
+                title="Personalizar Fondo, Blur y Opacidad del Hero Bento"
               >
                 <Sliders className="w-4 h-4 text-amber-300" />
                 <span>
-                  Personalizar Fondo Hero ({heroOverlayOpacity}% • {heroBlur}px)
+                  Editar Hero Bento ({overlayOpacityBento}% • {blurBento}px)
                 </span>
               </button>
             )}
@@ -168,14 +178,11 @@ export function HomeViewBento({
             <div className="relative z-10 max-w-4xl mx-auto space-y-4 sm:space-y-6">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-700/90 text-white text-[11px] font-bold uppercase tracking-wider shadow-lg border border-red-500/30 backdrop-blur-xs">
                 <Building2 className="w-3.5 h-3.5" />
-                <span>Facultad de Ciencias Matemáticas • UNMSM</span>
+                <span>{subtituloBento}</span>
               </div>
 
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-lg">
-                Portal Académico e Investigación en{" "}
-                <span className="underline decoration-red-500 decoration-4 underline-offset-4">
-                  Ciencias Exactas y Computación Científica
-                </span>
+                {tituloPrincipalBento}
               </h1>
 
               <p className="text-blue-100 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed drop-shadow font-normal">

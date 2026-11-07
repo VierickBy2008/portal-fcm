@@ -178,6 +178,26 @@ export interface AsistenteIAConfig {
   faqs: FaqAsistenteIA[];
 }
 
+export interface HeroBentoConfig {
+  hero_bg_url: string;
+  hero_blur: number;
+  hero_overlay_opacity: number;
+  hero_overlay_color: string;
+  subtitulo_superior: string;
+  titulo_principal: string;
+}
+
+export interface HeroHarvardConfig {
+  hero_bg_url: string;
+  hero_blur: number;
+  hero_overlay_opacity: number;
+  hero_overlay_color: string;
+  lema_institucional: string;
+  subtitulo_escuela: string;
+  titulo_editorial: string;
+  cita_decanato: string;
+}
+
 export interface AccesibilidadConfig {
   habilitado: boolean;
   mostrar_lector_voz: boolean;
@@ -187,6 +207,8 @@ export interface AccesibilidadConfig {
   texto_lectura_institucional: string;
   tipografia_activa?: TipografiaPortalId;
   diseno_portada_activo?: DisenoPortadaId;
+  hero_config_bento?: HeroBentoConfig;
+  hero_config_harvard?: HeroHarvardConfig;
 }
 
 export interface CursoMalla {

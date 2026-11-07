@@ -36,6 +36,8 @@ const ALLOWED_COLUMNS = [
   "accesibilidad_data",
   "tipografia_activa",
   "diseno_portada_activo",
+  "hero_config_bento",
+  "hero_config_harvard",
 ] as const;
 
 export async function POST(req: NextRequest) {
@@ -92,10 +94,14 @@ export async function POST(req: NextRequest) {
       const {
         tipografia_activa: _tip,
         diseno_portada_activo: _dis,
+        hero_config_bento: _hb,
+        hero_config_harvard: _hh,
         ...sinColumnasApariencia
       } = payloadLimpio;
       void _tip;
       void _dis;
+      void _hb;
+      void _hh;
 
       if (Object.keys(sinColumnasApariencia).length > 2) {
         const { error: firstRetryErr } = await supabaseAdmin
@@ -119,6 +125,8 @@ export async function POST(req: NextRequest) {
         accesibilidad_data,
         tipografia_activa,
         diseno_portada_activo,
+        hero_config_bento,
+        hero_config_harvard,
         ...restoSeguro
       } = payloadLimpio;
       void hero_blur;
@@ -131,6 +139,8 @@ export async function POST(req: NextRequest) {
       void accesibilidad_data;
       void tipografia_activa;
       void diseno_portada_activo;
+      void hero_config_bento;
+      void hero_config_harvard;
 
       if (Object.keys(restoSeguro).length > 2) {
         const { error: retryErr } = await supabaseAdmin

@@ -33,6 +33,8 @@ import {
   AccesibilidadConfig,
   TipografiaPortalId,
   DisenoPortadaId,
+  HeroBentoConfig,
+  HeroHarvardConfig,
 } from "@/app/types/portal";
 import {
   Facebook,
@@ -65,6 +67,8 @@ import {
   ASISTENTE_IA_INICIAL,
   ACCESIBILIDAD_INICIAL,
   BENTO_ESPECIALIZACIONES_DEFAULT,
+  HERO_CONFIG_BENTO_INICIAL,
+  HERO_CONFIG_HARVARD_INICIAL,
 } from "@/app/data/portalExtrasData";
 import { AccesibilidadWidget } from "@/app/components/ui/AccesibilidadWidget";
 import { AsistenteVirtualIA } from "@/app/components/ui/AsistenteVirtualIA";
@@ -145,12 +149,20 @@ export default function PortalFacultadCienciasMatematicas() {
   const [accesibilidadConfig, setAccesibilidadConfig] = useState<AccesibilidadConfig>(ACCESIBILIDAD_INICIAL);
   const [tipografiaActiva, setTipografiaActiva] = useState<TipografiaPortalId>("inter");
   const [disenoPortadaActivo, setDisenoPortadaActivo] = useState<DisenoPortadaId>("bento_moderno");
+  const [heroConfigBento, setHeroConfigBento] = useState<HeroBentoConfig>(HERO_CONFIG_BENTO_INICIAL);
+  const [heroConfigHarvard, setHeroConfigHarvard] = useState<HeroHarvardConfig>(HERO_CONFIG_HARVARD_INICIAL);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-portal-font", tipografiaActiva);
     }
   }, [tipografiaActiva]);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-portal-theme", disenoPortadaActivo);
+    }
+  }, [disenoPortadaActivo]);
 
   const [orgulloItems, setOrgulloItems] = useState<OrgulloItem[]>(ORGULLO_INICIAL);
   const [modalDetalleOrgullo, setModalDetalleOrgullo] = useState<OrgulloItem | null>(null);
@@ -657,6 +669,30 @@ export default function PortalFacultadCienciasMatematicas() {
                 setAccesibilidadConfig(parsedAcc);
                 if (parsedAcc.tipografia_activa) setTipografiaActiva(parsedAcc.tipografia_activa);
                 if (parsedAcc.diseno_portada_activo) setDisenoPortadaActivo(parsedAcc.diseno_portada_activo);
+                if (parsedAcc.hero_config_bento && parsedAcc.hero_config_bento.hero_bg_url) {
+                  setHeroConfigBento(parsedAcc.hero_config_bento);
+                }
+                if (parsedAcc.hero_config_harvard && parsedAcc.hero_config_harvard.hero_bg_url) {
+                  setHeroConfigHarvard(parsedAcc.hero_config_harvard);
+                }
+              }
+            } catch {}
+          }
+          const localHeroBento = window.localStorage.getItem("fcm_hero_config_bento");
+          if (localHeroBento && activo) {
+            try {
+              const parsedBento = JSON.parse(localHeroBento);
+              if (parsedBento && typeof parsedBento.hero_bg_url === "string") {
+                setHeroConfigBento(parsedBento);
+              }
+            } catch {}
+          }
+          const localHeroHarvard = window.localStorage.getItem("fcm_hero_config_harvard");
+          if (localHeroHarvard && activo) {
+            try {
+              const parsedHarvard = JSON.parse(localHeroHarvard);
+              if (parsedHarvard && typeof parsedHarvard.hero_bg_url === "string") {
+                setHeroConfigHarvard(parsedHarvard);
               }
             } catch {}
           }
@@ -850,6 +886,37 @@ export default function PortalFacultadCienciasMatematicas() {
             if (typeof window !== "undefined")
               window.localStorage.setItem("fcm_diseno_portada_activo", data.diseno_portada_activo);
           }
+
+          const remoteHeroBento =
+            data.hero_config_bento || data.accesibilidad_data?.hero_config_bento;
+          if (remoteHeroBento && typeof remoteHeroBento.hero_bg_url === "string") {
+            setHeroConfigBento(remoteHeroBento);
+            if (typeof window !== "undefined")
+              window.localStorage.setItem("fcm_hero_config_bento", JSON.stringify(remoteHeroBento));
+          } else if (data.hero_bg_url && typeof data.hero_bg_url === "string") {
+            const cleanUrl = (data.hero_bg_url.split("#fcm_cfg=")[0] || "").trim() || HERO_BG_DEFAULT;
+            setHeroConfigBento((prev) => ({
+              ...prev,
+              hero_bg_url: cleanUrl,
+              hero_blur: typeof data.hero_blur === "number" ? data.hero_blur : prev.hero_blur,
+              hero_overlay_opacity:
+                typeof data.hero_overlay_opacity === "number"
+                  ? data.hero_overlay_opacity
+                  : prev.hero_overlay_opacity,
+              hero_overlay_color:
+                typeof data.hero_overlay_color === "string" && data.hero_overlay_color
+                  ? data.hero_overlay_color
+                  : prev.hero_overlay_color,
+            }));
+          }
+
+          const remoteHeroHarvard =
+            data.hero_config_harvard || data.accesibilidad_data?.hero_config_harvard;
+          if (remoteHeroHarvard && typeof remoteHeroHarvard.hero_bg_url === "string") {
+            setHeroConfigHarvard(remoteHeroHarvard);
+            if (typeof window !== "undefined")
+              window.localStorage.setItem("fcm_hero_config_harvard", JSON.stringify(remoteHeroHarvard));
+          }
         }
       } catch {
         // Mantiene estado por defecto si la tabla aún no fue creada
@@ -901,6 +968,8 @@ export default function PortalFacultadCienciasMatematicas() {
     accesibilidad_data?: AccesibilidadConfig;
     tipografia_activa?: TipografiaPortalId;
     diseno_portada_activo?: DisenoPortadaId;
+    hero_config_bento?: HeroBentoConfig;
+    hero_config_harvard?: HeroHarvardConfig;
   }): Promise<boolean> => {
     if (typeof window !== "undefined" && cambios.transparencia_data) {
       window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(cambios.transparencia_data));
@@ -923,6 +992,8 @@ export default function PortalFacultadCienciasMatematicas() {
       if (cambios.accesibilidad_data) window.localStorage.setItem("fcm_accesibilidad_data", JSON.stringify(cambios.accesibilidad_data));
       if (cambios.tipografia_activa) window.localStorage.setItem("fcm_tipografia_activa", cambios.tipografia_activa);
       if (cambios.diseno_portada_activo) window.localStorage.setItem("fcm_diseno_portada_activo", cambios.diseno_portada_activo);
+      if (cambios.hero_config_bento) window.localStorage.setItem("fcm_hero_config_bento", JSON.stringify(cambios.hero_config_bento));
+      if (cambios.hero_config_harvard) window.localStorage.setItem("fcm_hero_config_harvard", JSON.stringify(cambios.hero_config_harvard));
     }
 
     // 1. Intento por Servidor Seguro (Route Handler /api/admin/sync con RLS y Service Role)
@@ -959,6 +1030,8 @@ export default function PortalFacultadCienciasMatematicas() {
           accesibilidad_data,
           tipografia_activa,
           diseno_portada_activo,
+          hero_config_bento,
+          hero_config_harvard,
           ...resto
         } = cambios;
         void transparencia_data;
@@ -967,6 +1040,8 @@ export default function PortalFacultadCienciasMatematicas() {
         void accesibilidad_data;
         void tipografia_activa;
         void diseno_portada_activo;
+        void hero_config_bento;
+        void hero_config_harvard;
         void hero_blur;
         void hero_overlay_opacity;
         void hero_overlay_color;
@@ -984,6 +1059,52 @@ export default function PortalFacultadCienciasMatematicas() {
     } catch {
       return false;
     }
+  };
+
+  // Guardar configuración independiente del Hero Bento Moderno
+  const handleGuardarHeroBento = async (nuevaCfgBento: HeroBentoConfig) => {
+    setHeroConfigBento(nuevaCfgBento);
+    setHeroBgUrl(nuevaCfgBento.hero_bg_url);
+    setHeroBgInputUrl(nuevaCfgBento.hero_bg_url);
+    setHeroBlur(nuevaCfgBento.hero_blur);
+    setHeroOverlayOpacity(nuevaCfgBento.hero_overlay_opacity);
+    setHeroOverlayColor(nuevaCfgBento.hero_overlay_color);
+
+    const nuevaAcc: AccesibilidadConfig = {
+      ...accesibilidadConfig,
+      hero_config_bento: nuevaCfgBento,
+      hero_config_harvard: heroConfigHarvard,
+    };
+    setAccesibilidadConfig(nuevaAcc);
+
+    const urlConConfig = `${nuevaCfgBento.hero_bg_url}#fcm_cfg=${nuevaCfgBento.hero_blur}|${nuevaCfgBento.hero_overlay_opacity}|${encodeURIComponent(nuevaCfgBento.hero_overlay_color)}`;
+    await sincronizarPortalConfigSupabase({
+      hero_bg_url: urlConConfig,
+      hero_blur: nuevaCfgBento.hero_blur,
+      hero_overlay_opacity: nuevaCfgBento.hero_overlay_opacity,
+      hero_overlay_color: nuevaCfgBento.hero_overlay_color,
+      hero_config_bento: nuevaCfgBento,
+      accesibilidad_data: nuevaAcc,
+    });
+    lanzarToast("🔹 Carrusel Bento Moderno actualizado de forma independiente en Supabase.");
+  };
+
+  // Guardar configuración independiente del Banner Editorial Harvard
+  const handleGuardarHeroHarvard = async (nuevaCfgHarvard: HeroHarvardConfig) => {
+    setHeroConfigHarvard(nuevaCfgHarvard);
+
+    const nuevaAcc: AccesibilidadConfig = {
+      ...accesibilidadConfig,
+      hero_config_bento: heroConfigBento,
+      hero_config_harvard: nuevaCfgHarvard,
+    };
+    setAccesibilidadConfig(nuevaAcc);
+
+    await sincronizarPortalConfigSupabase({
+      hero_config_harvard: nuevaCfgHarvard,
+      accesibilidad_data: nuevaAcc,
+    });
+    lanzarToast("🏛️ Banner Editorial Harvard actualizado de forma independiente en Supabase.");
   };
 
   // Botón "Usar como Logo" del CMS conectado a Supabase con upsert + alert
@@ -2433,6 +2554,7 @@ export default function PortalFacultadCienciasMatematicas() {
   return (
     <div
       data-portal-font={tipografiaActiva}
+      data-portal-theme={disenoPortadaActivo}
       className={`min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-900 selection:text-white transition-colors duration-300 ${modoOscuro ? "dark" : ""}`}
     >
       {toast && (
@@ -2443,10 +2565,18 @@ export default function PortalFacultadCienciasMatematicas() {
       )}
 
       {/* BARRA SUPERIOR INSTITUCIONAL */}
-      <div className="bg-red-700 text-white text-[11px] py-1.5 px-4 border-b border-red-800 print:hidden">
+      <div
+        className={`text-white text-[11px] py-1.5 px-4 border-b print:hidden ${
+          disenoPortadaActivo === "harvard_editorial"
+            ? "bg-[#8B1515] border-[#5c0d0d]"
+            : "bg-red-700 border-red-800"
+        }`}
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <span className="font-semibold tracking-wide">
-            UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS • FACULTAD DE CIENCIAS MATEMÁTICAS
+            {disenoPortadaActivo === "harvard_editorial"
+              ? "UNIVERSITAS NATIONALIS MAIOR SANCTI MARCI • FACULTAD DE CIENCIAS MATEMÁTICAS"
+              : "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS • FACULTAD DE CIENCIAS MATEMÁTICAS"}
           </span>
           <span className="hidden sm:inline font-mono">
             COMPUTACIÓN CIENTÍFICA • MATEMÁTICA • ESTADÍSTICA • INVESTIGACIÓN OPERATIVA
@@ -2454,8 +2584,14 @@ export default function PortalFacultadCienciasMatematicas() {
         </div>
       </div>
 
-      {/* NAVBAR CON LOGO PLANO Y TRANSPARENTE (SIN BORDES, SIN FONDOS BLANCOS NI REDONDEO) */}
-      <header className="sticky top-0 z-50 bg-[#002855] text-white shadow-lg border-b border-blue-950 print:hidden">
+      {/* NAVBAR CON LOGO PLANO Y TRANSPARENTE */}
+      <header
+        className={`sticky top-0 z-50 text-white shadow-lg print:hidden ${
+          disenoPortadaActivo === "harvard_editorial"
+            ? "bg-[#001a38] border-b-4 border-[#8B1515]"
+            : "bg-[#002855] border-b border-blue-950"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <div onClick={() => navegar("/")} className="flex items-center gap-3 cursor-pointer shrink-0">
             <img
@@ -2465,11 +2601,21 @@ export default function PortalFacultadCienciasMatematicas() {
             />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold tracking-tight text-base sm:text-lg text-white">
+                <span
+                  className={`font-bold tracking-tight text-base sm:text-lg text-white ${
+                    disenoPortadaActivo === "harvard_editorial" ? "font-harvard-serif" : ""
+                  }`}
+                >
                   FCM <span className="text-red-400">UNMSM</span>
                 </span>
-                <span className="hidden xl:inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-red-700 text-white">
-                  Plan 2026
+                <span
+                  className={`hidden xl:inline-block text-[10px] font-bold uppercase px-2 py-0.5 text-white ${
+                    disenoPortadaActivo === "harvard_editorial"
+                      ? "bg-[#8B1515] rounded-none tracking-wider"
+                      : "bg-red-700 rounded"
+                  }`}
+                >
+                  {disenoPortadaActivo === "harvard_editorial" ? "Edición Académica" : "Plan 2026"}
                 </span>
               </div>
               <p className="text-[11px] text-blue-200 hidden md:block">Facultad de Ciencias Matemáticas</p>
@@ -3059,6 +3205,8 @@ export default function PortalFacultadCienciasMatematicas() {
         <HomeView
           cargandoConfig={cargandoConfig}
           disenoPortadaActivo={disenoPortadaActivo}
+          heroConfigBento={heroConfigBento}
+          heroConfigHarvard={heroConfigHarvard}
           slideActivoHero={slideActivoHero}
           totalSlidesHero={totalSlidesHero}
           setPausarSliderHero={setPausarSliderHero}
@@ -3096,6 +3244,7 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* VISTAS MODULARES: HEMEROTECA (/noticias), ORGULLO (/orgullo) Y PLANA DOCENTE (/docentes) */}
       {vistaActual === "/noticias" && (
         <HemerotecaView
+          disenoActivo={disenoPortadaActivo}
           noticias={noticias}
           noticiasFiltradasHemeroteca={noticiasFiltradasHemeroteca}
           busquedaHemeroteca={busquedaHemeroteca}
@@ -3109,6 +3258,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
       {vistaActual === "/orgullo" && (
         <OrgulloGalleryView
+          disenoActivo={disenoPortadaActivo}
           carreras={carreras}
           orgulloItems={orgulloItems}
           orgulloFiltrados={orgulloFiltrados}
@@ -3123,6 +3273,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
       {vistaActual === "/docentes" && (
         <DocentesView
+          disenoActivo={disenoPortadaActivo}
           carreras={carreras}
           docentes={docentes}
           docentesFiltradosHome={docentesFiltradosHome}
@@ -3178,6 +3329,7 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* VISTA B: DETALLE DE LA CARRERA Y MALLA INTERACTIVA (/carreras/[id]) - PILAR 5 */}
       {vistaActual === "/carreras/[id]" && (
         <CarreraMallaView
+          disenoActivo={disenoPortadaActivo}
           carreras={carreras}
           carreraSeleccionadaId={carreraSeleccionadaId}
           carreraActiva={carreraActiva}
@@ -3210,6 +3362,7 @@ export default function PortalFacultadCienciasMatematicas() {
       {/* VISTAS MODULARES: REPOSITORIO (/repositorio), TRANSPARENCIA (/transparencia) Y CONTACTO (/contacto) */}
       {vistaActual === "/repositorio" && (
         <RepositorioView
+          disenoActivo={disenoPortadaActivo}
           carreras={carreras}
           malla={malla}
           repoFiltroCarrera={repoFiltroCarrera}
@@ -3241,6 +3394,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
       {vistaActual === "/transparencia" && (
         <TransparenciaView
+          disenoActivo={disenoPortadaActivo}
           documentosTransparencia={documentosTransparencia}
           filtroTransparenciaCategoria={filtroTransparenciaCategoria}
           setFiltroTransparenciaCategoria={setFiltroTransparenciaCategoria}
@@ -3256,6 +3410,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
       {vistaActual === "/contacto" && (
         <ContactoView
+          disenoActivo={disenoPortadaActivo}
           ticketEnviadoOk={ticketEnviadoOk}
           setTicketEnviadoOk={setTicketEnviadoOk}
           formContacto={formContacto}
@@ -3354,6 +3509,7 @@ export default function PortalFacultadCienciasMatematicas() {
                   onCambiarTipografia={handleCambiarTipografiaPortal}
                   onRestaurarOriginal={handleRestaurarAparienciaOriginal}
                   onIrAPortada={() => navegar("/")}
+                  onAbrirEditorHero={() => setModalHeroFondoAbierto(true)}
                 />
               )}
 
@@ -3535,6 +3691,11 @@ export default function PortalFacultadCienciasMatematicas() {
                   setHeroOverlayOpacity={setHeroOverlayOpacity}
                   heroOverlayColor={heroOverlayColor}
                   setHeroOverlayColor={setHeroOverlayColor}
+                  disenoPortadaActivo={disenoPortadaActivo}
+                  heroConfigBento={heroConfigBento}
+                  heroConfigHarvard={heroConfigHarvard}
+                  onGuardarHeroBento={handleGuardarHeroBento}
+                  onGuardarHeroHarvard={handleGuardarHeroHarvard}
                 />
               )}
 
@@ -3630,6 +3791,11 @@ export default function PortalFacultadCienciasMatematicas() {
         heroOverlayColor={heroOverlayColor}
         setHeroOverlayColor={setHeroOverlayColor}
         handleUsarComoFondoHero={handleUsarComoFondoHero}
+        disenoPortadaActivo={disenoPortadaActivo}
+        heroConfigBento={heroConfigBento}
+        heroConfigHarvard={heroConfigHarvard}
+        onGuardarHeroBento={handleGuardarHeroBento}
+        onGuardarHeroHarvard={handleGuardarHeroHarvard}
       />
 
       <DocenteModal
@@ -3661,6 +3827,7 @@ export default function PortalFacultadCienciasMatematicas() {
       <Footer
         logoUrl={logoUrl}
         onOpenAdmin={() => navegar("/admin")}
+        disenoActivo={disenoPortadaActivo}
       />
     </div>
   );

@@ -2,9 +2,10 @@
 
 import React from "react";
 import { ArrowLeft, Calendar, Download, FileText, Search } from "lucide-react";
-import type { DocumentoTransparencia } from "@/app/types/portal";
+import type { DisenoPortadaId, DocumentoTransparencia } from "@/app/types/portal";
 
 interface TransparenciaViewProps {
+  disenoActivo?: DisenoPortadaId;
   documentosTransparencia: DocumentoTransparencia[];
   filtroTransparenciaCategoria: string;
   setFiltroTransparenciaCategoria: (v: string) => void;
@@ -18,6 +19,7 @@ interface TransparenciaViewProps {
 }
 
 export function TransparenciaView({
+  disenoActivo = "bento_moderno",
   documentosTransparencia,
   filtroTransparenciaCategoria,
   setFiltroTransparenciaCategoria,
@@ -29,6 +31,7 @@ export function TransparenciaView({
   setPaginaTransparencia,
   onVolverInicio,
 }: TransparenciaViewProps) {
+  const esHarvard = disenoActivo === "harvard_editorial";
   const documentosFiltrados = documentosTransparencia.filter((doc) => {
     if (filtroTransparenciaCategoria !== "TODAS" && doc.categoria !== filtroTransparenciaCategoria) {
       return false;
@@ -80,16 +83,30 @@ export function TransparenciaView({
       </div>
 
       {/* Banner Institucional de Transparencia */}
-      <div className="rounded-3xl bg-gradient-to-r from-[#002855] via-[#001c3d] to-[#4d0713] text-white p-6 sm:p-8 shadow-xl relative overflow-hidden border-b-4 border-red-700">
+      <div
+        className={`text-white p-6 sm:p-8 shadow-xl relative overflow-hidden ${
+          esHarvard
+            ? "rounded-none bg-gradient-to-r from-[#8B1515] via-[#2b070c] to-[#002855] border-t-4 border-amber-400 border-b-4 border-b-[#8B1515]"
+            : "rounded-3xl bg-gradient-to-r from-[#002855] via-[#001c3d] to-[#4d0713] border-b-4 border-red-700"
+        }`}
+      >
         <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-red-600/20 via-transparent to-transparent pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs border border-white/20 text-xs font-bold uppercase tracking-wider text-red-300">
+            <div
+              className={`inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-xs border border-white/20 text-xs font-bold uppercase tracking-wider text-red-300 ${
+                esHarvard ? "rounded-none text-amber-300" : "rounded-full"
+              }`}
+            >
               <FileText className="w-3.5 h-3.5" />
               <span>Órgano Oficial de Transparencia y Acceso a la Información • FCM UNMSM</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
+            <h1
+              className={`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight ${
+                esHarvard ? "font-harvard-serif" : ""
+              }`}
+            >
               Portal de Transparencia Institucional
             </h1>
             <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
@@ -98,16 +115,30 @@ export function TransparenciaView({
           </div>
 
           {/* Tarjeta de Estadísticas y Resumen Oficial */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 shrink-0 grid grid-cols-2 gap-4 text-center min-w-[280px]">
+          <div
+            className={`bg-white/10 backdrop-blur-md border border-white/20 p-5 shrink-0 grid grid-cols-2 gap-4 text-center min-w-[280px] ${
+              esHarvard ? "rounded-none border-t-2 border-t-amber-400" : "rounded-2xl"
+            }`}
+          >
             <div className="border-r border-white/15 pr-3">
-              <span className="text-3xl font-extrabold text-white block">{documentosTransparencia.length}</span>
+              <span
+                className={`text-3xl font-extrabold text-white block ${
+                  esHarvard ? "font-harvard-serif" : ""
+                }`}
+              >
+                {documentosTransparencia.length}
+              </span>
               <span className="text-[11px] font-bold text-red-300 uppercase tracking-wider block mt-0.5">
                 Docs Oficiales
               </span>
               <span className="text-[10px] text-blue-200 block mt-1">Digitalizados PDF</span>
             </div>
             <div className="pl-3">
-              <span className="text-3xl font-extrabold text-amber-400 block">
+              <span
+                className={`text-3xl font-extrabold text-amber-400 block ${
+                  esHarvard ? "font-harvard-serif" : ""
+                }`}
+              >
                 {new Set(documentosTransparencia.map((d) => d.categoria)).size || 1}
               </span>
               <span className="text-[11px] font-bold text-blue-200 uppercase tracking-wider block mt-0.5">
@@ -120,7 +151,11 @@ export function TransparenciaView({
       </div>
 
       {/* Filtros Acumulativos: Categorías + Selector de Año + Buscador */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+      <div
+        className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 ${
+          esHarvard ? "rounded-none border-t-4 border-t-[#8B1515]" : "rounded-2xl"
+        }`}
+      >
         {/* Pestañas de Categoría Normativa */}
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
           {[
@@ -230,19 +265,35 @@ export function TransparenciaView({
             {docsPaginados.map((doc) => (
               <div
                 key={doc.id}
-                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-600 p-6 flex flex-col justify-between gap-4 shadow-sm transition-all"
+                className={`border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 flex flex-col justify-between gap-4 shadow-sm ${
+                  esHarvard
+                    ? "rounded-none border-t-4 border-t-[#8B1515] harvard-card-gpu"
+                    : "rounded-2xl hover:border-[#002855] dark:hover:border-blue-600 transition-all gpu-card"
+                }`}
               >
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-mono font-bold text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900/60">
+                    <span
+                      className={`font-mono font-bold text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2.5 py-1 border border-red-200 dark:border-red-900/60 ${
+                        esHarvard ? "rounded-none" : "rounded-lg"
+                      }`}
+                    >
                       {doc.codigo}
                     </span>
-                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    <span
+                      className={`text-[11px] font-bold px-2.5 py-0.5 bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300 border border-blue-200 dark:border-blue-800 ${
+                        esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-full"
+                      }`}
+                    >
                       {doc.categoria}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-[#002855] dark:text-white leading-snug">
+                  <h3
+                    className={`text-base font-bold text-[#002855] dark:text-white leading-snug ${
+                      esHarvard ? "font-harvard-serif text-lg" : ""
+                    }`}
+                  >
                     {doc.titulo}
                   </h3>
 
