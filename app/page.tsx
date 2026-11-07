@@ -2436,7 +2436,7 @@ export default function PortalFacultadCienciasMatematicas() {
       className={`min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-900 selection:text-white transition-colors duration-300 ${modoOscuro ? "dark" : ""}`}
     >
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl bg-[#002855] border-l-4 border-red-600 shadow-2xl text-xs sm:text-sm font-semibold text-white">
+        <div className="toast-slide-gpu fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl bg-[#002855] border-l-4 border-red-600 shadow-2xl text-xs sm:text-sm font-semibold text-white">
           <Sparkles className="w-4 h-4 text-red-400 shrink-0" />
           <span>{toast}</span>
         </div>

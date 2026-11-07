@@ -78,7 +78,7 @@ export function HomeViewBento({
   }
 
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-hidden">
+    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-hidden view-transition-gpu">
       {/* 1. SECCIÓN PRINCIPAL: MASTER SLIDER CON HERO ACADÉMICO PERMANENTE + NOTICIAS */}
       <section
         onMouseEnter={() => setPausarSliderHero(true)}
@@ -447,7 +447,7 @@ export function HomeViewBento({
               <article
                 key={not.id}
                 onClick={() => abrirNoticiaDetalle(not.id)}
-                className={`group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-500 shadow-sm hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all ${
+                className={`stagger-fade-up stagger-delay-${(idx % 4) + 1} gpu-card group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-500 shadow-sm hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer ${
                   idx === 0 ? "md:col-span-2" : "md:col-span-1"
                 }`}
               >
@@ -587,11 +587,11 @@ export function HomeViewBento({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {orgulloItems.slice(0, 3).map((item) => (
+          {orgulloItems.slice(0, 3).map((item, idx) => (
             <div
               key={item.id}
               onClick={() => setModalDetalleOrgullo(item)}
-              className="group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-red-500 shadow-md hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between overflow-hidden cursor-pointer"
+              className={`stagger-fade-up stagger-delay-${(idx % 3) + 1} gpu-card group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-red-500 shadow-md hover:shadow-2xl flex flex-col justify-between overflow-hidden cursor-pointer`}
             >
               <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-950">
                 <OptimizedImage
@@ -730,7 +730,7 @@ export function HomeViewBento({
         </div>
 
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {carreras.map((car) => {
+          {carreras.map((car, idx) => {
             const temaCar = TEMA_CARRERA[car.id];
             const docentesEscuela = docentes.filter((d) => d.carrera_id === car.id);
             const principalesCount = docentesEscuela.filter(
@@ -740,7 +740,7 @@ export function HomeViewBento({
               <div
                 key={car.id}
                 onClick={() => navegar("/docentes", { docenteCarrera: car.id })}
-                className={`group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-center`}
+                className={`stagger-fade-up stagger-delay-${(idx % 4) + 1} gpu-card group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer flex flex-col justify-between text-center`}
               >
                 <div>
                   <div

@@ -83,7 +83,7 @@ export function HomeViewHarvard({
     slideActivoHero > 0 ? noticiasDestacadas[slideActivoHero - 1] : null;
 
   return (
-    <main className="flex-1 w-full bg-[#fcfbf8] dark:bg-[#070b14] text-slate-900 dark:text-slate-100 transition-colors">
+    <main className="flex-1 w-full bg-[#fcfbf8] dark:bg-[#070b14] text-slate-900 dark:text-slate-100 transition-colors view-transition-gpu">
       {/* =====================================================================
           1. BANNER EDITORIAL CLÁSICO ESTILO HARVARD / IVY LEAGUE (THE CRIMSON)
           ===================================================================== */}
@@ -167,7 +167,7 @@ export function HomeViewHarvard({
                 <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-amber-300/90 mb-2">
                   Catálogo Curricular Unificado (Planes 2026 • 10 Ciclos Académicos)
                 </label>
-                <div className="relative flex items-center bg-white rounded-none border-2 border-amber-500/80 shadow-2xl">
+                <div className="relative flex items-center bg-white rounded-none border-2 border-amber-500/80 shadow-2xl harvard-hollis-box">
                   <Search className="w-5 h-5 text-[#8B1515] absolute left-4 pointer-events-none" />
                   <input
                     type="text"
@@ -180,7 +180,7 @@ export function HomeViewHarvard({
                     <button
                       type="button"
                       onClick={() => setBusquedaGlobal("")}
-                      className="absolute right-2 px-3 py-2 bg-[#8B1515] hover:bg-red-900 text-white text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                      className="gpu-btn absolute right-2 px-3 py-2 bg-[#8B1515] hover:bg-red-900 text-white text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
                     >
                       Limpiar
                     </button>
@@ -396,13 +396,14 @@ export function HomeViewHarvard({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {carreras.map((car) => {
+            {carreras.map((car, idx) => {
               const totalCursos = malla.filter((m) => m.carrera_id === car.id).length;
               const pilares = car.pilares_bento || [];
+              const staggerClass = `stagger-fade-up stagger-delay-${(idx % 4) + 1}`;
               return (
                 <article
                   key={car.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 border-t-4 border-t-[#8B1515] shadow-md hover:shadow-xl transition-all flex flex-col justify-between"
+                  className={`${staggerClass} harvard-card-gpu group bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 border-t-4 border-t-[#8B1515] shadow-md hover:shadow-xl flex flex-col justify-between`}
                 >
                   <div>
                     {/* Cabecera Clásica con Imagen y Sello de Escuela */}
@@ -412,7 +413,7 @@ export function HomeViewHarvard({
                           src={car.imagen_referencial_url}
                           alt={car.nombre}
                           sizes="(max-width: 768px) 100vw, 33vw"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500 ease-out transform-gpu"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                         <span className="absolute top-3 left-3 px-2.5 py-1 bg-[#8B1515] text-white font-mono text-[11px] font-bold tracking-wider">
@@ -478,17 +479,17 @@ export function HomeViewHarvard({
                     <button
                       type="button"
                       onClick={() => navegarACarrera(car.id)}
-                      className="px-4 py-2 bg-[#002855] hover:bg-[#8B1515] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
+                      className="gpu-btn px-4 py-2 bg-[#002855] hover:bg-[#8B1515] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
                     >
                       <span>Plan de Estudios (10 Ciclos)</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </button>
 
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={(e) => handleDescargarTripticoPorCarrera(car, e)}
-                        className="px-3 py-2 border border-slate-300 dark:border-slate-700 hover:border-[#8B1515] text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="gpu-btn px-3 py-2 border border-slate-300 dark:border-slate-700 hover:border-[#8B1515] hover:bg-rose-50/40 dark:hover:bg-rose-950/30 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                         title="Descargar Tríptico Oficial en PDF"
                       >
                         <Download className="w-3.5 h-3.5 text-[#8B1515]" />
@@ -500,7 +501,7 @@ export function HomeViewHarvard({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="px-3 py-2 border border-amber-500/60 bg-amber-50/60 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 transition-colors"
+                          className="gpu-btn px-3 py-2 border border-amber-500/60 bg-amber-50/60 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 transition-colors"
                         >
                           <FileText className="w-3.5 h-3.5" />
                           <span>Póster</span>
@@ -542,7 +543,7 @@ export function HomeViewHarvard({
             {noticiaPrincipal && (
               <article
                 onClick={() => abrirNoticiaDetalle(noticiaPrincipal.id)}
-                className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all cursor-pointer group space-y-5"
+                className="lg:col-span-7 harvard-card-gpu bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 p-6 sm:p-8 shadow-sm hover:shadow-xl cursor-pointer group space-y-5"
               >
                 <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900 border border-slate-200 dark:border-slate-800">
                   <OptimizedImage
@@ -550,7 +551,7 @@ export function HomeViewHarvard({
                     alt={noticiaPrincipal.titulo}
                     priority={true}
                     sizes="(max-width: 1024px) 100vw, 60vw"
-                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500 ease-out transform-gpu"
                   />
                   <div className="absolute top-3 left-3 flex items-center gap-2">
                     <span className="px-3 py-1 bg-[#8B1515] text-white text-[10px] font-bold uppercase tracking-widest">
@@ -615,7 +616,7 @@ export function HomeViewHarvard({
                     <article
                       key={not.id}
                       onClick={() => abrirNoticiaDetalle(not.id)}
-                      className="py-5 first:pt-1 last:pb-1 group cursor-pointer flex gap-4 items-start"
+                      className="py-5 first:pt-1 last:pb-1 group cursor-pointer flex gap-4 items-start harvard-gazette-item border-l-2 border-l-transparent hover:border-l-[#8B1515] dark:hover:border-l-red-400 pl-3 -ml-3"
                     >
                       <span className="font-harvard-serif text-2xl font-bold text-[#8B1515]/70 dark:text-red-400/80 w-7 shrink-0 pt-0.5">
                         {romanos[idx] || idx + 1}.
@@ -705,11 +706,11 @@ export function HomeViewHarvard({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {orgulloItems.slice(0, 3).map((item) => (
+            {orgulloItems.slice(0, 3).map((item, idx) => (
               <article
                 key={item.id}
                 onClick={() => setModalDetalleOrgullo(item)}
-                className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all cursor-pointer flex flex-col justify-between group"
+                className={`stagger-fade-up stagger-delay-${(idx % 3) + 1} harvard-card-gpu bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 shadow-sm hover:shadow-xl cursor-pointer flex flex-col justify-between group`}
               >
                 <div>
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-950 border-b-2 border-[#8B1515]">
@@ -788,7 +789,7 @@ export function HomeViewHarvard({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {carreras.map((car) => {
+            {carreras.map((car, idx) => {
               const docentesEscuela = docentes.filter((d) => d.carrera_id === car.id);
               const principalesCount = docentesEscuela.filter(
                 (d) => d.categoria_docente === "Principal"
@@ -797,7 +798,7 @@ export function HomeViewHarvard({
                 <div
                   key={car.id}
                   onClick={() => navegar("/docentes", { docenteCarrera: car.id })}
-                  className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 border-t-4 border-t-[#002855] p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer flex flex-col justify-between space-y-5 group"
+                  className={`stagger-fade-up stagger-delay-${(idx % 4) + 1} harvard-card-gpu bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 border-t-4 border-t-[#002855] p-6 shadow-sm hover:shadow-xl cursor-pointer flex flex-col justify-between space-y-5 group`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">

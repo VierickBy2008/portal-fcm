@@ -64,8 +64,14 @@ export interface HomeViewProps {
 }
 
 export function HomeView(props: HomeViewProps) {
-  if (props.disenoPortadaActivo === "harvard_editorial") {
-    return <HomeViewHarvard {...props} />;
-  }
-  return <HomeViewBento {...props} />;
+  const layoutKey = props.disenoPortadaActivo || "bento_moderno";
+  return (
+    <div key={layoutKey} className="layout-switch-gpu flex-1 flex flex-col w-full">
+      {layoutKey === "harvard_editorial" ? (
+        <HomeViewHarvard {...props} />
+      ) : (
+        <HomeViewBento {...props} />
+      )}
+    </div>
+  );
 }

@@ -420,14 +420,15 @@ export function CarreraMallaView({
                       </span>
                     </div>
                     <ChevronDown
-                      className={`w-5 h-5 text-white transition-transform duration-200 ${
+                      className={`w-5 h-5 text-white transition-transform duration-300 ${
                         abierto ? "rotate-180" : ""
                       }`}
                     />
                   </button>
 
-                  {abierto && (
-                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/70 dark:bg-slate-950/40">
+                  <div className={`accordion-grid-gpu ${abierto ? "is-open" : "is-closed"}`}>
+                    <div className="accordion-inner-gpu">
+                      <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/70 dark:bg-slate-950/40">
                       {cursosCiclo.map((cur) => {
                         const esEnFoco = codigoActivo === cur.codigo;
                         const esPrereq = relacionCursos.prerrequisitosSet.has(cur.codigo);
@@ -534,8 +535,9 @@ export function CarreraMallaView({
                           </div>
                         );
                       })}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}

@@ -50,6 +50,15 @@ html.dark {
   letter-spacing: 0.012em;
 }
 
+/* Suavizado al alternar tipografías y temas sin provocar CLS */
+[data-portal-font] {
+  transition:
+    background-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s ease;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
 .font-harvard-serif {
   font-family: var(--font-playfair), var(--font-merriweather), Georgia, Cambria, "Times New Roman", serif;
 }
@@ -67,7 +76,7 @@ body {
 }
 
 /* ==========================================================================
-   MOTOR DE ANIMACIONES FLUIDAS A 60/120 FPS ACELERADAS POR GPU (PILAR 1)
+   MOTOR DE ANIMACIONES FLUIDAS A 60/120 FPS ACELERADAS POR GPU
    ========================================================================== */
 
 @keyframes fcmViewEnter {
@@ -81,10 +90,32 @@ body {
   }
 }
 
+@keyframes fcmLayoutCrossfade {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fcmStaggerUp {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 @keyframes fcmModalPop {
   0% {
     opacity: 0;
-    transform: translate3d(0, 14px, 0) scale(0.96);
+    transform: translate3d(0, 10px, 0) scale(0.95);
   }
   100% {
     opacity: 1;
@@ -101,28 +132,72 @@ body {
   }
 }
 
+@keyframes fcmToastSlideIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* Transición suave al cambiar de vista o conmutar entre Bento Grid y Harvard */
 .view-transition-gpu {
-  animation: fcmViewEnter 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: transform, opacity;
+  animation: fcmViewEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   backface-visibility: hidden;
 }
 
+.layout-switch-gpu {
+  animation: fcmLayoutCrossfade 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  backface-visibility: hidden;
+}
+
+/* Revelado escalonado (Staggered Reveal: 50ms entre tarjetas) */
+.stagger-fade-up {
+  opacity: 0;
+  animation: fcmStaggerUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  backface-visibility: hidden;
+}
+
+.stagger-delay-1 {
+  animation-delay: 50ms;
+}
+
+.stagger-delay-2 {
+  animation-delay: 100ms;
+}
+
+.stagger-delay-3 {
+  animation-delay: 150ms;
+}
+
+.stagger-delay-4 {
+  animation-delay: 200ms;
+}
+
+/* Modales con entrada scale-95 -> scale-100 en 200ms */
 .modal-backdrop-gpu {
   animation: fcmBackdropFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: opacity;
 }
 
-.modal-panel-gpu {
-  animation: fcmModalPop 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: transform, opacity;
+.modal-panel-gpu,
+.modal-content-gpu {
+  animation: fcmModalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   backface-visibility: hidden;
 }
 
-/* Tarjetas interactivas con elevación magnética por GPU (sin recalcular layout) */
+/* Notificaciones Toast deslizantes desde la esquina inferior derecha */
+.toast-slide-gpu {
+  animation: fcmToastSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  backface-visibility: hidden;
+}
+
+/* 1. Tarjetas Bento Grid Moderno: Hover Lift (-5px) & Glow por GPU */
 .gpu-card {
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  will-change: transform, box-shadow;
   transition:
     transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1),
@@ -131,10 +206,95 @@ body {
 }
 
 .gpu-card:hover {
-  transform: translate3d(0, -5px, 0) scale(1.012);
+  transform: translate3d(0, -5px, 0) scale(1.008);
 }
 
-/* Micro-interacción táctil en botones */
+/* Píldoras de Especialización Bento con escala suave */
+.bento-pill-gpu {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.bento-pill-gpu:hover {
+  transform: translate3d(0, -1px, 0) scale(1.05);
+}
+
+/* 2. Tarjetas Harvard / Ivy League Editorial: Elevación solemne (-2px) y realce Crimson */
+.harvard-card-gpu {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  transition:
+    transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.harvard-card-gpu:hover {
+  transform: translate3d(0, -2px, 0);
+  border-color: #8B1515;
+}
+
+html.dark .harvard-card-gpu:hover {
+  border-color: #f87171;
+}
+
+/* Despachos laterales estilo The Harvard Gazette con línea divisoria reactiva */
+.harvard-gazette-item {
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.28s ease,
+    background-color 0.25s ease;
+}
+
+.harvard-gazette-item:hover {
+  transform: translate3d(3px, 0, 0);
+}
+
+/* Buscador HOLLIS con expansión suave de foco */
+.harvard-hollis-box {
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.26s ease,
+    box-shadow 0.26s ease;
+}
+
+.harvard-hollis-box:focus-within {
+  transform: translate3d(0, -1px, 0) scale(1.006);
+  border-color: #fbbf24;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.55), 0 0 0 3px rgba(251, 191, 36, 0.25);
+}
+
+/* Acordeón elástico suave de Malla Curricular sin saltos de scroll */
+.accordion-grid-gpu {
+  display: grid;
+  transition:
+    grid-template-rows 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.accordion-grid-gpu.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.accordion-grid-gpu.is-closed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.accordion-inner-gpu {
+  overflow: hidden;
+}
+
+/* Micro-interacción táctil en botones (active:scale-96) */
 .gpu-btn {
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
@@ -150,15 +310,14 @@ body {
   transform: translate3d(0, 0, 0) scale(0.96);
 }
 
-/* Micro-animaciones fluidas de revelado al hacer scroll (Scroll-Reveal Optimizado GPU) */
+/* Micro-animaciones fluidas de revelado al hacer scroll */
 .reveal-on-scroll {
   opacity: 1;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  will-change: transform, opacity;
   transition:
-    opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal-on-scroll.is-visible {
@@ -166,12 +325,25 @@ body {
   transform: translate3d(0, 0, 0);
 }
 
+/* ==========================================================================
+   ACCESIBILIDAD WCAG 2.1 Y PREFERS-REDUCED-MOTION (CUMPLIMIENTO 100%)
+   ========================================================================== */
+
 @media (prefers-reduced-motion: reduce) {
   .reveal-on-scroll,
   .view-transition-gpu,
+  .layout-switch-gpu,
+  .stagger-fade-up,
   .modal-backdrop-gpu,
   .modal-panel-gpu,
+  .modal-content-gpu,
+  .toast-slide-gpu,
   .gpu-card,
+  .bento-pill-gpu,
+  .harvard-card-gpu,
+  .harvard-gazette-item,
+  .harvard-hollis-box,
+  .accordion-grid-gpu,
   .gpu-btn {
     opacity: 1 !important;
     transform: none !important;
@@ -183,12 +355,24 @@ body {
 html.reduce-motion-wcag *,
 html.reduce-motion-wcag .reveal-on-scroll,
 html.reduce-motion-wcag .view-transition-gpu,
+html.reduce-motion-wcag .layout-switch-gpu,
+html.reduce-motion-wcag .stagger-fade-up,
 html.reduce-motion-wcag .modal-backdrop-gpu,
 html.reduce-motion-wcag .modal-panel-gpu,
+html.reduce-motion-wcag .modal-content-gpu,
+html.reduce-motion-wcag .toast-slide-gpu,
 html.reduce-motion-wcag .gpu-card,
+html.reduce-motion-wcag .bento-pill-gpu,
+html.reduce-motion-wcag .harvard-card-gpu,
+html.reduce-motion-wcag .harvard-gazette-item,
+html.reduce-motion-wcag .harvard-hollis-box,
+html.reduce-motion-wcag .accordion-grid-gpu,
 html.reduce-motion-wcag .gpu-btn {
   animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+  transform: none !important;
+  opacity: 1 !important;
   scroll-behavior: auto !important;
 }

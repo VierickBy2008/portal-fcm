@@ -118,11 +118,12 @@ export function BentoCarrerasHome({
 
       {/* BENTO GRID INTERACTIVO DE LAS 4 ESCUELAS PROFESIONALES */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {carreras.map((car) => {
+        {carreras.map((car, idx) => {
           const cursosCar = malla.filter((c) => c.carrera_id === car.id);
           const totalCreditosMalla = cursosCar.reduce((acc, c) => acc + c.creditos, 0);
           const temaCar = TEMA_CARRERA[car.id];
           const meta = BENTO_META[car.id];
+          const staggerClass = `stagger-fade-up stagger-delay-${(idx % 4) + 1}`;
 
           const subtituloMostrar =
             car.subtitulo_bento && car.subtitulo_bento.trim().length > 0
@@ -150,7 +151,7 @@ export function BentoCarrerasHome({
             <div
               key={car.id}
               onClick={() => onExplorarCarrera(car.id)}
-              className={`${meta.bentoSpan} group relative rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 ${meta.accentRing} shadow-sm hover:shadow-2xl overflow-hidden cursor-pointer flex flex-col justify-between gpu-card`}
+              className={`${meta.bentoSpan} ${staggerClass} group relative rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 ${meta.accentRing} shadow-sm hover:shadow-2xl overflow-hidden cursor-pointer flex flex-col justify-between gpu-card`}
             >
               {/* Resplandor perimetral por GPU al hacer hover */}
               <div
@@ -203,7 +204,7 @@ export function BentoCarrerasHome({
                     {pilaresMostrar.map((pilar) => (
                       <span
                         key={pilar}
-                        className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border ${meta.badgePill}`}
+                        className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border bento-pill-gpu ${meta.badgePill}`}
                       >
                         ✦ {pilar}
                       </span>
