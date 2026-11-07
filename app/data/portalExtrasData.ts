@@ -407,4 +407,6 @@ export const ACCESIBILIDAD_INICIAL: AccesibilidadConfig = {
   mostrar_reduccion_animaciones: true,
   texto_lectura_institucional:
     "Bienvenido al Portal Oficial de la Facultad de Ciencias Matemáticas de la Universidad Nacional Mayor de San Marcos. Aquí encontrarás las cuatro escuelas profesionales: Matemática, Estadística, Investigación Operativa y Computación Científica, además del Régimen Semestral 2026-I y 2026-II, directorio docente, repositorio académico y portal de transparencia.",
+  tipografia_activa: "inter",
+  diseno_portada_activo: "bento_moderno",
 };

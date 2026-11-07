@@ -5,6 +5,8 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --font-portal-primary: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --font-portal-heading: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 html.dark {
@@ -12,10 +14,54 @@ html.dark {
   --foreground: #f1f5f9;
 }
 
+/* ==========================================================================
+   SISTEMA DINÁMICO DE TIPOGRAFÍAS INSTITUCIONALES (MÓDULO 1)
+   ========================================================================== */
+
+[data-portal-font="inter"] {
+  --font-portal-primary: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --font-portal-heading: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-portal-primary);
+}
+
+[data-portal-font="merriweather"] {
+  --font-portal-primary: var(--font-merriweather), Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-portal-heading: var(--font-playfair), var(--font-merriweather), Georgia, serif;
+  font-family: var(--font-portal-primary);
+}
+
+[data-portal-font="merriweather"] h1,
+[data-portal-font="merriweather"] h2,
+[data-portal-font="merriweather"] h3,
+[data-portal-font="merriweather"] .font-harvard-serif {
+  font-family: var(--font-portal-heading);
+}
+
+[data-portal-font="outfit"] {
+  --font-portal-primary: var(--font-outfit), system-ui, -apple-system, sans-serif;
+  --font-portal-heading: var(--font-outfit), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-portal-primary);
+}
+
+[data-portal-font="atkinson"] {
+  --font-portal-primary: var(--font-atkinson), Verdana, Tahoma, sans-serif;
+  --font-portal-heading: var(--font-atkinson), Verdana, Tahoma, sans-serif;
+  font-family: var(--font-portal-primary);
+  letter-spacing: 0.012em;
+}
+
+.font-harvard-serif {
+  font-family: var(--font-playfair), var(--font-merriweather), Georgia, Cambria, "Times New Roman", serif;
+}
+
+.font-harvard-body {
+  font-family: var(--font-merriweather), Georgia, Cambria, "Times New Roman", serif;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-portal-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
   overflow-x: hidden;
 }

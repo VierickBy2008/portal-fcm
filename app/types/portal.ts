@@ -4,6 +4,16 @@ export type CarreraId =
   | "estadistica"
   | "investigacion-operativa";
 
+export type TipografiaPortalId =
+  | "inter"
+  | "merriweather"
+  | "outfit"
+  | "atkinson";
+
+export type DisenoPortadaId =
+  | "bento_moderno"
+  | "harvard_editorial";
+
 export type VistaPortal =
   | "/"
   | "/carreras/[id]"
@@ -175,6 +185,8 @@ export interface AccesibilidadConfig {
   mostrar_escala_grises: boolean;
   mostrar_reduccion_animaciones: boolean;
   texto_lectura_institucional: string;
+  tipografia_activa?: TipografiaPortalId;
+  diseno_portada_activo?: DisenoPortadaId;
 }
 
 export interface CursoMalla {

@@ -167,5 +167,11 @@ export const portalConfigSyncSchema = z
     storage_data: z.array(z.record(z.string(), z.unknown())).optional(),
     asistente_ia_data: z.record(z.string(), z.unknown()).optional(),
     accesibilidad_data: z.record(z.string(), z.unknown()).optional(),
+    tipografia_activa: z
+      .enum(["inter", "merriweather", "outfit", "atkinson"])
+      .optional(),
+    diseno_portada_activo: z
+      .enum(["bento_moderno", "harvard_editorial"])
+      .optional(),
   })
   .passthrough();

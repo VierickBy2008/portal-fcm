@@ -31,6 +31,8 @@ import {
   CalendarioSemestralConfig,
   AsistenteIAConfig,
   AccesibilidadConfig,
+  TipografiaPortalId,
+  DisenoPortadaId,
 } from "@/app/types/portal";
 import {
   Facebook,
@@ -94,6 +96,7 @@ import { AdminTransparenciaTab } from "@/app/components/admin/AdminTransparencia
 import { AdminStorageTab } from "@/app/components/admin/AdminStorageTab";
 import { AdminTicketsTab } from "@/app/components/admin/AdminTicketsTab";
 import { AdminFirewallTab } from "@/app/components/admin/AdminFirewallTab";
+import { AdminAparienciaSelector } from "@/app/components/admin/AdminAparienciaSelector";
 
 export default function PortalFacultadCienciasMatematicas() {
   const [vistaActual, setVistaActual] = useState<VistaPortal>("/");
@@ -140,6 +143,14 @@ export default function PortalFacultadCienciasMatematicas() {
   const [calendarioConfig, setCalendarioConfig] = useState<CalendarioSemestralConfig>(CALENDARIO_SEMESTRAL_INICIAL);
   const [asistenteConfig, setAsistenteConfig] = useState<AsistenteIAConfig>(ASISTENTE_IA_INICIAL);
   const [accesibilidadConfig, setAccesibilidadConfig] = useState<AccesibilidadConfig>(ACCESIBILIDAD_INICIAL);
+  const [tipografiaActiva, setTipografiaActiva] = useState<TipografiaPortalId>("inter");
+  const [disenoPortadaActivo, setDisenoPortadaActivo] = useState<DisenoPortadaId>("bento_moderno");
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-portal-font", tipografiaActiva);
+    }
+  }, [tipografiaActiva]);
 
   const [orgulloItems, setOrgulloItems] = useState<OrgulloItem[]>(ORGULLO_INICIAL);
   const [modalDetalleOrgullo, setModalDetalleOrgullo] = useState<OrgulloItem | null>(null);
@@ -642,8 +653,28 @@ export default function PortalFacultadCienciasMatematicas() {
           if (localAccesibilidad && activo) {
             try {
               const parsedAcc = JSON.parse(localAccesibilidad);
-              if (parsedAcc && typeof parsedAcc.habilitado === "boolean") setAccesibilidadConfig(parsedAcc);
+              if (parsedAcc && typeof parsedAcc.habilitado === "boolean") {
+                setAccesibilidadConfig(parsedAcc);
+                if (parsedAcc.tipografia_activa) setTipografiaActiva(parsedAcc.tipografia_activa);
+                if (parsedAcc.diseno_portada_activo) setDisenoPortadaActivo(parsedAcc.diseno_portada_activo);
+              }
             } catch {}
+          }
+          const localTipografia = window.localStorage.getItem("fcm_tipografia_activa") as TipografiaPortalId | null;
+          if (
+            localTipografia &&
+            ["inter", "merriweather", "outfit", "atkinson"].includes(localTipografia) &&
+            activo
+          ) {
+            setTipografiaActiva(localTipografia);
+          }
+          const localDisenoPortada = window.localStorage.getItem("fcm_diseno_portada_activo") as DisenoPortadaId | null;
+          if (
+            localDisenoPortada &&
+            ["bento_moderno", "harvard_editorial"].includes(localDisenoPortada) &&
+            activo
+          ) {
+            setDisenoPortadaActivo(localDisenoPortada);
           }
           if (localNoticias && activo) {
             const parsed = JSON.parse(localNoticias);
@@ -778,12 +809,46 @@ export default function PortalFacultadCienciasMatematicas() {
           if (data.accesibilidad_data && typeof data.accesibilidad_data.habilitado === "boolean") {
             setAccesibilidadConfig(data.accesibilidad_data);
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_accesibilidad_data", JSON.stringify(data.accesibilidad_data));
+            if (
+              data.accesibilidad_data.tipografia_activa &&
+              ["inter", "merriweather", "outfit", "atkinson"].includes(data.accesibilidad_data.tipografia_activa)
+            ) {
+              setTipografiaActiva(data.accesibilidad_data.tipografia_activa);
+              if (typeof window !== "undefined")
+                window.localStorage.setItem("fcm_tipografia_activa", data.accesibilidad_data.tipografia_activa);
+            }
+            if (
+              data.accesibilidad_data.diseno_portada_activo &&
+              ["bento_moderno", "harvard_editorial"].includes(data.accesibilidad_data.diseno_portada_activo)
+            ) {
+              setDisenoPortadaActivo(data.accesibilidad_data.diseno_portada_activo);
+              if (typeof window !== "undefined")
+                window.localStorage.setItem("fcm_diseno_portada_activo", data.accesibilidad_data.diseno_portada_activo);
+            }
           } else if (Array.isArray(data.storage_data)) {
             const metaAcc = data.storage_data.find((x: { id?: string; accesibilidad_config?: AccesibilidadConfig }) => x && x.id === "__fcm_accesibilidad_config__");
             if (metaAcc?.accesibilidad_config && typeof metaAcc.accesibilidad_config.habilitado === "boolean") {
               setAccesibilidadConfig(metaAcc.accesibilidad_config);
               if (typeof window !== "undefined") window.localStorage.setItem("fcm_accesibilidad_data", JSON.stringify(metaAcc.accesibilidad_config));
             }
+          }
+
+          if (
+            typeof data.tipografia_activa === "string" &&
+            ["inter", "merriweather", "outfit", "atkinson"].includes(data.tipografia_activa)
+          ) {
+            setTipografiaActiva(data.tipografia_activa as TipografiaPortalId);
+            if (typeof window !== "undefined")
+              window.localStorage.setItem("fcm_tipografia_activa", data.tipografia_activa);
+          }
+
+          if (
+            typeof data.diseno_portada_activo === "string" &&
+            ["bento_moderno", "harvard_editorial"].includes(data.diseno_portada_activo)
+          ) {
+            setDisenoPortadaActivo(data.diseno_portada_activo as DisenoPortadaId);
+            if (typeof window !== "undefined")
+              window.localStorage.setItem("fcm_diseno_portada_activo", data.diseno_portada_activo);
           }
         }
       } catch {
@@ -834,6 +899,8 @@ export default function PortalFacultadCienciasMatematicas() {
     calendario_data?: CalendarioSemestralConfig;
     asistente_ia_data?: AsistenteIAConfig;
     accesibilidad_data?: AccesibilidadConfig;
+    tipografia_activa?: TipografiaPortalId;
+    diseno_portada_activo?: DisenoPortadaId;
   }): Promise<boolean> => {
     if (typeof window !== "undefined" && cambios.transparencia_data) {
       window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(cambios.transparencia_data));
@@ -854,6 +921,8 @@ export default function PortalFacultadCienciasMatematicas() {
       if (cambios.calendario_data) window.localStorage.setItem("fcm_calendario_data", JSON.stringify(cambios.calendario_data));
       if (cambios.asistente_ia_data) window.localStorage.setItem("fcm_asistente_ia_data", JSON.stringify(cambios.asistente_ia_data));
       if (cambios.accesibilidad_data) window.localStorage.setItem("fcm_accesibilidad_data", JSON.stringify(cambios.accesibilidad_data));
+      if (cambios.tipografia_activa) window.localStorage.setItem("fcm_tipografia_activa", cambios.tipografia_activa);
+      if (cambios.diseno_portada_activo) window.localStorage.setItem("fcm_diseno_portada_activo", cambios.diseno_portada_activo);
     }
 
     // 1. Intento por Servidor Seguro (Route Handler /api/admin/sync con RLS y Service Role)
@@ -888,19 +957,20 @@ export default function PortalFacultadCienciasMatematicas() {
           calendario_data,
           asistente_ia_data,
           accesibilidad_data,
+          tipografia_activa,
+          diseno_portada_activo,
           ...resto
         } = cambios;
         void transparencia_data;
         void calendario_data;
         void asistente_ia_data;
         void accesibilidad_data;
+        void tipografia_activa;
+        void diseno_portada_activo;
         void hero_blur;
         void hero_overlay_opacity;
         void hero_overlay_color;
         void orgullo_data;
-        void hero_blur;
-        void hero_overlay_opacity;
-        void hero_overlay_color;
         if (Object.keys(resto).length > 0) {
           const { error: retryErr } = await supabase.from("portal_config").upsert(
             { id: 1, ...resto, updated_at: new Date().toISOString() },
@@ -2303,8 +2373,68 @@ export default function PortalFacultadCienciasMatematicas() {
     lanzarToast("🔒 Sesión de administrador cerrada.");
   };
 
+  const handleCambiarDisenoPortada = async (nuevoDiseno: DisenoPortadaId) => {
+    setDisenoPortadaActivo(nuevoDiseno);
+    const nuevaAcc: AccesibilidadConfig = {
+      ...accesibilidadConfig,
+      diseno_portada_activo: nuevoDiseno,
+      tipografia_activa: tipografiaActiva,
+    };
+    setAccesibilidadConfig(nuevaAcc);
+    await sincronizarPortalConfigSupabase({
+      diseno_portada_activo: nuevoDiseno,
+      accesibilidad_data: nuevaAcc,
+    });
+    lanzarToast(
+      nuevoDiseno === "harvard_editorial"
+        ? "🏛️ Diseño principal cambiado a 'Harvard / Ivy League Editorial' y sincronizado en Supabase."
+        : "✨ Diseño principal cambiado a 'Moderno Bento Grid FCM 2026' y sincronizado en Supabase."
+    );
+  };
+
+  const handleCambiarTipografiaPortal = async (nuevaTipografia: TipografiaPortalId) => {
+    setTipografiaActiva(nuevaTipografia);
+    const nuevaAcc: AccesibilidadConfig = {
+      ...accesibilidadConfig,
+      tipografia_activa: nuevaTipografia,
+      diseno_portada_activo: disenoPortadaActivo,
+    };
+    setAccesibilidadConfig(nuevaAcc);
+    await sincronizarPortalConfigSupabase({
+      tipografia_activa: nuevaTipografia,
+      accesibilidad_data: nuevaAcc,
+    });
+    const nombres: Record<TipografiaPortalId, string> = {
+      inter: "Inter / Geist Sans (Moderna)",
+      merriweather: "Merriweather & Playfair Serif (Editorial Harvard)",
+      outfit: "Outfit Corporate",
+      atkinson: "Atkinson Hyperlegible (Accesibilidad)",
+    };
+    lanzarToast(`🔤 Tipografía global actualizada a '${nombres[nuevaTipografia]}' y guardada en Supabase.`);
+  };
+
+  const handleRestaurarAparienciaOriginal = async () => {
+    setDisenoPortadaActivo("bento_moderno");
+    setTipografiaActiva("inter");
+    const nuevaAcc: AccesibilidadConfig = {
+      ...accesibilidadConfig,
+      diseno_portada_activo: "bento_moderno",
+      tipografia_activa: "inter",
+    };
+    setAccesibilidadConfig(nuevaAcc);
+    await sincronizarPortalConfigSupabase({
+      diseno_portada_activo: "bento_moderno",
+      tipografia_activa: "inter",
+      accesibilidad_data: nuevaAcc,
+    });
+    lanzarToast("🔄 Diseño original Bento Grid FCM 2026 y fuente Inter restaurados al 100%.");
+  };
+
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-900 selection:text-white transition-colors duration-300 ${modoOscuro ? "dark" : ""}`}>
+    <div
+      data-portal-font={tipografiaActiva}
+      className={`min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-900 selection:text-white transition-colors duration-300 ${modoOscuro ? "dark" : ""}`}
+    >
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl bg-[#002855] border-l-4 border-red-600 shadow-2xl text-xs sm:text-sm font-semibold text-white">
           <Sparkles className="w-4 h-4 text-red-400 shrink-0" />
@@ -2928,6 +3058,7 @@ export default function PortalFacultadCienciasMatematicas() {
       {vistaActual === "/" && (
         <HomeView
           cargandoConfig={cargandoConfig}
+          disenoPortadaActivo={disenoPortadaActivo}
           slideActivoHero={slideActivoHero}
           totalSlidesHero={totalSlidesHero}
           setPausarSliderHero={setPausarSliderHero}
@@ -3214,6 +3345,17 @@ export default function PortalFacultadCienciasMatematicas() {
                 materialesPendientesCount={materialesPendientes.length}
                 handleCerrarSesionAdmin={handleCerrarSesionAdmin}
               />
+
+              {(tabAdmin === "dashboard" || tabAdmin === "arquitectura_3a_cms") && (
+                <AdminAparienciaSelector
+                  disenoPortadaActivo={disenoPortadaActivo}
+                  tipografiaActiva={tipografiaActiva}
+                  onCambiarDiseno={handleCambiarDisenoPortada}
+                  onCambiarTipografia={handleCambiarTipografiaPortal}
+                  onRestaurarOriginal={handleRestaurarAparienciaOriginal}
+                  onIrAPortada={() => navegar("/")}
+                />
+              )}
 
               {(tabAdmin === "carreras_cms" || tabAdmin === "malla") && (
                 <AdminMallaTab

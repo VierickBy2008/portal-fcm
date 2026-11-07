@@ -34,6 +34,8 @@ const ALLOWED_COLUMNS = [
   "calendario_data",
   "asistente_ia_data",
   "accesibilidad_data",
+  "tipografia_activa",
+  "diseno_portada_activo",
 ] as const;
 
 export async function POST(req: NextRequest) {
@@ -86,6 +88,25 @@ export async function POST(req: NextRequest) {
       .upsert(payloadLimpio, { onConflict: "id" });
 
     if (error) {
+      // Primer intento de fallback: si solo faltan las columnas de tipografía/diseño en SQL, mantener accesibilidad_data
+      const {
+        tipografia_activa: _tip,
+        diseno_portada_activo: _dis,
+        ...sinColumnasApariencia
+      } = payloadLimpio;
+      void _tip;
+      void _dis;
+
+      if (Object.keys(sinColumnasApariencia).length > 2) {
+        const { error: firstRetryErr } = await supabaseAdmin
+          .from("portal_config")
+          .upsert(sinColumnasApariencia, { onConflict: "id" });
+
+        if (!firstRetryErr) {
+          return NextResponse.json({ ok: true, mode: "fallback_appearance_in_jsonb" });
+        }
+      }
+
       // Fallback seguro si alguna columna nueva aún no fue migrada en el esquema SQL
       const {
         hero_blur,
@@ -96,6 +117,8 @@ export async function POST(req: NextRequest) {
         calendario_data,
         asistente_ia_data,
         accesibilidad_data,
+        tipografia_activa,
+        diseno_portada_activo,
         ...restoSeguro
       } = payloadLimpio;
       void hero_blur;
@@ -106,6 +129,8 @@ export async function POST(req: NextRequest) {
       void calendario_data;
       void asistente_ia_data;
       void accesibilidad_data;
+      void tipografia_activa;
+      void diseno_portada_activo;
 
       if (Object.keys(restoSeguro).length > 2) {
         const { error: retryErr } = await supabaseAdmin
