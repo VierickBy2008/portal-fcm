@@ -33,6 +33,7 @@ import {
   AccesibilidadConfig,
   TipografiaPortalId,
   DisenoPortadaId,
+  HeroAcademicoConfig,
   HeroBentoConfig,
   HeroHarvardConfig,
 } from "@/app/types/portal";
@@ -67,6 +68,7 @@ import {
   ASISTENTE_IA_INICIAL,
   ACCESIBILIDAD_INICIAL,
   BENTO_ESPECIALIZACIONES_DEFAULT,
+  HERO_CONFIG_ACADEMICO_INICIAL,
   HERO_CONFIG_BENTO_INICIAL,
   HERO_CONFIG_HARVARD_INICIAL,
 } from "@/app/data/portalExtrasData";
@@ -151,6 +153,7 @@ export default function PortalFacultadCienciasMatematicas() {
   const [disenoPortadaActivo, setDisenoPortadaActivo] = useState<DisenoPortadaId>("bento_moderno");
   const [heroConfigBento, setHeroConfigBento] = useState<HeroBentoConfig>(HERO_CONFIG_BENTO_INICIAL);
   const [heroConfigHarvard, setHeroConfigHarvard] = useState<HeroHarvardConfig>(HERO_CONFIG_HARVARD_INICIAL);
+  const [heroConfigAcademico, setHeroConfigAcademico] = useState<HeroAcademicoConfig>(HERO_CONFIG_ACADEMICO_INICIAL);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -675,6 +678,9 @@ export default function PortalFacultadCienciasMatematicas() {
                 if (parsedAcc.hero_config_harvard && parsedAcc.hero_config_harvard.hero_bg_url) {
                   setHeroConfigHarvard(parsedAcc.hero_config_harvard);
                 }
+                if (parsedAcc.hero_config_academico && parsedAcc.hero_config_academico.hero_bg_url) {
+                  setHeroConfigAcademico(parsedAcc.hero_config_academico);
+                }
               }
             } catch {}
           }
@@ -696,6 +702,15 @@ export default function PortalFacultadCienciasMatematicas() {
               }
             } catch {}
           }
+          const localHeroAcademico = window.localStorage.getItem("fcm_hero_config_academico");
+          if (localHeroAcademico && activo) {
+            try {
+              const parsedAcademico = JSON.parse(localHeroAcademico);
+              if (parsedAcademico && typeof parsedAcademico.hero_bg_url === "string") {
+                setHeroConfigAcademico(parsedAcademico);
+              }
+            } catch {}
+          }
           const localTipografia = window.localStorage.getItem("fcm_tipografia_activa") as TipografiaPortalId | null;
           if (
             localTipografia &&
@@ -707,7 +722,7 @@ export default function PortalFacultadCienciasMatematicas() {
           const localDisenoPortada = window.localStorage.getItem("fcm_diseno_portada_activo") as DisenoPortadaId | null;
           if (
             localDisenoPortada &&
-            ["bento_moderno", "harvard_editorial"].includes(localDisenoPortada) &&
+            ["bento_moderno", "harvard_editorial", "academico_moderno"].includes(localDisenoPortada) &&
             activo
           ) {
             setDisenoPortadaActivo(localDisenoPortada);
@@ -855,7 +870,7 @@ export default function PortalFacultadCienciasMatematicas() {
             }
             if (
               data.accesibilidad_data.diseno_portada_activo &&
-              ["bento_moderno", "harvard_editorial"].includes(data.accesibilidad_data.diseno_portada_activo)
+              ["bento_moderno", "harvard_editorial", "academico_moderno"].includes(data.accesibilidad_data.diseno_portada_activo)
             ) {
               setDisenoPortadaActivo(data.accesibilidad_data.diseno_portada_activo);
               if (typeof window !== "undefined")
@@ -880,7 +895,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
           if (
             typeof data.diseno_portada_activo === "string" &&
-            ["bento_moderno", "harvard_editorial"].includes(data.diseno_portada_activo)
+            ["bento_moderno", "harvard_editorial", "academico_moderno"].includes(data.diseno_portada_activo)
           ) {
             setDisenoPortadaActivo(data.diseno_portada_activo as DisenoPortadaId);
             if (typeof window !== "undefined")
@@ -916,6 +931,14 @@ export default function PortalFacultadCienciasMatematicas() {
             setHeroConfigHarvard(remoteHeroHarvard);
             if (typeof window !== "undefined")
               window.localStorage.setItem("fcm_hero_config_harvard", JSON.stringify(remoteHeroHarvard));
+          }
+
+          const remoteHeroAcademico =
+            data.hero_config_academico || data.accesibilidad_data?.hero_config_academico;
+          if (remoteHeroAcademico && typeof remoteHeroAcademico.hero_bg_url === "string") {
+            setHeroConfigAcademico(remoteHeroAcademico);
+            if (typeof window !== "undefined")
+              window.localStorage.setItem("fcm_hero_config_academico", JSON.stringify(remoteHeroAcademico));
           }
         }
       } catch {
@@ -970,6 +993,7 @@ export default function PortalFacultadCienciasMatematicas() {
     diseno_portada_activo?: DisenoPortadaId;
     hero_config_bento?: HeroBentoConfig;
     hero_config_harvard?: HeroHarvardConfig;
+    hero_config_academico?: HeroAcademicoConfig;
   }): Promise<boolean> => {
     if (typeof window !== "undefined" && cambios.transparencia_data) {
       window.localStorage.setItem("fcm_transparencia_data", JSON.stringify(cambios.transparencia_data));
@@ -994,6 +1018,7 @@ export default function PortalFacultadCienciasMatematicas() {
       if (cambios.diseno_portada_activo) window.localStorage.setItem("fcm_diseno_portada_activo", cambios.diseno_portada_activo);
       if (cambios.hero_config_bento) window.localStorage.setItem("fcm_hero_config_bento", JSON.stringify(cambios.hero_config_bento));
       if (cambios.hero_config_harvard) window.localStorage.setItem("fcm_hero_config_harvard", JSON.stringify(cambios.hero_config_harvard));
+      if (cambios.hero_config_academico) window.localStorage.setItem("fcm_hero_config_academico", JSON.stringify(cambios.hero_config_academico));
     }
 
     // 1. Intento por Servidor Seguro (Route Handler /api/admin/sync con RLS y Service Role)
@@ -1032,6 +1057,7 @@ export default function PortalFacultadCienciasMatematicas() {
           diseno_portada_activo,
           hero_config_bento,
           hero_config_harvard,
+          hero_config_academico,
           ...resto
         } = cambios;
         void transparencia_data;
@@ -1042,6 +1068,7 @@ export default function PortalFacultadCienciasMatematicas() {
         void diseno_portada_activo;
         void hero_config_bento;
         void hero_config_harvard;
+        void hero_config_academico;
         void hero_blur;
         void hero_overlay_opacity;
         void hero_overlay_color;
@@ -1097,6 +1124,7 @@ export default function PortalFacultadCienciasMatematicas() {
       ...accesibilidadConfig,
       hero_config_bento: heroConfigBento,
       hero_config_harvard: nuevaCfgHarvard,
+      hero_config_academico: heroConfigAcademico,
     };
     setAccesibilidadConfig(nuevaAcc);
 
@@ -1105,6 +1133,25 @@ export default function PortalFacultadCienciasMatematicas() {
       accesibilidad_data: nuevaAcc,
     });
     lanzarToast("🏛️ Banner Editorial Harvard actualizado de forma independiente en Supabase.");
+  };
+
+  // Guardar configuración independiente del Hero Campus Académico Moderno
+  const handleGuardarHeroAcademico = async (nuevaCfgAcademico: HeroAcademicoConfig) => {
+    setHeroConfigAcademico(nuevaCfgAcademico);
+
+    const nuevaAcc: AccesibilidadConfig = {
+      ...accesibilidadConfig,
+      hero_config_bento: heroConfigBento,
+      hero_config_harvard: heroConfigHarvard,
+      hero_config_academico: nuevaCfgAcademico,
+    };
+    setAccesibilidadConfig(nuevaAcc);
+
+    await sincronizarPortalConfigSupabase({
+      hero_config_academico: nuevaCfgAcademico,
+      accesibilidad_data: nuevaAcc,
+    });
+    lanzarToast("🎓 Hero Campus Académico Moderno actualizado de forma independiente en Supabase.");
   };
 
   // Botón "Usar como Logo" del CMS conectado a Supabase con upsert + alert
@@ -2508,8 +2555,10 @@ export default function PortalFacultadCienciasMatematicas() {
     });
     lanzarToast(
       nuevoDiseno === "harvard_editorial"
-        ? "🏛️ Diseño principal cambiado a 'Harvard / Ivy League Editorial' y sincronizado en Supabase."
-        : "✨ Diseño principal cambiado a 'Moderno Bento Grid FCM 2026' y sincronizado en Supabase."
+        ? "🏛️ Diseño global cambiado a 'Harvard / Ivy League Editorial' y sincronizado en Supabase."
+        : nuevoDiseno === "academico_moderno"
+        ? "🎓 Diseño global cambiado a 'Campus Académico Moderno' en todas las secciones y sincronizado en Supabase."
+        : "✨ Diseño global cambiado a 'Moderno Bento Grid FCM 2026' y sincronizado en Supabase."
     );
   };
 
@@ -2569,6 +2618,8 @@ export default function PortalFacultadCienciasMatematicas() {
         className={`text-white text-[11px] py-1.5 px-4 border-b print:hidden ${
           disenoPortadaActivo === "harvard_editorial"
             ? "bg-[#8B1515] border-[#5c0d0d]"
+            : disenoPortadaActivo === "academico_moderno"
+            ? "bg-[#030d1d] border-cyan-900"
             : "bg-red-700 border-red-800"
         }`}
       >
@@ -2576,6 +2627,8 @@ export default function PortalFacultadCienciasMatematicas() {
           <span className="font-semibold tracking-wide">
             {disenoPortadaActivo === "harvard_editorial"
               ? "UNIVERSITAS NATIONALIS MAIOR SANCTI MARCI • FACULTAD DE CIENCIAS MATEMÁTICAS"
+              : disenoPortadaActivo === "academico_moderno"
+              ? "CAMPUS ACADÉMICO E INVESTIGACIÓN • FACULTAD DE CIENCIAS MATEMÁTICAS UNMSM"
               : "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS • FACULTAD DE CIENCIAS MATEMÁTICAS"}
           </span>
           <span className="hidden sm:inline font-mono">
@@ -2589,6 +2642,8 @@ export default function PortalFacultadCienciasMatematicas() {
         className={`sticky top-0 z-50 text-white shadow-lg print:hidden ${
           disenoPortadaActivo === "harvard_editorial"
             ? "bg-[#001a38] border-b-4 border-[#8B1515]"
+            : disenoPortadaActivo === "academico_moderno"
+            ? "bg-[#041024] border-b-4 border-cyan-500"
             : "bg-[#002855] border-b border-blue-950"
         }`}
       >
@@ -2606,16 +2661,22 @@ export default function PortalFacultadCienciasMatematicas() {
                     disenoPortadaActivo === "harvard_editorial" ? "font-harvard-serif" : ""
                   }`}
                 >
-                  FCM <span className="text-red-400">UNMSM</span>
+                  FCM <span className={disenoPortadaActivo === "academico_moderno" ? "text-cyan-400" : "text-red-400"}>UNMSM</span>
                 </span>
                 <span
                   className={`hidden xl:inline-block text-[10px] font-bold uppercase px-2 py-0.5 text-white ${
                     disenoPortadaActivo === "harvard_editorial"
                       ? "bg-[#8B1515] rounded-none tracking-wider"
+                      : disenoPortadaActivo === "academico_moderno"
+                      ? "bg-cyan-600 rounded-md tracking-wider"
                       : "bg-red-700 rounded"
                   }`}
                 >
-                  {disenoPortadaActivo === "harvard_editorial" ? "Edición Académica" : "Plan 2026"}
+                  {disenoPortadaActivo === "harvard_editorial"
+                    ? "Edición Académica"
+                    : disenoPortadaActivo === "academico_moderno"
+                    ? "Campus 2026"
+                    : "Plan 2026"}
                 </span>
               </div>
               <p className="text-[11px] text-blue-200 hidden md:block">Facultad de Ciencias Matemáticas</p>
@@ -3207,6 +3268,7 @@ export default function PortalFacultadCienciasMatematicas() {
           disenoPortadaActivo={disenoPortadaActivo}
           heroConfigBento={heroConfigBento}
           heroConfigHarvard={heroConfigHarvard}
+          heroConfigAcademico={heroConfigAcademico}
           slideActivoHero={slideActivoHero}
           totalSlidesHero={totalSlidesHero}
           setPausarSliderHero={setPausarSliderHero}
@@ -3694,8 +3756,10 @@ export default function PortalFacultadCienciasMatematicas() {
                   disenoPortadaActivo={disenoPortadaActivo}
                   heroConfigBento={heroConfigBento}
                   heroConfigHarvard={heroConfigHarvard}
+                  heroConfigAcademico={heroConfigAcademico}
                   onGuardarHeroBento={handleGuardarHeroBento}
                   onGuardarHeroHarvard={handleGuardarHeroHarvard}
+                  onGuardarHeroAcademico={handleGuardarHeroAcademico}
                 />
               )}
 
@@ -3794,8 +3858,10 @@ export default function PortalFacultadCienciasMatematicas() {
         disenoPortadaActivo={disenoPortadaActivo}
         heroConfigBento={heroConfigBento}
         heroConfigHarvard={heroConfigHarvard}
+        heroConfigAcademico={heroConfigAcademico}
         onGuardarHeroBento={handleGuardarHeroBento}
         onGuardarHeroHarvard={handleGuardarHeroHarvard}
+        onGuardarHeroAcademico={handleGuardarHeroAcademico}
       />
 
       <DocenteModal

@@ -4,6 +4,7 @@ import React from "react";
 import { Image as ImageIcon, Upload, Check, Copy } from "lucide-react";
 import {
   DisenoPortadaId,
+  HeroAcademicoConfig,
   HeroBentoConfig,
   HeroHarvardConfig,
   ImagenStorage,
@@ -39,8 +40,10 @@ interface AdminStorageTabProps {
   disenoPortadaActivo?: DisenoPortadaId;
   heroConfigBento?: HeroBentoConfig;
   heroConfigHarvard?: HeroHarvardConfig;
+  heroConfigAcademico?: HeroAcademicoConfig;
   onGuardarHeroBento?: (cfg: HeroBentoConfig) => Promise<void> | void;
   onGuardarHeroHarvard?: (cfg: HeroHarvardConfig) => Promise<void> | void;
+  onGuardarHeroAcademico?: (cfg: HeroAcademicoConfig) => Promise<void> | void;
 }
 
 export function AdminStorageTab({
@@ -67,8 +70,10 @@ export function AdminStorageTab({
   disenoPortadaActivo,
   heroConfigBento,
   heroConfigHarvard,
+  heroConfigAcademico,
   onGuardarHeroBento,
   onGuardarHeroHarvard,
+  onGuardarHeroAcademico,
 }: AdminStorageTabProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 view-transition-gpu">
@@ -132,8 +137,10 @@ export function AdminStorageTab({
           disenoPortadaActivo={disenoPortadaActivo}
           heroConfigBento={heroConfigBento}
           heroConfigHarvard={heroConfigHarvard}
+          heroConfigAcademico={heroConfigAcademico}
           onGuardarHeroBento={onGuardarHeroBento}
           onGuardarHeroHarvard={onGuardarHeroHarvard}
+          onGuardarHeroAcademico={onGuardarHeroAcademico}
         />
       </div>
 

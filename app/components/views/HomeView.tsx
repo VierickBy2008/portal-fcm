@@ -8,6 +8,7 @@ import type {
   CursoMalla,
   DisenoPortadaId,
   Docente,
+  HeroAcademicoConfig,
   HeroBentoConfig,
   HeroHarvardConfig,
   MaterialRepositorio,
@@ -18,12 +19,14 @@ import type {
 import type { AdminTabId } from "@/app/components/admin/AdminNavbar";
 import { HomeViewBento } from "@/app/components/views/HomeViewBento";
 import { HomeViewHarvard } from "@/app/components/views/HomeViewHarvard";
+import { HomeViewAcademico } from "@/app/components/views/HomeViewAcademico";
 
 export interface HomeViewProps {
   cargandoConfig: boolean;
   disenoPortadaActivo?: DisenoPortadaId;
   heroConfigBento?: HeroBentoConfig;
   heroConfigHarvard?: HeroHarvardConfig;
+  heroConfigAcademico?: HeroAcademicoConfig;
   slideActivoHero: number;
   totalSlidesHero: number;
   setPausarSliderHero: (v: boolean) => void;
@@ -73,6 +76,8 @@ export function HomeView(props: HomeViewProps) {
     <div key={layoutKey} className="layout-switch-gpu flex-1 flex flex-col w-full">
       {layoutKey === "harvard_editorial" ? (
         <HomeViewHarvard {...props} />
+      ) : layoutKey === "academico_moderno" ? (
+        <HomeViewAcademico {...props} />
       ) : (
         <HomeViewBento {...props} />
       )}

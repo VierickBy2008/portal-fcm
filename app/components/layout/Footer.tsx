@@ -13,12 +13,15 @@ interface FooterProps {
 
 export function Footer({ logoUrl, onOpenAdmin, disenoActivo = "bento_moderno" }: FooterProps) {
   const esHarvard = disenoActivo === "harvard_editorial";
+  const esAcademico = disenoActivo === "academico_moderno";
 
   return (
     <footer
       className={`text-white pt-12 pb-8 mt-16 print:hidden ${
         esHarvard
           ? "bg-[#0d0507] border-t-4 border-[#8B1515]"
+          : esAcademico
+          ? "bg-[#041024] border-t-4 border-cyan-500"
           : "bg-[#001833] border-t-4 border-red-700"
       }`}
     >

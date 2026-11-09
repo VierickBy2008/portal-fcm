@@ -67,6 +67,7 @@ export function RepositorioView({
   onAbrirModalSubir,
 }: RepositorioViewProps) {
   const esHarvard = disenoActivo === "harvard_editorial";
+  const esAcademico = disenoActivo === "academico_moderno";
 
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-8 view-transition-gpu">
@@ -90,6 +91,28 @@ export function RepositorioView({
             className="px-6 py-3.5 rounded-none bg-amber-400 hover:bg-amber-300 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-950 shadow-lg flex items-center gap-2 shrink-0 cursor-pointer gpu-btn"
           >
             <Upload className="w-4 h-4" /> Aportar Manuscrito / Recurso
+          </button>
+        </div>
+      ) : esAcademico ? (
+        <div className="rounded-2xl bg-gradient-to-r from-[#041024] via-[#002855] to-cyan-950 text-white p-6 sm:p-9 border-l-4 border-l-cyan-400 border-b-4 border-b-cyan-500 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-cyan-500/20 border border-cyan-400/30 text-[11px] font-mono uppercase tracking-widest text-cyan-300 font-bold">
+              <BookOpen className="w-3.5 h-3.5" />
+              CAMPUS ACADÉMICO MODERNO • BIBLIOTECA Y SÍLABOS
+            </span>
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+              Repositorio Digital y Material de Cátedra
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
+              Filtra sílabos oficiales, exámenes resueltos, guías en LaTeX y repositorios de código por{" "}
+              <strong className="text-cyan-300">Escuela ➔ Ciclo ➔ Asignatura ➔ Formato</strong>.
+            </p>
+          </div>
+          <button
+            onClick={onAbrirModalSubir}
+            className="px-5 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-xs sm:text-sm font-extrabold text-slate-950 shadow-lg flex items-center gap-2 shrink-0 cursor-pointer gpu-btn"
+          >
+            <Upload className="w-4 h-4" /> ➕ Aportar Recurso Académico
           </button>
         </div>
       ) : (

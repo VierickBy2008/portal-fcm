@@ -171,9 +171,10 @@ export const portalConfigSyncSchema = z
       .enum(["inter", "merriweather", "outfit", "atkinson"])
       .optional(),
     diseno_portada_activo: z
-      .enum(["bento_moderno", "harvard_editorial"])
+      .enum(["bento_moderno", "harvard_editorial", "academico_moderno"])
       .optional(),
     hero_config_bento: z.record(z.string(), z.unknown()).optional(),
     hero_config_harvard: z.record(z.string(), z.unknown()).optional(),
+    hero_config_academico: z.record(z.string(), z.unknown()).optional(),
   })
   .passthrough();

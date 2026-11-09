@@ -31,14 +31,21 @@ export function ContactoView({
   handleEnviarContacto,
 }: ContactoViewProps) {
   const esHarvard = disenoActivo === "harvard_editorial";
+  const esAcademico = disenoActivo === "academico_moderno";
 
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 view-transition-gpu">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <section className="lg:col-span-5 space-y-4">
-          <span className="text-xs font-bold uppercase text-red-700 tracking-wider">
+          <span
+            className={`text-xs font-bold uppercase tracking-wider ${
+              esAcademico ? "text-cyan-700 dark:text-cyan-400" : "text-red-700"
+            }`}
+          >
             {esHarvard
               ? "SECRETARÍA ACADÉMICA Y DIRECTORIO DECANAL • FCM"
+              : esAcademico
+              ? "CAMPUS ACADÉMICO • SECRETARÍA Y ATENCIÓN ESTUDIANTIL"
               : "Directorio Telefónico e Institucional FCM"}
           </span>
           <h1
@@ -80,6 +87,8 @@ export function ContactoView({
                 className={`border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-1 ${
                   esHarvard
                     ? "rounded-none border-l-4 border-l-[#8B1515] harvard-card-gpu"
+                    : esAcademico
+                    ? "rounded-xl border-l-4 border-l-cyan-500 gpu-card"
                     : "rounded-2xl gpu-card"
                 }`}
               >

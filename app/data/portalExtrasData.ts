@@ -5,6 +5,7 @@ import {
   CarreraId,
   HeroBentoConfig,
   HeroHarvardConfig,
+  HeroAcademicoConfig,
 } from "@/app/types/portal";
 import { HERO_BG_DEFAULT } from "@/app/data/portalInitialData";
 
@@ -30,6 +31,18 @@ export const HERO_CONFIG_HARVARD_INICIAL: HeroHarvardConfig = {
     "Excelencia en Ciencias Exactas, Estadística y Computación Científica",
   cita_decanato:
     "Formando investigadores, matemáticos y científicos de datos con rigor demostrativo y compromiso con el desarrollo científico del Perú y del mundo.",
+};
+
+export const HERO_CONFIG_ACADEMICO_INICIAL: HeroAcademicoConfig = {
+  hero_bg_url: HERO_BG_DEFAULT,
+  hero_blur: 1,
+  hero_overlay_opacity: 58,
+  hero_overlay_color: "#001d3d",
+  etiqueta_campus: "CAMPUS DIGITAL E INVESTIGACIÓN CIENTÍFICA • FCM UNMSM",
+  titulo_principal:
+    "Educación Superior de Excelencia en Ciencias Exactas y Computación",
+  descripcion_campus:
+    "Ecosistema universitario que integra formación rigurosa en pregrado y posgrado, laboratorios de cómputo de alto rendimiento y acceso abierto al conocimiento.",
 };
 
 export const BENTO_ESPECIALIZACIONES_DEFAULT: Record<
@@ -438,4 +451,5 @@ export const ACCESIBILIDAD_INICIAL: AccesibilidadConfig = {
   diseno_portada_activo: "bento_moderno",
   hero_config_bento: HERO_CONFIG_BENTO_INICIAL,
   hero_config_harvard: HERO_CONFIG_HARVARD_INICIAL,
+  hero_config_academico: HERO_CONFIG_ACADEMICO_INICIAL,
 };

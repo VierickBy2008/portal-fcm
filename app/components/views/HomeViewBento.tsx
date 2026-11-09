@@ -88,8 +88,8 @@ export function HomeViewBento({
   }
 
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-hidden view-transition-gpu">
-      {/* 1. SECCIÓN PRINCIPAL: MASTER SLIDER CON HERO ACADÉMICO PERMANENTE + NOTICIAS */}
+    <main className="flex-1 w-full overflow-x-hidden view-transition-gpu">
+      {/* 1. SECCIÓN PRINCIPAL FULL-WIDTH INMERSIVA: MASTER SLIDER CON HERO ACADÉMICO PERMANENTE + NOTICIAS */}
       <section
         onMouseEnter={() => setPausarSliderHero(true)}
         onMouseLeave={() => setPausarSliderHero(false)}
@@ -115,26 +115,26 @@ export function HomeViewBento({
               ? overlayColorBento
               : noticiasDestacadas[slideActivoHero - 1]?.color_fondo || "#4d0713",
         }}
-        className="relative text-white rounded-3xl shadow-2xl border-b-4 border-red-900/70 overflow-hidden transition-colors duration-700 ease-in-out"
+        className="group relative w-full text-white shadow-2xl border-b-4 border-red-900/70 overflow-hidden transition-colors duration-700 ease-in-out"
       >
-        {/* Botones de navegación lateral con micro-efecto táctil (visibles si hay más de 1 slide) */}
+        {/* Flechas de navegación lateral sutiles estilo ghost glassmorphism */}
         {totalSlidesHero > 1 && (
           <>
             <button
               type="button"
               onClick={anteriorSlideHero}
-              className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-md cursor-pointer border border-white/25 shadow-xl"
+              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-white/25 text-white/75 hover:text-white flex items-center justify-center transition-all duration-300 opacity-0 md:opacity-25 group-hover:opacity-80 hover:!opacity-100 active:scale-95 backdrop-blur-md cursor-pointer border border-white/15"
               aria-label="Diapositiva anterior"
             >
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
             <button
               type="button"
               onClick={siguienteSlideHero}
-              className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/45 hover:bg-black/75 text-white flex items-center justify-center transition-all duration-200 active:scale-90 hover:scale-110 backdrop-blur-md cursor-pointer border border-white/25 shadow-xl"
+              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-white/25 text-white/75 hover:text-white flex items-center justify-center transition-all duration-300 opacity-0 md:opacity-25 group-hover:opacity-80 hover:!opacity-100 active:scale-95 backdrop-blur-md cursor-pointer border border-white/15"
               aria-label="Siguiente diapositiva"
             >
-              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </>
         )}
@@ -145,7 +145,7 @@ export function HomeViewBento({
           style={{ transform: `translateX(-${slideActivoHero * 100}%)` }}
         >
           {/* SLIDE 0: HERO ACADÉMICO PERMANENTE CON BUSCADOR */}
-          <div className="w-full shrink-0 relative min-h-[460px] sm:min-h-[520px] flex flex-col justify-center items-center text-center p-6 sm:p-12 overflow-hidden">
+          <div className="w-full shrink-0 relative min-h-[500px] sm:min-h-[560px] flex flex-col justify-center items-center text-center px-6 sm:px-16 py-12 sm:py-16 overflow-hidden">
             <img
               src={bgUrlBento}
               alt="Facultad de Ciencias Matemáticas UNMSM"
@@ -259,7 +259,7 @@ export function HomeViewBento({
           {noticiasDestacadas.map((noticia) => (
             <div
               key={noticia.id}
-              className="w-full shrink-0 relative min-h-[460px] sm:min-h-[520px] flex items-center p-6 sm:p-12 overflow-hidden"
+              className="w-full shrink-0 relative min-h-[500px] sm:min-h-[560px] flex items-center justify-center px-6 sm:px-16 py-12 sm:py-16 overflow-hidden"
             >
               {noticia.fondo_imagen_url && (
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -290,7 +290,7 @@ export function HomeViewBento({
                 </div>
               )}
 
-              <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center relative z-10">
+              <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center relative z-10">
                 <div className="md:col-span-7 space-y-4 sm:space-y-5 text-left">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-black/40 text-red-200 border border-white/20 shadow-sm backdrop-blur-xs">
                     <Sparkles className="w-3.5 h-3.5 text-red-400" />
@@ -374,7 +374,7 @@ export function HomeViewBento({
         </div>
 
         {/* Indicadores horizontales (Dash Pills) */}
-        <div className="pb-4 flex items-center justify-center gap-2 sm:gap-2.5 z-20 relative">
+        <div className="pb-5 flex items-center justify-center gap-2 sm:gap-2.5 z-20 relative">
           <button
             type="button"
             onClick={() => cambiarSlideHero(0)}
@@ -406,6 +406,7 @@ export function HomeViewBento({
         </div>
       </section>
 
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-10 sm:space-y-14">
       {/* 2. BENTO GRID DE LAS 4 ESCUELAS PROFESIONALES */}
       <BentoCarrerasHome
         carreras={carreras}
@@ -854,6 +855,7 @@ export function HomeViewBento({
 
       {/* 6. CALENDARIO ACADÉMICO DINÁMICO (RÉGIMEN SEMESTRAL 2026-I Y 2026-II EN 2 BLOQUES DESPLEGABLES) */}
       <CalendarioAcademicoSection config={calendarioConfig} />
+      </div>
     </main>
   );
 }

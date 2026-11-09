@@ -5,6 +5,7 @@ import {
   BookOpen,
   CheckCircle2,
   Eye,
+  GraduationCap,
   LayoutGrid,
   RotateCcw,
   Sliders,
@@ -37,17 +38,26 @@ const CATALOGO_DISENOS: Array<{
     subtitulo: "Arquitectura Interactiva & Dinámica (Original)",
     etiqueta: "Original Por Defecto",
     descripcion:
-      "Hero Slider cinemático con difuminado adaptable, Bento Grid interactivo con acentos cromáticos por escuela, píldoras de especialización y tarjetas modernas con micro-interacciones.",
+      "Carrusel Full-Width inmersivo con controles ghost sutiles, tarjetas Bento con fotografía referencial por escuela, píldoras de especialización y micro-interacciones GPU.",
     coloresMuestra: ["#002855", "#0284c7", "#8B1515", "#d97706"],
   },
   {
     id: "harvard_editorial",
     titulo: "Diseño Harvard / Ivy League Editorial",
     subtitulo: "Estándar Académico Solemne & Clásico",
-    etiqueta: "Nuevo Estilo Ivy League",
+    etiqueta: "Estilo Ivy League",
     descripcion:
       "Portada editorial inspirada en Harvard University: cabezal solemne en Granate Crimson (#8B1515), buscador estilo catálogo HOLLIS, departamentos simétricos y sección de prensa estilo 'The Harvard Gazette'.",
     coloresMuestra: ["#8B1515", "#002855", "#d97706", "#1e293b"],
+  },
+  {
+    id: "academico_moderno",
+    titulo: "Diseño Campus Académico Moderno",
+    subtitulo: "Fusión Educativa + UI/UX Contemporánea",
+    etiqueta: "Nuevo Híbrido Educativo",
+    descripcion:
+      "Combina el prestigio académico universitario con una interfaz moderna: Hero split con tablero de métricas en vivo, fichas curriculares fotográficas, boletín universitario y directorio en 100% de las secciones.",
+    coloresMuestra: ["#002855", "#06b6d4", "#f59e0b", "#0f172a"],
   },
 ];
 
@@ -201,11 +211,13 @@ export function AdminAparienciaSelector({
               Activo:{" "}
               {disenoPortadaActivo === "harvard_editorial"
                 ? "Harvard Editorial"
+                : disenoPortadaActivo === "academico_moderno"
+                ? "Campus Académico Moderno"
                 : "Bento Grid FCM 2026"}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {CATALOGO_DISENOS.map((layout) => {
               const activo = disenoPortadaActivo === layout.id;
               return (
@@ -234,6 +246,8 @@ export function AdminAparienciaSelector({
                           className={`inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-1.5 ${
                             layout.id === "harvard_editorial"
                               ? "bg-[#8B1515]/10 text-[#8B1515] dark:bg-rose-950/80 dark:text-rose-300 border border-[#8B1515]/20"
+                              : layout.id === "academico_moderno"
+                              ? "bg-cyan-500/15 text-cyan-800 dark:bg-cyan-950/80 dark:text-cyan-300 border border-cyan-500/30"
                               : "bg-[#002855]/10 text-[#002855] dark:bg-blue-950/80 dark:text-blue-300 border border-[#002855]/20"
                           }`}
                         >
@@ -242,6 +256,8 @@ export function AdminAparienciaSelector({
                         <h5 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                           {layout.id === "harvard_editorial" ? (
                             <BookOpen className="w-4 h-4 text-[#8B1515] dark:text-amber-400 shrink-0" />
+                          ) : layout.id === "academico_moderno" ? (
+                            <GraduationCap className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
                           ) : (
                             <LayoutGrid className="w-4 h-4 text-[#002855] dark:text-blue-400 shrink-0" />
                           )}
@@ -268,7 +284,7 @@ export function AdminAparienciaSelector({
                       <div className="rounded-xl bg-slate-900 p-3 mb-3.5 border border-slate-800 text-white">
                         <div className="h-7 rounded-lg bg-gradient-to-r from-[#002855] to-sky-700 mb-2 flex items-center justify-between px-2.5">
                           <span className="text-[9px] font-bold tracking-wider uppercase text-sky-200">
-                            Hero Slider + Buscador
+                            Hero Full-Width + Buscador
                           </span>
                           <div className="flex gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
@@ -290,7 +306,7 @@ export function AdminAparienciaSelector({
                           </div>
                         </div>
                       </div>
-                    ) : (
+                    ) : layout.id === "harvard_editorial" ? (
                       <div className="rounded-xl bg-[#faf8f5] dark:bg-slate-950 p-3 mb-3.5 border border-stone-300 dark:border-slate-800">
                         <div className="h-7 rounded bg-gradient-to-r from-[#8B1515] to-[#002855] mb-2 flex items-center justify-between px-2.5 text-white">
                           <span className="text-[9px] font-serif italic tracking-wider text-amber-200">
@@ -306,6 +322,27 @@ export function AdminAparienciaSelector({
                           </div>
                           <div className="col-span-5 h-10 rounded bg-stone-200/80 dark:bg-slate-900 border border-stone-300 dark:border-slate-800 px-2 flex items-center text-[8px] font-serif text-slate-600 dark:text-slate-400">
                             4 Departamentos Solemnes
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl bg-slate-950 p-3 mb-3.5 border border-cyan-500/40 text-white">
+                        <div className="h-7 rounded-lg bg-gradient-to-r from-[#002855] via-cyan-900 to-slate-900 border border-cyan-400/30 mb-2 flex items-center justify-between px-2.5">
+                          <span className="text-[9px] font-bold tracking-wider uppercase text-cyan-300">
+                            Campus Split Hero + KPIs
+                          </span>
+                          <span className="text-[8px] font-mono px-1.5 py-0.5 bg-cyan-500/20 text-cyan-200 rounded">
+                            2026-I/II
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <div className="h-10 rounded bg-cyan-500/15 border border-cyan-400/30 px-2 flex items-center justify-between text-[8px] font-bold text-cyan-200">
+                            <span>Escuelas + Foto</span>
+                            <span className="text-amber-300">10 Ciclos</span>
+                          </div>
+                          <div className="h-10 rounded bg-blue-500/15 border border-blue-400/30 px-2 flex items-center justify-between text-[8px] font-bold text-blue-200">
+                            <span>Boletín & Cátedra</span>
+                            <span className="text-emerald-300">RENACYT</span>
                           </div>
                         </div>
                       </div>

@@ -17,6 +17,18 @@ import {
 import type { Carrera, CarreraId, CursoMalla } from "@/app/types/portal";
 import { TEMA_CARRERA } from "@/app/data/portalInitialData";
 import { BENTO_ESPECIALIZACIONES_DEFAULT } from "@/app/data/portalExtrasData";
+import { OptimizedImage } from "@/app/components/ui/OptimizedImage";
+
+const CARRERA_IMG_FALLBACK: Record<CarreraId, string> = {
+  "computacion-cientifica":
+    "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80",
+  matematica:
+    "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1000&q=80",
+  estadistica:
+    "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80",
+  "investigacion-operativa":
+    "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1000&q=80",
+};
 
 interface BentoCarrerasHomeProps {
   carreras: Carrera[];
@@ -158,47 +170,71 @@ export function BentoCarrerasHome({
                 className={`absolute inset-0 bg-gradient-to-br ${meta.glowClass} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none transform-gpu`}
               />
 
-              {/* Franja superior temática con código oficial y métricas rápidas */}
+              {/* Cabecera Fotográfica Referencial con Badges Flotantes y Zoom GPU */}
               <div>
                 <div
-                  className={`${temaCar.headerBg} text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2 border-b-2 ${temaCar.borderAccent} relative z-10`}
+                  className={`relative h-48 sm:h-52 w-full overflow-hidden border-b-2 ${temaCar.borderAccent} bg-slate-950 z-10`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className="px-2.5 py-1 rounded-lg bg-black/30 backdrop-blur-xs text-xs font-mono font-bold text-white border border-white/20">
-                      {car.codigo_escuela}
-                    </span>
-                    <span className="text-xs font-bold tracking-wide text-white/95 uppercase">
-                      Pregrado UNMSM
-                    </span>
+                  {/* Barra superior cromática por escuela */}
+                  <div className={`absolute top-0 inset-x-0 h-1.5 ${temaCar.headerBg} z-20`} />
+
+                  <OptimizedImage
+                    src={
+                      car.imagen_referencial_url && car.imagen_referencial_url.trim().length > 0
+                        ? car.imagen_referencial_url
+                        : CARRERA_IMG_FALLBACK[car.id]
+                    }
+                    alt={`Escuela Profesional de ${car.nombre}`}
+                    priority={idx < 2}
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out transform-gpu"
+                  />
+
+                  {/* Gradiente protector multicapa para legibilidad impecable */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-black/35 pointer-events-none z-10" />
+
+                  {/* Insignias superiores flotantes (Glassmorphism) */}
+                  <div className="absolute top-3.5 left-4 right-4 flex flex-wrap items-center justify-between gap-2 z-20">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2.5 py-1 rounded-lg ${temaCar.headerBg} text-xs font-mono font-bold text-white shadow-md border border-white/25`}
+                      >
+                        {car.codigo_escuela}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-black/45 backdrop-blur-md text-[11px] font-bold tracking-wide text-white/95 uppercase border border-white/15">
+                        Pregrado UNMSM
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-bold bg-black/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg border border-white/20 flex items-center gap-1 shadow-xs">
+                        <Clock className="w-3 h-3 text-amber-300" /> {duracionMostrar}
+                      </span>
+                      <span className="text-[11px] font-mono font-bold bg-white/20 backdrop-blur-md text-white px-2.5 py-1 rounded-lg border border-white/25 shadow-xs">
+                        {creditosMostrar} cr.
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold bg-white/15 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-white/20 flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {duracionMostrar}
-                    </span>
-                    <span className="text-[11px] font-mono font-bold bg-black/30 px-2.5 py-1 rounded-lg border border-white/15">
-                      {creditosMostrar} cr.
-                    </span>
+
+                  {/* Título e Icono sobre el faldón inferior de la imagen referencial */}
+                  <div className="absolute bottom-3.5 left-5 right-5 flex items-end gap-3.5 z-20">
+                    <div
+                      className={`p-3 rounded-2xl border ${temaCar.iconWrap} dark:bg-slate-900/90 dark:border-slate-700 shrink-0 shadow-lg backdrop-blur-md group-hover:scale-105 transition-transform duration-300 transform-gpu`}
+                    >
+                      {renderIconoBento(car.id)}
+                    </div>
+                    <div className="space-y-0.5 min-w-0">
+                      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block text-amber-300 drop-shadow-xs">
+                        {subtituloMostrar}
+                      </span>
+                      <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-amber-200 transition-colors leading-tight drop-shadow-md">
+                        E.P. de {car.nombre}
+                      </h3>
+                    </div>
                   </div>
                 </div>
 
                 {/* Cuerpo de la Celda Bento */}
                 <div className="p-6 space-y-4 relative z-10">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={`p-3.5 rounded-2xl border ${temaCar.iconWrap} dark:bg-slate-800 dark:border-slate-700 shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-300 transform-gpu`}
-                    >
-                      {renderIconoBento(car.id)}
-                    </div>
-                    <div className="space-y-1 min-w-0">
-                      <span className={`text-[11px] font-bold uppercase tracking-wider block ${meta.accentText}`}>
-                        {subtituloMostrar}
-                      </span>
-                      <h3 className="text-xl sm:text-2xl font-bold text-[#002855] dark:text-white group-hover:text-red-700 dark:group-hover:text-white transition-colors leading-tight">
-                        E.P. de {car.nombre}
-                      </h3>
-                    </div>
-                  </div>
-
                   {/* Pilares académicos / Especializaciones del Póster en micro-badges */}
                   <div className="flex flex-wrap items-center gap-2">
                     {pilaresMostrar.map((pilar) => (

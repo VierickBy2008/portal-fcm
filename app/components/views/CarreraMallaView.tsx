@@ -69,6 +69,7 @@ export function CarreraMallaView({
   onEditarCarreraAdmin,
 }: CarreraMallaViewProps) {
   const esHarvard = disenoActivo === "harvard_editorial";
+  const esAcademico = disenoActivo === "academico_moderno";
   const temaActivo = TEMA_CARRERA[carreraActiva.id];
 
   // Estado para el Resaltado Inteligente de Prerrequisitos (Hover en Desktop / Tap en Móvil)
@@ -104,7 +105,11 @@ export function CarreraMallaView({
       {/* Selector de Escuela Profesional */}
       <div
         className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 shadow-sm flex flex-wrap items-center justify-between gap-4 print:hidden ${
-          esHarvard ? "rounded-none border-t-4 border-t-[#8B1515]" : "rounded-2xl"
+          esHarvard
+            ? "rounded-none border-t-4 border-t-[#8B1515]"
+            : esAcademico
+            ? "rounded-2xl border-l-4 border-l-cyan-500"
+            : "rounded-2xl"
         }`}
       >
         <div className="flex flex-wrap gap-2">
@@ -154,13 +159,19 @@ export function CarreraMallaView({
       {/* ENCABEZADO DE LA CARRERA CON COLOR PROPIO POR ESCUELA */}
       <section
         className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden ${
-          esHarvard ? "rounded-none border-t-4 border-t-[#8B1515]" : "rounded-3xl"
+          esHarvard
+            ? "rounded-none border-t-4 border-t-[#8B1515]"
+            : esAcademico
+            ? "rounded-2xl border-t-4 border-t-cyan-500"
+            : "rounded-3xl"
         }`}
       >
         <div
           className={`${
             esHarvard
               ? "bg-gradient-to-r from-[#8B1515] via-[#2b070c] to-[#002855] border-b-4 border-amber-400"
+              : esAcademico
+              ? "bg-gradient-to-r from-[#041024] via-[#002855] to-cyan-950 border-b-4 border-cyan-500"
               : `${temaActivo.headerBg} border-b-4 ${temaActivo.borderAccent}`
           } text-white px-6 sm:px-8 py-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6`}
         >
