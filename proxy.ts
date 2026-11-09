@@ -229,6 +229,7 @@ export function proxy(req: NextRequest) {
   const authLimit = activeMode === "under_attack" ? 3 : activeMode === "strict" ? 5 : 8;
   const syncLimit = activeMode === "under_attack" ? 15 : activeMode === "strict" ? 25 : 40;
   const chatLimit = activeMode === "under_attack" ? 6 : activeMode === "strict" ? 12 : 25;
+  const submitLimit = activeMode === "under_attack" ? 3 : activeMode === "strict" ? 6 : 10;
 
   if (pathname === "/api/admin/auth" && req.method === "POST") {
     const { allowed, remaining, resetSeconds } = checkRateLimit(`auth_${ip}`, authLimit, 60000);
@@ -271,6 +272,23 @@ export function proxy(req: NextRequest) {
         ip,
         threatType: "RateLimit",
         reason: `Límite de consultas al Asistente IA excedido (${chatLimit}/min). Modo WAF: ${activeMode}.`,
+        path: pathname,
+        userAgent,
+        action: "rate_limited",
+        status: 429,
+      });
+    }
+    void remaining;
+    void resetSeconds;
+  }
+
+  if (pathname === "/api/public/submit" && req.method === "POST") {
+    const { allowed, remaining, resetSeconds } = checkRateLimit(`submit_${ip}`, submitLimit, 60000);
+    if (!allowed) {
+      return responderBloqueoWaf(req, {
+        ip,
+        threatType: "RateLimit",
+        reason: `Límite de envíos estudiantiles excedido (${submitLimit}/min). Modo WAF: ${activeMode}.`,
         path: pathname,
         userAgent,
         action: "rate_limited",

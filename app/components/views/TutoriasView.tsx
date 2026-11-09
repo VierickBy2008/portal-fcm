@@ -344,14 +344,42 @@ export function TutoriasView({
       puntaje_match_ia: rec.puntajeIA,
     };
 
-    const nuevoConfig: TutoriasIAConfig = {
-      ...tutoriasConfig,
-      solicitudes: [nuevaSolicitud, ...tutoriasConfig.solicitudes],
-    };
+    if (adminAutenticado) {
+      const nuevoConfig: TutoriasIAConfig = {
+        ...tutoriasConfig,
+        solicitudes: [nuevaSolicitud, ...tutoriasConfig.solicitudes],
+      };
+      await onGuardarTutoriasConfig(nuevoConfig);
+    } else {
+      try {
+        const resp = await fetch("/api/public/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tipo: "tutoria",
+            payload: nuevaSolicitud,
+          }),
+        });
+        const resJson = await resp.json().catch(() => null);
+        if (!resp.ok || !resJson?.ok) {
+          lanzarToast(`⚠️ ${resJson?.error || "Error al agendar la tutoría."}`);
+          return;
+        }
+        const nuevoConfig: TutoriasIAConfig = {
+          ...tutoriasConfig,
+          solicitudes: [resJson.item || nuevaSolicitud, ...tutoriasConfig.solicitudes],
+        };
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem("fcm_tutorias_ia_data", JSON.stringify(nuevoConfig));
+        }
+      } catch {
+        lanzarToast("⚠️ Error de conexión al registrar la solicitud de tutoría.");
+        return;
+      }
+    }
 
-    await onGuardarTutoriasConfig(nuevoConfig);
     lanzarToast(
-      `✅ Tutoría agendada con ${rec.docente.nombre_completo} (${franjaFinal.dia} ${franjaFinal.hora_inicio}-${franjaFinal.hora_fin})`
+      `✅ Solicitud de tutoría enviada con ${rec.docente.nombre_completo} (${franjaFinal.dia} ${franjaFinal.hora_inicio}-${franjaFinal.hora_fin}). Estado: Pendiente de confirmación.`
     );
   };
 

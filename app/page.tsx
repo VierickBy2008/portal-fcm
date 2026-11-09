@@ -1366,20 +1366,53 @@ export default function PortalFacultadCienciasMatematicas() {
       ? "Estudiante Anónimo FCM"
       : formResenaDocente.autor_alias.trim().replace(/<[^>]*>?/gm, "") || "Estudiante Anónimo FCM";
 
-    const nuevaResena: ResenaDocente = {
-      id: `res-${Date.now()}`,
-      docente_id: docenteModalActivo.id,
-      puntuacion: formResenaDocente.puntuacion as 1 | 2 | 3 | 4 | 5,
-      comentario: comentarioLimpio,
-      curso: formResenaDocente.curso.trim() || docenteModalActivo.cursos_dictados[0] || "Asignatura General",
-      autor_alias: aliasFinal,
-      fecha: new Date().toISOString().split("T")[0],
-      estado: "aprobado",
-    };
+    if (adminAutenticado) {
+      const nuevaResena: ResenaDocente = {
+        id: `res-${Date.now()}`,
+        docente_id: docenteModalActivo.id,
+        puntuacion: formResenaDocente.puntuacion as 1 | 2 | 3 | 4 | 5,
+        comentario: comentarioLimpio,
+        curso: formResenaDocente.curso.trim() || docenteModalActivo.cursos_dictados[0] || "Asignatura General",
+        autor_alias: aliasFinal,
+        fecha: new Date().toISOString().split("T")[0],
+        estado: "aprobado",
+      };
 
-    const nuevasResenas = [nuevaResena, ...resenasDocentes];
-    setResenasDocentes(nuevasResenas);
-    await sincronizarPortalConfigSupabase({ resenas_docentes: nuevasResenas });
+      const nuevasResenas = [nuevaResena, ...resenasDocentes];
+      setResenasDocentes(nuevasResenas);
+      await sincronizarPortalConfigSupabase({ resenas_docentes: nuevasResenas });
+      lanzarToast(`⭐ ¡Publicada! Reseña para ${docenteModalActivo.grado_academico} ${docenteModalActivo.nombre_completo}.`);
+    } else {
+      try {
+        const resp = await fetch("/api/public/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tipo: "resena",
+            payload: {
+              docente_id: docenteModalActivo.id,
+              puntuacion: formResenaDocente.puntuacion,
+              comentario: comentarioLimpio,
+              curso: formResenaDocente.curso.trim() || docenteModalActivo.cursos_dictados[0] || "Asignatura General",
+              autor_alias: aliasFinal,
+              bot_trap: formResenaDocente.bot_trap,
+            },
+          }),
+        });
+        const resJson = await resp.json().catch(() => null);
+        if (!resp.ok || !resJson?.ok) {
+          setErrorResenaDocente(resJson?.error || "Error al enviar la reseña.");
+          return;
+        }
+        if (resJson.item) {
+          setResenasDocentes((prev) => [resJson.item, ...prev]);
+        }
+        lanzarToast(`⭐ ¡Gracias! Tu reseña para ${docenteModalActivo.grado_academico} ${docenteModalActivo.nombre_completo} ha sido registrada y enviada a moderación.`);
+      } catch {
+        setErrorResenaDocente("Error de conexión al registrar la reseña.");
+        return;
+      }
+    }
 
     setErrorResenaDocente("");
     setExitoResenaDocente(true);
@@ -1392,7 +1425,6 @@ export default function PortalFacultadCienciasMatematicas() {
       comentario: "",
       bot_trap: "",
     });
-    lanzarToast(`⭐ ¡Gracias! Tu reseña para ${docenteModalActivo.grado_academico} ${docenteModalActivo.nombre_completo} fue publicada.`);
     setTimeout(() => setExitoResenaDocente(false), 5000);
   };
 
@@ -1876,24 +1908,60 @@ export default function PortalFacultadCienciasMatematicas() {
       return;
     }
 
-    const nuevoMat: MaterialRepositorio = {
-      id: `mat-${Date.now()}`,
-      titulo: formSubidaAnon.titulo.trim().replace(/<[^>]*>?/gm, ""),
-      tipo_archivo: formSubidaAnon.tipo_archivo,
-      url_archivo: urlLimpia,
-      carrera_id: formSubidaAnon.carrera_id,
-      ciclo: Number(formSubidaAnon.ciclo),
-      curso_id: formSubidaAnon.curso_id,
-      docente: docenteFinal.replace(/<[^>]*>?/gm, ""),
-      autor_alias: formSubidaAnon.autor_alias.trim().replace(/<[^>]*>?/gm, "") || "Estudiante Anónimo FCM",
-      fecha_subida: new Date().toISOString().split("T")[0],
-      estado: "pendiente",
-    };
-    const nuevosMateriales = [nuevoMat, ...materiales];
-    setMateriales(nuevosMateriales);
-    await sincronizarPortalConfigSupabase({ materiales_data: nuevosMateriales });
-    setExitoSubidaModal(true);
-    lanzarToast("📥 Material clasificado, guardado en Supabase y enviado a moderación.");
+    if (adminAutenticado) {
+      const nuevoMat: MaterialRepositorio = {
+        id: `mat-${Date.now()}`,
+        titulo: formSubidaAnon.titulo.trim().replace(/<[^>]*>?/gm, ""),
+        tipo_archivo: formSubidaAnon.tipo_archivo,
+        url_archivo: urlLimpia,
+        carrera_id: formSubidaAnon.carrera_id,
+        ciclo: Number(formSubidaAnon.ciclo),
+        curso_id: formSubidaAnon.curso_id,
+        docente: docenteFinal.replace(/<[^>]*>?/gm, ""),
+        autor_alias: formSubidaAnon.autor_alias.trim().replace(/<[^>]*>?/gm, "") || "Estudiante Anónimo FCM",
+        fecha_subida: new Date().toISOString().split("T")[0],
+        estado: "pendiente",
+      };
+      const nuevosMateriales = [nuevoMat, ...materiales];
+      setMateriales(nuevosMateriales);
+      await sincronizarPortalConfigSupabase({ materiales_data: nuevosMateriales });
+      setExitoSubidaModal(true);
+      lanzarToast("📥 Material clasificado, guardado en Supabase y enviado a moderación.");
+    } else {
+      try {
+        const resp = await fetch("/api/public/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tipo: "material",
+            payload: {
+              titulo: formSubidaAnon.titulo.trim(),
+              tipo_archivo: formSubidaAnon.tipo_archivo,
+              url_archivo: urlLimpia,
+              carrera_id: formSubidaAnon.carrera_id,
+              ciclo: Number(formSubidaAnon.ciclo),
+              curso_id: formSubidaAnon.curso_id,
+              docente: docenteFinal,
+              autor_alias: formSubidaAnon.autor_alias.trim(),
+              bot_trap: formSubidaAnon.bot_trap,
+            },
+          }),
+        });
+        const resJson = await resp.json().catch(() => null);
+        if (!resp.ok || !resJson?.ok) {
+          lanzarToast(resJson?.error || "Error al enviar el material para moderación.");
+          return;
+        }
+        if (resJson.item) {
+          setMateriales((prev) => [resJson.item, ...prev]);
+        }
+        setExitoSubidaModal(true);
+        lanzarToast("📥 Material recibido con éxito y remitido a moderación institucional FCM.");
+      } catch {
+        lanzarToast("Error de conexión al enviar el material al repositorio.");
+        return;
+      }
+    }
   };
 
   const handleAprobarMaterialAdmin = async (idMat: string) => {
@@ -2072,7 +2140,7 @@ export default function PortalFacultadCienciasMatematicas() {
     setCiclosAbiertos((prev) => (prev.includes(ciclo) ? prev.filter((c) => c !== ciclo) : [...prev, ciclo]));
   };
 
-  const handleEnviarContacto = (e: React.FormEvent) => {
+  const handleEnviarContacto = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Protección Honeypot Anti-Spam / Bots
@@ -2082,19 +2150,54 @@ export default function PortalFacultadCienciasMatematicas() {
       return;
     }
 
-    const nuevoTicket: TicketSoporte = {
-      id: `tck-${Date.now()}`,
+    const payloadTicket = {
       nombre: formContacto.nombre.trim(),
       email: formContacto.email.trim(),
       asunto: formContacto.asunto.trim(),
       mensaje: formContacto.mensaje.trim(),
-      fecha: new Date().toISOString().slice(0, 16).replace("T", " "),
-      estado_atencion: "pendiente",
+      bot_trap: formContacto.bot_trap,
     };
-    setTickets((prev) => [nuevoTicket, ...prev]);
+
+    try {
+      const resp = await fetch("/api/public/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo: "ticket",
+          payload: payloadTicket,
+        }),
+      });
+      const data = await resp.json().catch(() => null);
+      if (data?.item) {
+        setTickets((prev) => [data.item, ...prev]);
+      } else {
+        const nuevoTicket: TicketSoporte = {
+          id: `tck-${Date.now()}`,
+          nombre: formContacto.nombre.trim(),
+          email: formContacto.email.trim(),
+          asunto: formContacto.asunto.trim(),
+          mensaje: formContacto.mensaje.trim(),
+          fecha: new Date().toISOString().slice(0, 16).replace("T", " "),
+          estado_atencion: "pendiente",
+        };
+        setTickets((prev) => [nuevoTicket, ...prev]);
+      }
+    } catch {
+      const nuevoTicket: TicketSoporte = {
+        id: `tck-${Date.now()}`,
+        nombre: formContacto.nombre.trim(),
+        email: formContacto.email.trim(),
+        asunto: formContacto.asunto.trim(),
+        mensaje: formContacto.mensaje.trim(),
+        fecha: new Date().toISOString().slice(0, 16).replace("T", " "),
+        estado_atencion: "pendiente",
+      };
+      setTickets((prev) => [nuevoTicket, ...prev]);
+    }
+
     setTicketEnviadoOk(true);
     setFormContacto({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
-    lanzarToast("Solicitud registrada correctamente.");
+    lanzarToast("✅ Mensaje recibido con éxito. Tu ticket ha sido canalizado a Mesa de Partes FCM.");
   };
 
   const handleGuardarNoticia = async (e: React.FormEvent) => {

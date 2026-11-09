@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
     });
     res.cookies.set(ADMIN_COOKIE_NAME, token, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: SESSION_TTL_SECONDS,
