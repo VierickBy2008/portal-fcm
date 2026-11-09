@@ -334,6 +334,12 @@ export default function PortalFacultadCienciasMatematicas() {
 
   const [formContacto, setFormContacto] = useState({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
   const [ticketEnviadoOk, setTicketEnviadoOk] = useState(false);
+  const [ultimoTicketEnviado, setUltimoTicketEnviado] = useState<{
+    nombre: string;
+    email: string;
+    asunto: string;
+    mensaje: string;
+  } | null>(null);
 
   const [adminAutenticado, setAdminAutenticado] = useState(false);
   const [cargandoAuthAdmin, setCargandoAuthAdmin] = useState(false);
@@ -2178,6 +2184,39 @@ export default function PortalFacultadCienciasMatematicas() {
       bot_trap: formContacto.bot_trap,
     };
 
+    setUltimoTicketEnviado(payloadTicket);
+
+    // Intentar abrir automáticamente Gmail Web para enviar a Decanato con 1 clic
+    const destinatarioDecanato = "decanato.matematicas@unmsm.edu.pe";
+    const asuntoFinal = `[Mesa de Ayuda FCM] ${payloadTicket.asunto}`;
+    const cuerpoEmail = `Estimado Decanato de la Facultad de Ciencias Matemáticas - UNMSM,
+
+Por medio de la presente, me dirijo a su despacho para remitir la siguiente consulta a través de la Mesa de Ayuda del portal oficial:
+
+--------------------------------------------------
+ESTUDIANTE: ${payloadTicket.nombre}
+CORREO INSTITUCIONAL: ${payloadTicket.email}
+FECHA: ${new Date().toLocaleDateString("es-PE")}
+ASUNTO: ${payloadTicket.asunto}
+--------------------------------------------------
+
+DETALLE DE LA CONSULTA:
+${payloadTicket.mensaje}
+
+--------------------------------------------------
+Atentamente,
+${payloadTicket.nombre}
+Facultad de Ciencias Matemáticas
+Universidad Nacional Mayor de San Marcos`;
+
+    const urlGmailWeb = `https://mail.google.com/mail/?view=cm&fs=1&to=${destinatarioDecanato}&su=${encodeURIComponent(
+      asuntoFinal
+    )}&body=${encodeURIComponent(cuerpoEmail)}`;
+
+    try {
+      window.open(urlGmailWeb, "_blank", "noopener,noreferrer");
+    } catch {}
+
     try {
       const resp = await fetch("/api/public/submit", {
         method: "POST",
@@ -3631,6 +3670,7 @@ export default function PortalFacultadCienciasMatematicas() {
           formContacto={formContacto}
           setFormContacto={setFormContacto}
           handleEnviarContacto={handleEnviarContacto}
+          ultimoTicketEnviado={ultimoTicketEnviado}
         />
       )}
 

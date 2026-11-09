@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, Mail, Share2 } from "lucide-react";
+import { CheckCircle2, Mail, Share2, ExternalLink, Send } from "lucide-react";
 import type { DisenoPortadaId } from "@/app/types/portal";
 import { Facebook, Instagram, Youtube } from "@/app/utils/portalFormatters";
 
@@ -20,6 +20,12 @@ interface ContactoViewProps {
   ticketEnviadoOk: boolean;
   setTicketEnviadoOk: (v: boolean) => void;
   handleEnviarContacto: (e: React.FormEvent) => void;
+  ultimoTicketEnviado?: {
+    nombre: string;
+    email: string;
+    asunto: string;
+    mensaje: string;
+  } | null;
 }
 
 export function ContactoView({
@@ -29,9 +35,43 @@ export function ContactoView({
   ticketEnviadoOk,
   setTicketEnviadoOk,
   handleEnviarContacto,
+  ultimoTicketEnviado,
 }: ContactoViewProps) {
   const esHarvard = disenoActivo === "harvard_editorial";
   const esAcademico = disenoActivo === "academico_moderno";
+
+  const destinatarioDecanato = "decanato.matematicas@unmsm.edu.pe";
+  const asuntoFinal = ultimoTicketEnviado?.asunto
+    ? `[Mesa de Ayuda FCM] ${ultimoTicketEnviado.asunto}`
+    : "[Mesa de Ayuda FCM] Consulta Estudiantil";
+
+  const cuerpoEmail = `Estimado Decanato de la Facultad de Ciencias Matemáticas - UNMSM,
+
+Por medio de la presente, me dirijo a su despacho para remitir la siguiente consulta a través de la Mesa de Ayuda del portal oficial:
+
+--------------------------------------------------
+ESTUDIANTE: ${ultimoTicketEnviado?.nombre || "Estudiante FCM"}
+CORREO INSTITUCIONAL: ${ultimoTicketEnviado?.email || ""}
+FECHA: ${new Date().toLocaleDateString("es-PE")}
+ASUNTO: ${ultimoTicketEnviado?.asunto || ""}
+--------------------------------------------------
+
+DETALLE DE LA CONSULTA:
+${ultimoTicketEnviado?.mensaje || ""}
+
+--------------------------------------------------
+Atentamente,
+${ultimoTicketEnviado?.nombre || "Estudiante"}
+Facultad de Ciencias Matemáticas
+Universidad Nacional Mayor de San Marcos`;
+
+  const urlGmailWeb = `https://mail.google.com/mail/?view=cm&fs=1&to=${destinatarioDecanato}&su=${encodeURIComponent(
+    asuntoFinal
+  )}&body=${encodeURIComponent(cuerpoEmail)}`;
+
+  const urlMailto = `mailto:${destinatarioDecanato}?subject=${encodeURIComponent(
+    asuntoFinal
+  )}&body=${encodeURIComponent(cuerpoEmail)}`;
 
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 view-transition-gpu">
@@ -183,22 +223,64 @@ export function ContactoView({
             </h2>
             {ticketEnviadoOk ? (
               <div
-                className={`border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 p-6 text-center space-y-3 ${
-                  esHarvard ? "rounded-none" : "rounded-2xl"
-                }`}
+                className={`border border-blue-200 dark:border-blue-900 bg-gradient-to-br from-blue-50/90 via-white to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/40 p-6 sm:p-8 text-center space-y-4 ${
+                  esHarvard ? "rounded-none" : "rounded-3xl"
+                } shadow-sm`}
               >
-                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  ¡Consulta enviada correctamente!
-                </h3>
-                <button
-                  onClick={() => setTicketEnviadoOk(false)}
-                  className={`px-4 py-2 bg-[#002855] text-xs font-bold text-white cursor-pointer ${
-                    esHarvard ? "rounded-none uppercase tracking-wider" : "rounded-xl"
-                  }`}
-                >
-                  Enviar otro mensaje
-                </button>
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="text-lg font-extrabold text-[#002855] dark:text-white">
+                    ¡Consulta registrada en la Mesa de Ayuda!
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto leading-relaxed">
+                    Tu solicitud quedó respaldada en el sistema. Para que el <strong>Decanato de la FCM</strong> reciba tu correo institucional y te responda directamente, envíala con un solo clic:
+                  </p>
+                </div>
+
+                {/* Destinatario institucional */}
+                <div className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3 max-w-md mx-auto text-xs text-slate-700 dark:text-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-left sm:text-center">
+                  <span className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                    Destino Oficial Decanato:
+                  </span>
+                  <span className="font-mono font-bold text-[#8B1515] dark:text-rose-400">
+                    {destinatarioDecanato}
+                  </span>
+                </div>
+
+                {/* Botones de acción directa */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 max-w-lg mx-auto">
+                  <a
+                    href={urlGmailWeb}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto px-5 py-3 bg-[#002855] hover:bg-blue-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                  >
+                    <Mail className="w-4 h-4 text-amber-400" />
+                    Enviar desde Gmail San Marcos (@unmsm.edu.pe)
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                  </a>
+
+                  <a
+                    href={urlMailto}
+                    className="w-full sm:w-auto px-4 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5 text-blue-600" />
+                    Otra App (Outlook / Mail)
+                  </a>
+                </div>
+
+                <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setTicketEnviadoOk(false)}
+                    className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline font-semibold cursor-pointer"
+                  >
+                    ← Redactar otra consulta
+                  </button>
+                </div>
               </div>
             ) : (
               <form onSubmit={handleEnviarContacto} className="space-y-4">
