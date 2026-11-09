@@ -219,6 +219,9 @@ export interface HeroAcademicoConfig {
   metrica_3_label?: string;
   metrica_4_valor?: string;
   metrica_4_label?: string;
+  noticia_principal_id?: string;
+  noticia_secundaria_1_id?: string;
+  noticia_secundaria_2_id?: string;
 }
 
 export interface AccesibilidadConfig {

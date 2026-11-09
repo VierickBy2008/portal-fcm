@@ -3711,6 +3711,8 @@ export default function PortalFacultadCienciasMatematicas() {
                   abrirNoticiaDetalle={abrirNoticiaDetalle}
                   sincronizarPortalConfigSupabase={sincronizarPortalConfigSupabase}
                   lanzarToast={lanzarToast}
+                  heroConfigAcademico={heroConfigAcademico}
+                  onGuardarHeroAcademico={handleGuardarHeroAcademico}
                 />
               )}
 
@@ -3733,6 +3735,7 @@ export default function PortalFacultadCienciasMatematicas() {
 
               {tabAdmin === "storage" && (
                 <AdminStorageTab
+                  noticias={noticias}
                   categoriaNuevaImagen={categoriaNuevaImagen}
                   setCategoriaNuevaImagen={setCategoriaNuevaImagen}
                   fileInputRef={fileInputRef}
@@ -3842,6 +3845,7 @@ export default function PortalFacultadCienciasMatematicas() {
       />
 
       <AdminHeroTab
+        noticias={noticias}
         isModal={true}
         modalHeroFondoAbierto={modalHeroFondoAbierto}
         setModalHeroFondoAbierto={setModalHeroFondoAbierto}

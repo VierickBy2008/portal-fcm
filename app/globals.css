@@ -105,13 +105,6 @@ html.dark [data-portal-theme="harvard_editorial"] .gpu-card:hover {
 
 [data-portal-theme="academico_moderno"] .gpu-card:hover {
   transform: translate3d(0, -4px, 0);
-  border-color: #002855;
-  box-shadow: 0 18px 32px -12px rgba(0, 40, 85, 0.22);
-}
-
-html.dark [data-portal-theme="academico_moderno"] .gpu-card:hover {
-  border-color: #f87171;
-  box-shadow: 0 18px 32px -12px rgba(139, 21, 21, 0.25);
 }
 
 body {

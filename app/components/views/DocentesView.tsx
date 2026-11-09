@@ -330,10 +330,10 @@ export function DocentesView({
                       <div
                         key={doc.id}
                         onClick={() => abrirModalDocente(doc)}
-                        className={`group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden cursor-pointer flex flex-col justify-between text-center ${
+                        className={`group bg-white dark:bg-slate-900 border-2 border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden cursor-pointer flex flex-col justify-between text-center ${
                           esHarvard
                             ? "rounded-none border-t-4 border-t-[#8B1515] harvard-card-gpu"
-                            : `rounded-2xl ${temaDoc.cardHoverBorder} hover:shadow-xl transition-all gpu-card`
+                            : `rounded-2xl ${temaDoc.cardHoverBorder} transition-all gpu-card`
                         }`}
                       >
                         <div>
@@ -423,7 +423,13 @@ export function DocentesView({
                           </div>
                         </div>
 
-                        <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#002855] dark:text-blue-300 group-hover:text-[#8B1515] dark:group-hover:text-red-400">
+                        <div
+                          className={`px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#002855] dark:text-blue-300 ${
+                            esHarvard
+                              ? "group-hover:text-[#8B1515] dark:group-hover:text-red-400"
+                              : temaDoc.groupHoverText
+                          }`}
+                        >
                           <span className={esHarvard ? "uppercase tracking-wider" : ""}>
                             Ver Ficha y Calificar
                           </span>

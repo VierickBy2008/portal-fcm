@@ -741,9 +741,9 @@ export function HomeViewAcademico({
                     <button
                       type="button"
                       onClick={(e) => handleDescargarTripticoPorCarrera(car, e)}
-                      className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-red-700 text-slate-700 dark:text-slate-200 hover:text-white border border-slate-300 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                      className="group/btn px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-red-700 text-slate-700 dark:text-slate-200 hover:text-white border border-slate-300 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                     >
-                      <Download className="w-3.5 h-3.5 text-red-700 dark:text-red-400 group-hover:text-white" />
+                      <Download className="w-3.5 h-3.5 text-red-700 dark:text-red-400 group-hover/btn:text-white" />
                       <span>Tríptico PDF</span>
                     </button>
                   </div>
@@ -753,7 +753,7 @@ export function HomeViewAcademico({
           </div>
         </section>
 
-        {/* 3. BOLETÍN Y GACETA UNIVERSITARIA MODERNA (MARINO + GRANATE) */}
+        {/* 3. BOLETÍN Y GACETA UNIVERSITARIA ASIMÉTRICA (1 NOTICIA PRINCIPAL + 2 LATERALES ELEGIBLES) */}
         <section className="space-y-6 reveal-on-scroll">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-red-700 shadow-xs">
             <div>
@@ -784,91 +784,215 @@ export function HomeViewAcademico({
                   className="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
-                  <span>Gestionar Noticias</span>
+                  <span>Elegir / Gestionar Noticias</span>
                 </button>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {noticias.slice(0, 4).map((not, idx) => {
-              const resumenLimpio =
-                (not.resumen && not.resumen.trim()) ||
-                not.contenido
-                  .replace(/^[#>*-\d.]+\s*/gm, "")
-                  .replace(/\*\*/g, "")
-                  .replace(/\n+/g, " ")
-                  .trim();
-              return (
+          {(() => {
+            const limpiarTextoNoticia = (not: (typeof noticias)[number]) =>
+              (not.resumen && not.resumen.trim()) ||
+              not.contenido
+                .replace(/^[#>*-\d.]+\s*/gm, "")
+                .replace(/\*\*/g, "")
+                .replace(/\n+/g, " ")
+                .trim();
+
+            const poolPrioridad = [
+              ...noticias.filter((n) => n.destacado),
+              ...noticias.filter((n) => !n.destacado),
+            ];
+
+            const noticiaPrincipal =
+              (heroConfigAcademico?.noticia_principal_id
+                ? noticias.find((n) => n.id === heroConfigAcademico.noticia_principal_id)
+                : undefined) || poolPrioridad[0];
+
+            const usadosIds = new Set<string>(noticiaPrincipal ? [noticiaPrincipal.id] : []);
+
+            const noticiaSecundaria1 =
+              (heroConfigAcademico?.noticia_secundaria_1_id
+                ? noticias.find(
+                    (n) =>
+                      n.id === heroConfigAcademico.noticia_secundaria_1_id && !usadosIds.has(n.id)
+                  )
+                : undefined) || poolPrioridad.find((n) => !usadosIds.has(n.id));
+
+            if (noticiaSecundaria1) usadosIds.add(noticiaSecundaria1.id);
+
+            const noticiaSecundaria2 =
+              (heroConfigAcademico?.noticia_secundaria_2_id
+                ? noticias.find(
+                    (n) =>
+                      n.id === heroConfigAcademico.noticia_secundaria_2_id && !usadosIds.has(n.id)
+                  )
+                : undefined) || poolPrioridad.find((n) => !usadosIds.has(n.id));
+
+            const noticiasSecundarias = [noticiaSecundaria1, noticiaSecundaria2].filter(
+              (item): item is (typeof noticias)[number] => Boolean(item)
+            );
+
+            if (!noticiaPrincipal) return null;
+
+            const resumenPrincipal = limpiarTextoNoticia(noticiaPrincipal);
+
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                {/* COLUMNA IZQUIERDA (OCUPA EL ESPACIO DE 2 NOTICIAS): NOTICIA PRINCIPAL HEROICA */}
                 <article
-                  key={not.id}
-                  onClick={() => abrirNoticiaDetalle(not.id)}
-                  className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-500 shadow-xs hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all gpu-card"
+                  onClick={() => abrirNoticiaDetalle(noticiaPrincipal.id)}
+                  className="lg:col-span-7 group rounded-2xl border-2 border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 hover:!border-[#002855] dark:hover:!border-blue-400 hover:!shadow-[0_18px_36px_-10px_rgba(37,99,235,0.28)] shadow-sm overflow-hidden flex flex-col justify-between cursor-pointer transition-all gpu-card"
                 >
                   <div>
-                    <div className="relative h-44 bg-slate-900 overflow-hidden">
+                    <div className="relative h-64 sm:h-80 lg:h-[320px] bg-slate-950 overflow-hidden">
                       <OptimizedImage
-                        src={not.imagen_url}
-                        alt={not.titulo}
-                        priority={idx < 2}
-                        sizes="(max-width: 768px) 100vw, 25vw"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        src={noticiaPrincipal.imagen_url}
+                        alt={noticiaPrincipal.titulo}
+                        priority={true}
+                        sizes="(max-width: 1024px) 100vw, 60vw"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#002855] text-white shadow">
-                          {not.categoria}
-                        </span>
-                        {not.destacado && (
-                          <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-red-700 text-white shadow flex items-center gap-1">
-                            <Star className="w-2.5 h-2.5 fill-white" /> Destacado
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-black/25 pointer-events-none" />
+
+                      <div className="absolute top-4 left-4 right-4 flex flex-wrap items-center justify-between gap-2 z-10">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-3 py-1 rounded-lg text-[11px] font-extrabold uppercase tracking-wider bg-gradient-to-r from-[#8B1515] to-red-700 text-white shadow-md border border-amber-400/40 flex items-center gap-1.5">
+                            <Sparkles className="w-3 h-3 text-amber-300" />
+                            Noticia Principal FCM
+                          </span>
+                          <span className="px-3 py-1 rounded-lg text-[11px] font-bold bg-[#002855]/90 backdrop-blur-md text-white shadow-md border border-white/20">
+                            {noticiaPrincipal.categoria}
+                          </span>
+                        </div>
+                        {noticiaPrincipal.destacado && (
+                          <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500 text-slate-950 shadow flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-slate-950" /> Destacado
                           </span>
                         )}
                       </div>
-                    </div>
-                    <div className="p-5 space-y-2">
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                        <Calendar className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
-                        <span>{formatearFechaEspanol(not.fecha_publicacion)}</span>
+
+                      <div className="absolute bottom-4 left-5 right-5 z-10">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-amber-300 font-bold mb-1">
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {formatearFechaEspanol(noticiaPrincipal.fecha_publicacion)}
+                          </span>
+                          {noticiaPrincipal.modalidad && (
+                            <span className="px-2 py-0.5 rounded bg-white/15 backdrop-blur-md text-white text-[10px] border border-white/20">
+                              {noticiaPrincipal.modalidad}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-xl sm:text-2xl font-extrabold text-white group-hover:text-amber-200 transition-colors leading-snug drop-shadow-md line-clamp-2">
+                          {noticiaPrincipal.titulo}
+                        </h3>
                       </div>
-                      <h3 className="text-sm sm:text-base font-bold text-[#002855] dark:text-white group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors line-clamp-2 leading-snug">
-                        {not.titulo}
-                      </h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed">
-                        {resumenLimpio}
+                    </div>
+
+                    <div className="p-6 space-y-3">
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                        {resumenPrincipal}
                       </p>
                     </div>
                   </div>
-                  <div className="px-5 py-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700">
-                    <span>Leer nota académica</span>
-                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+
+                  <div className="px-6 py-4 bg-slate-50 dark:bg-slate-950/70 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-extrabold text-[#002855] dark:text-blue-300 group-hover:text-red-700 dark:group-hover:text-amber-400">
+                    <span>Leer nota académica principal completa</span>
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#002855] group-hover:bg-red-700 text-white text-[11px] transition-colors">
+                      <span>Abrir Comunicado</span>
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </span>
                   </div>
                 </article>
-              );
-            })}
-          </div>
+
+                {/* COLUMNA DERECHA: 2 NOTICIAS SECUNDARIAS ELEGIBLES */}
+                <div className="lg:col-span-5 flex flex-col justify-between gap-5">
+                  {noticiasSecundarias.map((not, idx) => {
+                    const resumenSec = limpiarTextoNoticia(not);
+                    return (
+                      <article
+                        key={not.id}
+                        onClick={() => abrirNoticiaDetalle(not.id)}
+                        className="group flex-1 rounded-2xl border-2 border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 hover:!border-[#002855] dark:hover:!border-blue-400 hover:!shadow-[0_16px_32px_-10px_rgba(37,99,235,0.25)] shadow-xs overflow-hidden flex flex-col sm:flex-row cursor-pointer transition-all gpu-card"
+                      >
+                        <div className="relative w-full sm:w-44 md:w-48 h-44 sm:h-auto shrink-0 bg-slate-950 overflow-hidden">
+                          <OptimizedImage
+                            src={not.imagen_url}
+                            alt={not.titulo}
+                            priority={idx === 0}
+                            sizes="(max-width: 640px) 100vw, 220px"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#002855]/95 text-white shadow">
+                              {not.categoria}
+                            </span>
+                            {not.destacado && (
+                              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-red-700 text-white shadow flex items-center gap-0.5">
+                                <Star className="w-2.5 h-2.5 fill-white" />
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between min-w-0">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                              <Calendar className="w-3.5 h-3.5 text-red-700 dark:text-red-400 shrink-0" />
+                              <span className="truncate">
+                                {formatearFechaEspanol(not.fecha_publicacion)}
+                              </span>
+                            </div>
+                            <h3 className="text-sm sm:text-base font-extrabold text-[#002855] dark:text-white group-hover:text-red-700 dark:group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug">
+                              {not.titulo}
+                            </h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                              {resumenSec}
+                            </p>
+                          </div>
+
+                          <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700 dark:group-hover:text-amber-400">
+                            <span>Leer nota académica</span>
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </section>
 
-        {/* 4. CUADRO DE HONOR Y ORGULLO SAN MARQUINO (DORADO + MARINO + GRANATE) */}
-        <section id="orgullo-sanmarquino" className="space-y-6 reveal-on-scroll">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500 shadow-xs">
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-red-700 dark:text-amber-400">
-                <Award className="w-4 h-4 text-amber-500" /> Mérito Científico & Representación Internacional
+        {/* 4. SECCIÓN INSTITUCIONAL: ORGULLO SAN MARQUINO (DISEÑO IDÉNTICO A LA VERSIÓN PRINCIPAL) */}
+        <section id="orgullo-sanmarquino" className="space-y-6 pt-4 reveal-on-scroll">
+          <div className="border-b-2 border-blue-900 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider">
+                <Award className="w-3.5 h-3.5" />
+                <span>EXCELENCIA ESTUDIANTIL E IMPACTO INTERNACIONAL • FCM UNMSM</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#002855] dark:text-white flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-amber-500" />
-                Cuadro de Honor: Orgullo San Marquino
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#002855] dark:text-white flex items-center gap-2.5 tracking-tight">
+                <Trophy className="w-7 h-7 text-amber-500" />
+                <span>Orgullo San Marquino</span>
               </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
+                Celebramos el talento, la dedicación y los logros de nuestros estudiantes e
+                investigadores que llevan el nombre de la Facultad de Ciencias Matemáticas y la
+                Decana de América a los escenarios científicos más prestigiosos del mundo.
+              </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2.5 self-start md:self-end">
               <button
                 type="button"
                 onClick={() => navegar("/orgullo")}
-                className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-[#002855] dark:hover:bg-blue-600 text-[#002855] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <span>Galería de Mérito ({orgulloItems.length})</span>
-                <ChevronRight className="w-4 h-4 text-amber-300" />
+                <span>Galería Completa ({orgulloItems.length})</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
               {adminAutenticado && (
                 <button
@@ -877,7 +1001,7 @@ export function HomeViewAcademico({
                     setTabAdmin("orgullo");
                     navegar("/admin");
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Gestionar CMS</span>
@@ -886,51 +1010,117 @@ export function HomeViewAcademico({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {orgulloItems.slice(0, 3).map((item) => (
-              <div
-                key={item.id}
-                onClick={() => setModalDetalleOrgullo(item)}
-                className="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-amber-500 shadow-sm hover:shadow-xl overflow-hidden cursor-pointer flex flex-col justify-between transition-all gpu-card"
-              >
-                <div className="relative h-64 w-full bg-slate-950 overflow-hidden">
-                  <OptimizedImage
-                    src={item.foto_url}
-                    alt={item.titulo}
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
-                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-[#002855]/90 text-white border border-white/20">
-                      {item.subtitulo_categoria}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-slate-950">
-                      {item.anio}
-                    </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {orgulloItems.slice(0, 3).map((item, idx) => {
+              const temaOrgullo =
+                item.carrera_id !== "fcm" ? TEMA_CARRERA[item.carrera_id] : undefined;
+              const hoverBorderClass = temaOrgullo
+                ? temaOrgullo.cardHoverBorder
+                : "hover:!border-amber-500 dark:hover:!border-amber-400 hover:!shadow-[0_18px_36px_-10px_rgba(245,158,11,0.35)]";
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => setModalDetalleOrgullo(item)}
+                  className={`stagger-fade-up stagger-delay-${(idx % 3) + 1} gpu-card group relative rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200/90 dark:border-slate-800 ${hoverBorderClass} shadow-md flex flex-col justify-between overflow-hidden cursor-pointer`}
+                >
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-950">
+                    <OptimizedImage
+                      src={item.foto_url}
+                      alt={item.titulo}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none z-10" />
+
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none z-20">
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[#002855]/90 text-white backdrop-blur-md border border-white/20 shadow-md">
+                        {item.subtitulo_categoria}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-slate-950 shadow-sm">
+                        {item.anio}
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-3 left-3 right-3 space-y-1 text-white pointer-events-none z-20">
+                      <span className="text-[11px] font-semibold text-red-300 block uppercase tracking-wider">
+                        {item.carrera_nombre || "Facultad de Ciencias Matemáticas"}
+                      </span>
+                      <h3 className="text-base font-bold leading-tight line-clamp-2 drop-shadow-md">
+                        {item.titulo}
+                      </h3>
+                      <p className="text-xs text-slate-200 font-medium line-clamp-1">
+                        👤 {item.estudiante}
+                      </p>
+                    </div>
                   </div>
-                  <div className="absolute bottom-3 left-4 right-4 text-white">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-red-300 block">
-                      {item.carrera_nombre || "FCM UNMSM"}
-                    </span>
-                    <h3 className="text-base font-bold leading-snug line-clamp-2">
-                      {item.titulo}
-                    </h3>
+
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 space-y-3 flex-1 flex flex-col justify-between">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                      {item.descripcion}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                      <span className="text-[11px] font-bold text-[#002855] dark:text-blue-300">
+                        {item.tipo_tarjeta === "afiche"
+                          ? "📜 Afiche Oficial"
+                          : item.tipo_tarjeta === "estudiante"
+                          ? "⭐ Reconocimiento"
+                          : "🏆 Delegación FCM"}
+                      </span>
+                      <span
+                        className={`text-xs font-bold ${
+                          temaOrgullo
+                            ? `${temaOrgullo.textAccent} ${temaOrgullo.groupHoverText}`
+                            : "text-red-700 dark:text-amber-400"
+                        } flex items-center gap-1 group-hover:translate-x-0.5 transition-transform`}
+                      >
+                        <span>Ver Detalle</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-                  <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
-                    {item.descripcion}
-                  </p>
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300">
-                    <span className="truncate">👤 {item.estudiante}</span>
-                    <span className="text-red-700 dark:text-amber-400 shrink-0">
-                      Ver Distinción →
-                    </span>
+              );
+            })}
+
+            <div
+              onClick={() => navegar("/orgullo")}
+              className="group relative rounded-2xl bg-gradient-to-br from-[#002855] via-[#001f42] to-[#4d0713] text-white p-6 sm:p-7 border-2 border-blue-800/80 hover:!border-amber-400 shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden min-h-[380px]"
+            >
+              <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/15 rounded-full blur-xl pointer-events-none" />
+
+              <div className="space-y-4 relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-md">
+                    <Trophy className="w-6 h-6" />
                   </div>
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-slate-950 shadow-sm border border-amber-400">
+                    +{Math.max(0, orgulloItems.length - 3)} Más
+                  </span>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-300 block">
+                    Reconocimientos FCM
+                  </span>
+                  <h3 className="text-xl font-bold text-white leading-snug group-hover:text-amber-200 transition-colors">
+                    Galería Completa de Orgullo San Marquino
+                  </h3>
+                  <p className="text-xs text-blue-100/80 leading-relaxed">
+                    Conoce todas las distinciones, pasantías en neurociencia, premios en hackathones
+                    y congresos mundiales de nuestra facultad.
+                  </p>
                 </div>
               </div>
-            ))}
+
+              <div className="pt-6 relative z-10">
+                <div className="w-full py-3 px-4 rounded-xl bg-white text-[#002855] font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-amber-500 group-hover:text-slate-950 transition-all shadow-md">
+                  <span>Explorar todos los logros</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -994,7 +1184,7 @@ export function HomeViewAcademico({
                 <div
                   key={car.id}
                   onClick={() => navegar("/docentes", { docenteCarrera: car.id })}
-                  className={`group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-xs hover:shadow-xl overflow-hidden cursor-pointer flex flex-col justify-between transition-all gpu-card`}
+                  className={`group rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200/90 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-xs overflow-hidden cursor-pointer flex flex-col justify-between transition-all gpu-card`}
                 >
                   <div>
                     <div className={`h-2 w-full ${temaCar.headerBg}`} />
@@ -1005,7 +1195,9 @@ export function HomeViewAcademico({
                         >
                           {car.codigo_escuela}
                         </span>
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${temaCar.badgeSoft}`}>
+                        <span
+                          className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${temaCar.badgeSoft}`}
+                        >
                           {docentesEscuela.length} Catedráticos
                         </span>
                       </div>
@@ -1043,7 +1235,9 @@ export function HomeViewAcademico({
                     </div>
                   </div>
 
-                  <div className="px-5 py-3 bg-slate-50 dark:bg-slate-950/70 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700">
+                  <div
+                    className={`px-5 py-3 bg-slate-50 dark:bg-slate-950/70 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300 ${temaCar.groupHoverText} transition-colors`}
+                  >
                     <span>Explorar Plana Docente</span>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>

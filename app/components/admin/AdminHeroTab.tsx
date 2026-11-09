@@ -13,9 +13,11 @@ import type {
   HeroAcademicoConfig,
   HeroBentoConfig,
   HeroHarvardConfig,
+  Noticia,
 } from "../../types/portal";
 
 interface AdminHeroTabProps {
+  noticias?: Noticia[];
   heroBgInputUrl: string;
   setHeroBgInputUrl: React.Dispatch<React.SetStateAction<string>>;
   heroBgUrl: string;
@@ -44,6 +46,7 @@ interface AdminHeroTabProps {
 }
 
 export function AdminHeroTab({
+  noticias = [],
   heroBgInputUrl,
   setHeroBgInputUrl,
   heroBgUrl,
@@ -179,6 +182,9 @@ export function AdminHeroTab({
       heroConfigAcademico?.metricas_personalizadas?.[3]?.label ||
       HERO_CONFIG_ACADEMICO_INICIAL.metrica_4_label ||
       "Sílabos y Libros PDF",
+    noticia_principal_id: heroConfigAcademico?.noticia_principal_id || "",
+    noticia_secundaria_1_id: heroConfigAcademico?.noticia_secundaria_1_id || "",
+    noticia_secundaria_2_id: heroConfigAcademico?.noticia_secundaria_2_id || "",
   }));
 
   useEffect(() => {
@@ -988,6 +994,90 @@ export function AdminHeroTab({
               </div>
             </div>
           </div>
+
+          {/* Selector de las 3 Noticias en Portada (1 Principal + 2 Laterales) */}
+          {noticias.length > 0 && (
+            <div className="space-y-2.5 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-200 dark:border-slate-800 pb-2">
+                <span className="text-xs font-extrabold text-[#002855] dark:text-amber-300">
+                  📰 Selección de Noticias en Portada (1 Principal + 2 Laterales):
+                </span>
+                <span className="text-[10px] font-mono text-slate-500">
+                  Grilla Editorial Asimétrica
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <div>
+                  <label className="text-[10px] font-bold text-[#8B1515] dark:text-rose-300 block mb-0.5">
+                    1. Noticia Principal Heroica (Izquierda Grande - Ocupa 2 espacios):
+                  </label>
+                  <select
+                    value={formAcademico.noticia_principal_id || ""}
+                    onChange={(e) =>
+                      setFormAcademico((p) => ({ ...p, noticia_principal_id: e.target.value }))
+                    }
+                    className="w-full rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-1.5 text-xs font-semibold"
+                  >
+                    <option value="">✨ Automático (Noticia Destacada Más Reciente)</option>
+                    {noticias.map((n) => (
+                      <option key={n.id} value={n.id}>
+                        [{n.categoria}] {n.titulo} ({n.fecha_publicacion})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-[#002855] dark:text-blue-300 block mb-0.5">
+                      2. Noticia Secundaria 1 (Derecha Superior):
+                    </label>
+                    <select
+                      value={formAcademico.noticia_secundaria_1_id || ""}
+                      onChange={(e) =>
+                        setFormAcademico((p) => ({
+                          ...p,
+                          noticia_secundaria_1_id: e.target.value,
+                        }))
+                      }
+                      className="w-full rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-1.5 text-xs"
+                    >
+                      <option value="">✨ Automático (2da Destacada Reciente)</option>
+                      {noticias.map((n) => (
+                        <option key={n.id} value={n.id}>
+                          [{n.categoria}] {n.titulo}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-[#002855] dark:text-blue-300 block mb-0.5">
+                      3. Noticia Secundaria 2 (Derecha Inferior):
+                    </label>
+                    <select
+                      value={formAcademico.noticia_secundaria_2_id || ""}
+                      onChange={(e) =>
+                        setFormAcademico((p) => ({
+                          ...p,
+                          noticia_secundaria_2_id: e.target.value,
+                        }))
+                      }
+                      className="w-full rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-1.5 text-xs"
+                    >
+                      <option value="">✨ Automático (3ra Destacada Reciente)</option>
+                      {noticias.map((n) => (
+                        <option key={n.id} value={n.id}>
+                          [{n.categoria}] {n.titulo}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">

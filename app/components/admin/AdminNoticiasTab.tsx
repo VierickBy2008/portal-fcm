@@ -14,8 +14,9 @@ import {
   Edit3,
   Trash2,
 } from "lucide-react";
-import { Noticia } from "../../types/portal";
+import { HeroAcademicoConfig, Noticia } from "../../types/portal";
 import { renderizarContenidoNoticia } from "../../utils/portalFormatters";
+import { HERO_CONFIG_ACADEMICO_INICIAL } from "../../data/portalExtrasData";
 
 export interface FormNoticiaState {
   id: string;
@@ -57,6 +58,8 @@ interface AdminNoticiasTabProps {
   abrirNoticiaDetalle: (id: string) => void;
   sincronizarPortalConfigSupabase: (payload: Record<string, unknown>) => Promise<boolean>;
   lanzarToast: (msg: string) => void;
+  heroConfigAcademico?: HeroAcademicoConfig;
+  onGuardarHeroAcademico?: (cfg: HeroAcademicoConfig) => Promise<void> | void;
 }
 
 export function AdminNoticiasTab({
@@ -75,9 +78,115 @@ export function AdminNoticiasTab({
   abrirNoticiaDetalle,
   sincronizarPortalConfigSupabase,
   lanzarToast,
+  heroConfigAcademico,
+  onGuardarHeroAcademico,
 }: AdminNoticiasTabProps) {
+  const cfgBase = heroConfigAcademico || HERO_CONFIG_ACADEMICO_INICIAL;
+
+  const handleActualizarSlotPortada = async (
+    campo: "noticia_principal_id" | "noticia_secundaria_1_id" | "noticia_secundaria_2_id",
+    valor: string
+  ) => {
+    if (!onGuardarHeroAcademico) return;
+    const nuevoCfg: HeroAcademicoConfig = {
+      ...cfgBase,
+      [campo]: valor,
+    };
+    await onGuardarHeroAcademico(nuevoCfg);
+  };
+
   return (
     <div className="space-y-8 view-transition-gpu">
+      {/* Selector Directo de las 3 Noticias en Portada (1 Principal + 2 Laterales) */}
+      <div className="rounded-2xl border-2 border-[#002855]/30 dark:border-blue-800/70 bg-gradient-to-r from-blue-50/70 via-white to-rose-50/40 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-red-700 dark:text-amber-400 block">
+              Diagramación Editorial Asimétrica • Campus Académico Moderno
+            </span>
+            <h3 className="text-sm sm:text-base font-extrabold text-[#002855] dark:text-white">
+              📰 Selección de Noticias en Portada (1 Principal Grande + 2 Laterales)
+            </h3>
+          </div>
+          <span className="px-3 py-1 rounded-full bg-[#002855] text-white text-[10px] font-bold self-start sm:self-center">
+            Sincronización Instantánea en Supabase
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Slot 1: Noticia Principal */}
+          <div className="p-3.5 rounded-xl bg-white dark:bg-slate-950 border-2 border-red-200 dark:border-red-900/60 space-y-1.5">
+            <label className="text-xs font-extrabold text-[#8B1515] dark:text-rose-300 flex items-center justify-between">
+              <span>1. Noticia Principal (Izquierda Grande)</span>
+              <span className="px-2 py-0.5 rounded bg-red-100 dark:bg-red-950 text-[9px] text-red-800 dark:text-red-300 font-mono">
+                Ocupa 2 espacios
+              </span>
+            </label>
+            <select
+              value={cfgBase.noticia_principal_id || ""}
+              onChange={(e) =>
+                handleActualizarSlotPortada("noticia_principal_id", e.target.value)
+              }
+              className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#8B1515]"
+            >
+              <option value="">✨ Automático (1ra Destacada Más Reciente)</option>
+              {noticias.map((n) => (
+                <option key={n.id} value={n.id}>
+                  [{n.categoria}] {n.titulo}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Slot 2: Noticia Secundaria 1 */}
+          <div className="p-3.5 rounded-xl bg-white dark:bg-slate-950 border border-blue-200 dark:border-blue-900/60 space-y-1.5">
+            <label className="text-xs font-extrabold text-[#002855] dark:text-blue-300 flex items-center justify-between">
+              <span>2. Noticia Secundaria 1 (Derecha Arriba)</span>
+              <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-[9px] text-blue-800 dark:text-blue-300 font-mono">
+                Lateral 1
+              </span>
+            </label>
+            <select
+              value={cfgBase.noticia_secundaria_1_id || ""}
+              onChange={(e) =>
+                handleActualizarSlotPortada("noticia_secundaria_1_id", e.target.value)
+              }
+              className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#002855]"
+            >
+              <option value="">✨ Automático (2da Destacada Más Reciente)</option>
+              {noticias.map((n) => (
+                <option key={n.id} value={n.id}>
+                  [{n.categoria}] {n.titulo}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Slot 3: Noticia Secundaria 2 */}
+          <div className="p-3.5 rounded-xl bg-white dark:bg-slate-950 border border-blue-200 dark:border-blue-900/60 space-y-1.5">
+            <label className="text-xs font-extrabold text-[#002855] dark:text-blue-300 flex items-center justify-between">
+              <span>3. Noticia Secundaria 2 (Derecha Abajo)</span>
+              <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-[9px] text-blue-800 dark:text-blue-300 font-mono">
+                Lateral 2
+              </span>
+            </label>
+            <select
+              value={cfgBase.noticia_secundaria_2_id || ""}
+              onChange={(e) =>
+                handleActualizarSlotPortada("noticia_secundaria_2_id", e.target.value)
+              }
+              className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#002855]"
+            >
+              <option value="">✨ Automático (3ra Destacada Más Reciente)</option>
+              {noticias.map((n) => (
+                <option key={n.id} value={n.id}>
+                  [{n.categoria}] {n.titulo}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Columna Izquierda: Editor Enriquecido con Barra de Herramientas */}
         <form

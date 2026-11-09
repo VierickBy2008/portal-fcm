@@ -748,7 +748,7 @@ export function HomeViewBento({
               <div
                 key={car.id}
                 onClick={() => navegar("/docentes", { docenteCarrera: car.id })}
-                className={`stagger-fade-up stagger-delay-${(idx % 4) + 1} gpu-card group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl overflow-hidden cursor-pointer flex flex-col justify-between text-center`}
+                className={`stagger-fade-up stagger-delay-${(idx % 4) + 1} gpu-card group rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200/90 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-sm overflow-hidden cursor-pointer flex flex-col justify-between text-center`}
               >
                 <div>
                   <div
@@ -823,7 +823,7 @@ export function HomeViewBento({
                   </div>
                 </div>
 
-                <div className="px-4 py-3.5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700">
+                <div className={`px-4 py-3.5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5 text-xs font-bold text-[#002855] dark:text-blue-300 ${temaCar.groupHoverText}`}>
                   <span>Ver Docentes de {car.nombre}</span>
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>

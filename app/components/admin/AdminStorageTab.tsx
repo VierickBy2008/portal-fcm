@@ -8,10 +8,12 @@ import {
   HeroBentoConfig,
   HeroHarvardConfig,
   ImagenStorage,
+  Noticia,
 } from "../../types/portal";
 import { AdminHeroTab } from "./AdminHeroTab";
 
 interface AdminStorageTabProps {
+  noticias?: Noticia[];
   categoriaNuevaImagen: ImagenStorage["categoria"];
   setCategoriaNuevaImagen: React.Dispatch<React.SetStateAction<ImagenStorage["categoria"]>>;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -47,6 +49,7 @@ interface AdminStorageTabProps {
 }
 
 export function AdminStorageTab({
+  noticias = [],
   categoriaNuevaImagen,
   setCategoriaNuevaImagen,
   fileInputRef,
@@ -124,6 +127,7 @@ export function AdminStorageTab({
 
         {/* Configuración directa del Fondo Difuminado, Opacidad y Color del Hero */}
         <AdminHeroTab
+          noticias={noticias}
           heroBgInputUrl={heroBgInputUrl}
           setHeroBgInputUrl={setHeroBgInputUrl}
           heroBgUrl={heroBgUrl}

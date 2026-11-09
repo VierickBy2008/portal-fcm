@@ -60,6 +60,9 @@ export const HERO_CONFIG_ACADEMICO_INICIAL: HeroAcademicoConfig = {
   metrica_3_label: "Docentes e Investigadores",
   metrica_4_valor: "10 Ciclos",
   metrica_4_label: "Bachillerato + Licenciatura",
+  noticia_principal_id: "",
+  noticia_secundaria_1_id: "",
+  noticia_secundaria_2_id: "",
 };
 
 export const BENTO_ESPECIALIZACIONES_DEFAULT: Record<
