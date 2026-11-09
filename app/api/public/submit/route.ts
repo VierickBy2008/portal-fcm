@@ -6,6 +6,10 @@ import type {
   TicketSoporte,
   SolicitudTutoria,
 } from "@/app/types/portal";
+import {
+  enviarNotificacionTicketEmail,
+  enviarNotificacionTutoriaEmail,
+} from "@/app/utils/emailService";
 
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-project.supabase.co";
@@ -269,6 +273,11 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Disparo no bloqueante de notificación por correo
+      void enviarNotificacionTutoriaEmail(nuevaSolicitud).catch((e) =>
+        console.warn("[Tutoria Email Dispatch Err]:", e)
+      );
+
       return NextResponse.json({
         ok: true,
         mensaje: "Solicitud de tutoría agendada con éxito.",
@@ -337,6 +346,11 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ ok: false, error: storageErr.message }, { status: 500 });
         }
       }
+
+      // Disparo no bloqueante de notificación por correo
+      void enviarNotificacionTicketEmail(nuevoTicket).catch((e) =>
+        console.warn("[Ticket Email Dispatch Err]:", e)
+      );
 
       return NextResponse.json({
         ok: true,
