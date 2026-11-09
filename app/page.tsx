@@ -767,6 +767,13 @@ export default function PortalFacultadCienciasMatematicas() {
               setMateriales(limpios);
             }
           }
+          const localTickets = window.localStorage.getItem("fcm_tickets_data");
+          if (localTickets && activo) {
+            try {
+              const parsed = JSON.parse(localTickets);
+              if (Array.isArray(parsed) && parsed.length > 0) setTickets(parsed);
+            } catch {}
+          }
         }
 
         const { data, error } = await supabase
@@ -850,6 +857,17 @@ export default function PortalFacultadCienciasMatematicas() {
             const limpios = data.materiales_data.filter((m: MaterialRepositorio) => m.id !== "mat-pend-1" && m.id !== "mat-pend-2");
             setMateriales(limpios);
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_materiales_data", JSON.stringify(limpios));
+          }
+
+          if (Array.isArray(data.tickets_data) && data.tickets_data.length > 0) {
+            setTickets(data.tickets_data);
+            if (typeof window !== "undefined") window.localStorage.setItem("fcm_tickets_data", JSON.stringify(data.tickets_data));
+          } else if (Array.isArray(data.storage_data)) {
+            const metaTck = data.storage_data.find((x: { id?: string; tickets?: TicketSoporte[] }) => x && x.id === "__fcm_tickets_config__");
+            if (metaTck && Array.isArray(metaTck.tickets) && metaTck.tickets.length > 0) {
+              setTickets(metaTck.tickets);
+              if (typeof window !== "undefined") window.localStorage.setItem("fcm_tickets_data", JSON.stringify(metaTck.tickets));
+            }
           }
 
           if (data.calendario_data && Array.isArray(data.calendario_data.actividades)) {
@@ -995,6 +1013,7 @@ export default function PortalFacultadCienciasMatematicas() {
     docentes_data?: Docente[];
     resenas_docentes?: ResenaDocente[];
     materiales_data?: MaterialRepositorio[];
+    tickets_data?: TicketSoporte[];
     orgullo_data?: OrgulloItem[];
     transparencia_data?: DocumentoTransparencia[];
     calendario_data?: CalendarioSemestralConfig;
@@ -1021,6 +1040,7 @@ export default function PortalFacultadCienciasMatematicas() {
       if (cambios.docentes_data) window.localStorage.setItem("fcm_docentes_data", JSON.stringify(cambios.docentes_data));
       if (cambios.resenas_docentes) window.localStorage.setItem("fcm_resenas_docentes", JSON.stringify(cambios.resenas_docentes));
       if (cambios.materiales_data) window.localStorage.setItem("fcm_materiales_data", JSON.stringify(cambios.materiales_data));
+      if (cambios.tickets_data) window.localStorage.setItem("fcm_tickets_data", JSON.stringify(cambios.tickets_data));
       if (cambios.orgullo_data) window.localStorage.setItem("fcm_orgullo_data", JSON.stringify(cambios.orgullo_data));
       if (cambios.calendario_data) window.localStorage.setItem("fcm_calendario_data", JSON.stringify(cambios.calendario_data));
       if (cambios.asistente_ia_data) window.localStorage.setItem("fcm_asistente_ia_data", JSON.stringify(cambios.asistente_ia_data));
@@ -2198,6 +2218,20 @@ export default function PortalFacultadCienciasMatematicas() {
     setTicketEnviadoOk(true);
     setFormContacto({ nombre: "", email: "", asunto: "", mensaje: "", bot_trap: "" });
     lanzarToast("✅ Mensaje recibido con éxito. Tu ticket ha sido canalizado a Mesa de Partes FCM.");
+  };
+
+  const handleCambiarEstadoTicket = async (id: string, nuevoEstado: EstadoAtencion) => {
+    const actualizados = tickets.map((t) => (t.id === id ? { ...t, estado_atencion: nuevoEstado } : t));
+    setTickets(actualizados);
+    await sincronizarPortalConfigSupabase({ tickets_data: actualizados });
+    lanzarToast(`Ticket marcado como ${nuevoEstado}.`);
+  };
+
+  const handleEliminarTicket = async (id: string) => {
+    const actualizados = tickets.filter((t) => t.id !== id);
+    setTickets(actualizados);
+    await sincronizarPortalConfigSupabase({ tickets_data: actualizados });
+    lanzarToast("Ticket eliminado.");
   };
 
   const handleGuardarNoticia = async (e: React.FormEvent) => {
@@ -3971,7 +4005,13 @@ export default function PortalFacultadCienciasMatematicas() {
                 />
               )}
 
-              {tabAdmin === "soporte" && <AdminTicketsTab tickets={tickets} />}
+              {tabAdmin === "soporte" && (
+                <AdminTicketsTab
+                  tickets={tickets}
+                  onCambiarEstadoTicket={handleCambiarEstadoTicket}
+                  onEliminarTicket={handleEliminarTicket}
+                />
+              )}
             </div>
           )}
         </main>

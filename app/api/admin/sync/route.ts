@@ -126,6 +126,7 @@ export async function POST(req: NextRequest) {
         calendario_data,
         asistente_ia_data,
         accesibilidad_data,
+        tickets_data,
         tipografia_activa,
         diseno_portada_activo,
         hero_config_bento,
@@ -140,12 +141,35 @@ export async function POST(req: NextRequest) {
       void transparencia_data;
       void calendario_data;
       void asistente_ia_data;
-      void accesibilidad_data;
       void tipografia_activa;
       void diseno_portada_activo;
       void hero_config_bento;
       void hero_config_harvard;
       void hero_config_academico;
+
+      // Si tickets_data o accesibilidad_data estaban en los cambios, los preservamos en storage_data
+      if (tickets_data || accesibilidad_data) {
+        const { data: currentData } = await supabaseAdmin
+          .from("portal_config")
+          .select("storage_data")
+          .eq("id", 1)
+          .maybeSingle();
+
+        const listaStorage = Array.isArray(currentData?.storage_data) ? [...currentData.storage_data] : [];
+        if (tickets_data) {
+          const idx = listaStorage.findIndex((x: { id?: string }) => x && x.id === "__fcm_tickets_config__");
+          const item = { id: "__fcm_tickets_config__", tickets: tickets_data };
+          if (idx >= 0) listaStorage[idx] = item;
+          else listaStorage.push(item);
+        }
+        if (accesibilidad_data) {
+          const idx = listaStorage.findIndex((x: { id?: string }) => x && x.id === "__fcm_accesibilidad_config__");
+          const item = { id: "__fcm_accesibilidad_config__", accesibilidad_config: accesibilidad_data };
+          if (idx >= 0) listaStorage[idx] = item;
+          else listaStorage.push(item);
+        }
+        (restoSeguro as Record<string, unknown>).storage_data = listaStorage;
+      }
 
       if (Object.keys(restoSeguro).length > 2) {
         const { error: retryErr } = await supabaseAdmin

@@ -212,14 +212,27 @@ export async function POST(req: NextRequest) {
         puntaje_match_ia: Math.min(100, Math.max(0, Number(payload.puntaje_match_ia) || 90)),
       };
 
+      // Recuperar configuración de tutorías (desde columna o fallback en storage_data)
       const accData =
         configData?.accesibilidad_data && typeof configData.accesibilidad_data === "object"
-          ? configData.accesibilidad_data
+          ? (configData.accesibilidad_data as Record<string, unknown>)
           : {};
-      const tutConfig =
+
+      let tutConfig: { solicitudes?: SolicitudTutoria[]; [key: string]: unknown } =
         accData.tutorias_ia_config && typeof accData.tutorias_ia_config === "object"
-          ? accData.tutorias_ia_config
+          ? (accData.tutorias_ia_config as { solicitudes?: SolicitudTutoria[]; [key: string]: unknown })
           : {};
+
+      if ((!tutConfig.solicitudes || tutConfig.solicitudes.length === 0) && Array.isArray(configData?.storage_data)) {
+        const metaTut = configData.storage_data.find(
+          (x: { id?: string; tutorias_ia_config?: { solicitudes?: SolicitudTutoria[] } }) =>
+            x && x.id === "__fcm_tutorias_config__"
+        );
+        if (metaTut?.tutorias_ia_config) {
+          tutConfig = metaTut.tutorias_ia_config;
+        }
+      }
+
       const solicitudesExistentes: SolicitudTutoria[] = Array.isArray(tutConfig.solicitudes)
         ? tutConfig.solicitudes
         : [];
@@ -238,7 +251,22 @@ export async function POST(req: NextRequest) {
         .upsert({ id: 1, accesibilidad_data: accDataActualizado, updated_at: new Date().toISOString() });
 
       if (writeErr) {
-        return NextResponse.json({ ok: false, error: writeErr.message }, { status: 500 });
+        // Fallback seguro a storage_data si falta la columna accesibilidad_data en PostgreSQL
+        const listaStorage = Array.isArray(configData?.storage_data) ? [...configData.storage_data] : [];
+        const idx = listaStorage.findIndex((x: { id?: string }) => x && x.id === "__fcm_tutorias_config__");
+        const metaItem = { id: "__fcm_tutorias_config__", tutorias_ia_config: accDataActualizado.tutorias_ia_config };
+        if (idx >= 0) {
+          listaStorage[idx] = metaItem;
+        } else {
+          listaStorage.push(metaItem);
+        }
+        const { error: storageErr } = await supabaseAdmin
+          .from("portal_config")
+          .upsert({ id: 1, storage_data: listaStorage, updated_at: new Date().toISOString() });
+
+        if (storageErr) {
+          return NextResponse.json({ ok: false, error: storageErr.message }, { status: 500 });
+        }
       }
 
       return NextResponse.json({
@@ -271,9 +299,19 @@ export async function POST(req: NextRequest) {
         estado_atencion: "pendiente",
       };
 
-      const ticketsExistentes: TicketSoporte[] = Array.isArray(configData?.tickets_data)
-        ? configData.tickets_data
-        : [];
+      // Recuperar tickets existentes (columna directa o fallback en storage_data)
+      let ticketsExistentes: TicketSoporte[] = [];
+      if (Array.isArray(configData?.tickets_data) && configData.tickets_data.length > 0) {
+        ticketsExistentes = configData.tickets_data;
+      } else if (Array.isArray(configData?.storage_data)) {
+        const metaTck = configData.storage_data.find(
+          (x: { id?: string; tickets?: TicketSoporte[] }) => x && x.id === "__fcm_tickets_config__"
+        );
+        if (metaTck && Array.isArray(metaTck.tickets)) {
+          ticketsExistentes = metaTck.tickets;
+        }
+      }
+
       const actualizados = [nuevoTicket, ...ticketsExistentes];
 
       const { error: writeErr } = await supabaseAdmin
@@ -281,7 +319,23 @@ export async function POST(req: NextRequest) {
         .upsert({ id: 1, tickets_data: actualizados, updated_at: new Date().toISOString() });
 
       if (writeErr) {
-        return NextResponse.json({ ok: false, error: writeErr.message }, { status: 500 });
+        // Fallback seguro a storage_data si no existe la columna tickets_data en PostgreSQL
+        const listaStorage = Array.isArray(configData?.storage_data) ? [...configData.storage_data] : [];
+        const idx = listaStorage.findIndex((x: { id?: string }) => x && x.id === "__fcm_tickets_config__");
+        const metaItem = { id: "__fcm_tickets_config__", tickets: actualizados };
+        if (idx >= 0) {
+          listaStorage[idx] = metaItem;
+        } else {
+          listaStorage.push(metaItem);
+        }
+
+        const { error: storageErr } = await supabaseAdmin
+          .from("portal_config")
+          .upsert({ id: 1, storage_data: listaStorage, updated_at: new Date().toISOString() });
+
+        if (storageErr) {
+          return NextResponse.json({ ok: false, error: storageErr.message }, { status: 500 });
+        }
       }
 
       return NextResponse.json({
