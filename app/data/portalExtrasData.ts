@@ -36,13 +36,30 @@ export const HERO_CONFIG_HARVARD_INICIAL: HeroHarvardConfig = {
 export const HERO_CONFIG_ACADEMICO_INICIAL: HeroAcademicoConfig = {
   hero_bg_url: HERO_BG_DEFAULT,
   hero_blur: 1,
-  hero_overlay_opacity: 58,
-  hero_overlay_color: "#001d3d",
+  hero_overlay_opacity: 55,
+  hero_overlay_color: "#001833",
+  color_acento_principal: "#8B1515",
   etiqueta_campus: "CAMPUS DIGITAL E INVESTIGACIÓN CIENTÍFICA • FCM UNMSM",
   titulo_principal:
     "Educación Superior de Excelencia en Ciencias Exactas y Computación",
   descripcion_campus:
     "Ecosistema universitario que integra formación rigurosa en pregrado y posgrado, laboratorios de cómputo de alto rendimiento y acceso abierto al conocimiento.",
+  titulo_tablero: "Estructura Académica FCM",
+  estado_tablero: "Plan Curricular 2026",
+  metricas_personalizadas: [
+    { valor: "4", label: "Escuelas Profesionales" },
+    { valor: "240+", label: "Asignaturas Oficiales" },
+    { valor: "120+", label: "Docentes e Investigadores" },
+    { valor: "10 Ciclos", label: "Bachillerato + Licenciatura" },
+  ],
+  metrica_1_valor: "4",
+  metrica_1_label: "Escuelas Profesionales",
+  metrica_2_valor: "240+",
+  metrica_2_label: "Asignaturas Oficiales",
+  metrica_3_valor: "120+",
+  metrica_3_label: "Docentes e Investigadores",
+  metrica_4_valor: "10 Ciclos",
+  metrica_4_label: "Bachillerato + Licenciatura",
 };
 
 export const BENTO_ESPECIALIZACIONES_DEFAULT: Record<

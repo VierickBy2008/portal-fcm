@@ -53,11 +53,11 @@ const CATALOGO_DISENOS: Array<{
   {
     id: "academico_moderno",
     titulo: "Diseño Campus Académico Moderno",
-    subtitulo: "Fusión Educativa + UI/UX Contemporánea",
-    etiqueta: "Nuevo Híbrido Educativo",
+    subtitulo: "Fusión Educativa + Paleta Institucional San Marcos",
+    etiqueta: "Híbrido Oficial UNMSM",
     descripcion:
-      "Combina el prestigio académico universitario con una interfaz moderna: Hero split con tablero de métricas en vivo, fichas curriculares fotográficas, boletín universitario y directorio en 100% de las secciones.",
-    coloresMuestra: ["#002855", "#06b6d4", "#f59e0b", "#0f172a"],
+      "Combina el prestigio académico universitario con la paleta oficial de San Marcos (Azul Marino, Granate, Dorado y los 4 colores de Escuela): Hero split con 4 métricas editables, fichas curriculares fotográficas y boletín en 100% de las secciones.",
+    coloresMuestra: ["#002855", "#8B1515", "#d97706", "#059669"],
   },
 ];
 
@@ -247,7 +247,7 @@ export function AdminAparienciaSelector({
                             layout.id === "harvard_editorial"
                               ? "bg-[#8B1515]/10 text-[#8B1515] dark:bg-rose-950/80 dark:text-rose-300 border border-[#8B1515]/20"
                               : layout.id === "academico_moderno"
-                              ? "bg-cyan-500/15 text-cyan-800 dark:bg-cyan-950/80 dark:text-cyan-300 border border-cyan-500/30"
+                              ? "bg-amber-500/15 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-500/30"
                               : "bg-[#002855]/10 text-[#002855] dark:bg-blue-950/80 dark:text-blue-300 border border-[#002855]/20"
                           }`}
                         >
@@ -257,7 +257,7 @@ export function AdminAparienciaSelector({
                           {layout.id === "harvard_editorial" ? (
                             <BookOpen className="w-4 h-4 text-[#8B1515] dark:text-amber-400 shrink-0" />
                           ) : layout.id === "academico_moderno" ? (
-                            <GraduationCap className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                            <GraduationCap className="w-4 h-4 text-[#8B1515] dark:text-amber-400 shrink-0" />
                           ) : (
                             <LayoutGrid className="w-4 h-4 text-[#002855] dark:text-blue-400 shrink-0" />
                           )}
@@ -326,23 +326,27 @@ export function AdminAparienciaSelector({
                         </div>
                       </div>
                     ) : (
-                      <div className="rounded-xl bg-slate-950 p-3 mb-3.5 border border-cyan-500/40 text-white">
-                        <div className="h-7 rounded-lg bg-gradient-to-r from-[#002855] via-cyan-900 to-slate-900 border border-cyan-400/30 mb-2 flex items-center justify-between px-2.5">
-                          <span className="text-[9px] font-bold tracking-wider uppercase text-cyan-300">
-                            Campus Split Hero + KPIs
+                      <div className="rounded-xl bg-[#001833] p-3 mb-3.5 border border-[#8B1515]/50 text-white">
+                        <div className="h-7 rounded-lg bg-gradient-to-r from-[#002855] via-[#001833] to-[#8B1515] border border-amber-400/30 mb-2 flex items-center justify-between px-2.5">
+                          <span className="text-[9px] font-bold tracking-wider uppercase text-amber-200">
+                            Campus Split Hero + 4 KPIs
                           </span>
-                          <span className="text-[8px] font-mono px-1.5 py-0.5 bg-cyan-500/20 text-cyan-200 rounded">
-                            2026-I/II
+                          <span className="text-[8px] font-mono px-1.5 py-0.5 bg-[#8B1515] text-white rounded">
+                            UNMSM
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <div className="h-10 rounded bg-cyan-500/15 border border-cyan-400/30 px-2 flex items-center justify-between text-[8px] font-bold text-cyan-200">
-                            <span>Escuelas + Foto</span>
-                            <span className="text-amber-300">10 Ciclos</span>
+                        <div className="grid grid-cols-4 gap-1">
+                          <div className="h-10 rounded bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-[8px] font-bold text-blue-200">
+                            EPCC
                           </div>
-                          <div className="h-10 rounded bg-blue-500/15 border border-blue-400/30 px-2 flex items-center justify-between text-[8px] font-bold text-blue-200">
-                            <span>Boletín & Cátedra</span>
-                            <span className="text-emerald-300">RENACYT</span>
+                          <div className="h-10 rounded bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-[8px] font-bold text-rose-200">
+                            EPM
+                          </div>
+                          <div className="h-10 rounded bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-[8px] font-bold text-amber-200">
+                            EPE
+                          </div>
+                          <div className="h-10 rounded bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-[8px] font-bold text-emerald-200">
+                            EPIO
                           </div>
                         </div>
                       </div>

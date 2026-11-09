@@ -207,6 +207,18 @@ export interface HeroAcademicoConfig {
   etiqueta_campus: string;
   titulo_principal: string;
   descripcion_campus: string;
+  color_acento_principal?: string;
+  titulo_tablero?: string;
+  estado_tablero?: string;
+  metricas_personalizadas?: Array<{ label: string; valor: string }>;
+  metrica_1_valor?: string;
+  metrica_1_label?: string;
+  metrica_2_valor?: string;
+  metrica_2_label?: string;
+  metrica_3_valor?: string;
+  metrica_3_label?: string;
+  metrica_4_valor?: string;
+  metrica_4_label?: string;
 }
 
 export interface AccesibilidadConfig {

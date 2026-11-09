@@ -21,7 +21,7 @@ export function Footer({ logoUrl, onOpenAdmin, disenoActivo = "bento_moderno" }:
         esHarvard
           ? "bg-[#0d0507] border-t-4 border-[#8B1515]"
           : esAcademico
-          ? "bg-[#041024] border-t-4 border-cyan-500"
+          ? "bg-[#001429] border-t-4 border-[#8B1515]"
           : "bg-[#001833] border-t-4 border-red-700"
       }`}
     >

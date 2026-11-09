@@ -94,25 +94,25 @@ export function RepositorioView({
           </button>
         </div>
       ) : esAcademico ? (
-        <div className="rounded-2xl bg-gradient-to-r from-[#041024] via-[#002855] to-cyan-950 text-white p-6 sm:p-9 border-l-4 border-l-cyan-400 border-b-4 border-b-cyan-500 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="rounded-2xl bg-gradient-to-r from-[#001833] via-[#002855] to-[#4d0713] text-white p-6 sm:p-9 border-l-4 border-l-amber-400 border-b-4 border-b-[#8B1515] shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-cyan-500/20 border border-cyan-400/30 text-[11px] font-mono uppercase tracking-widest text-cyan-300 font-bold">
-              <BookOpen className="w-3.5 h-3.5" />
-              CAMPUS ACADÉMICO MODERNO • BIBLIOTECA Y SÍLABOS
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#8B1515]/80 border border-amber-400/30 text-[11px] font-mono uppercase tracking-widest text-amber-200 font-bold">
+              <BookOpen className="w-3.5 h-3.5 text-amber-300" />
+              CAMPUS ACADÉMICO MODERNO • BIBLIOTECA Y SÍLABOS FCM
             </span>
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
               Repositorio Digital y Material de Cátedra
             </h1>
             <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
               Filtra sílabos oficiales, exámenes resueltos, guías en LaTeX y repositorios de código por{" "}
-              <strong className="text-cyan-300">Escuela ➔ Ciclo ➔ Asignatura ➔ Formato</strong>.
+              <strong className="text-amber-300">Escuela ➔ Ciclo ➔ Asignatura ➔ Formato</strong>.
             </p>
           </div>
           <button
             onClick={onAbrirModalSubir}
-            className="px-5 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-xs sm:text-sm font-extrabold text-slate-950 shadow-lg flex items-center gap-2 shrink-0 cursor-pointer gpu-btn"
+            className="px-5 py-3.5 rounded-xl bg-[#8B1515] hover:bg-red-700 text-xs sm:text-sm font-extrabold text-white border border-amber-400/30 shadow-lg flex items-center gap-2 shrink-0 cursor-pointer gpu-btn"
           >
-            <Upload className="w-4 h-4" /> ➕ Aportar Recurso Académico
+            <Upload className="w-4 h-4 text-amber-300" /> ➕ Aportar Recurso Académico
           </button>
         </div>
       ) : (

@@ -59,16 +59,16 @@ const CARRERA_IMG_FALLBACK: Record<CarreraId, string> = {
     "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1000&q=80",
 };
 
-function renderIconoAcademico(id: CarreraId) {
+function renderIconoEscuela(id: CarreraId) {
   switch (id) {
     case "computacion-cientifica":
-      return <Cpu className="w-5 h-5 text-cyan-400" />;
+      return <Cpu className="w-4 h-4 text-blue-400" />;
     case "matematica":
-      return <Sigma className="w-5 h-5 text-rose-400" />;
+      return <Sigma className="w-4 h-4 text-red-400" />;
     case "estadistica":
-      return <BarChart3 className="w-5 h-5 text-amber-400" />;
+      return <BarChart3 className="w-4 h-4 text-orange-400" />;
     case "investigacion-operativa":
-      return <Network className="w-5 h-5 text-emerald-400" />;
+      return <Network className="w-4 h-4 text-emerald-400" />;
   }
 }
 
@@ -116,10 +116,14 @@ export function HomeViewAcademico({
   const overlayColorAcad =
     heroConfigAcademico?.hero_overlay_color ||
     HERO_CONFIG_ACADEMICO_INICIAL.hero_overlay_color ||
-    "#06152d";
+    "#001833";
   const overlayOpacityAcad =
     heroConfigAcademico?.hero_overlay_opacity ??
     HERO_CONFIG_ACADEMICO_INICIAL.hero_overlay_opacity;
+  const colorAcentoAcad =
+    heroConfigAcademico?.color_acento_principal ||
+    HERO_CONFIG_ACADEMICO_INICIAL.color_acento_principal ||
+    "#8B1515";
   const etiquetaAcad =
     heroConfigAcademico?.etiqueta_campus ||
     HERO_CONFIG_ACADEMICO_INICIAL.etiqueta_campus;
@@ -129,6 +133,50 @@ export function HomeViewAcademico({
   const descripcionAcad =
     heroConfigAcademico?.descripcion_campus ||
     HERO_CONFIG_ACADEMICO_INICIAL.descripcion_campus;
+  const tituloTablero =
+    heroConfigAcademico?.titulo_tablero ||
+    HERO_CONFIG_ACADEMICO_INICIAL.titulo_tablero ||
+    "Estructura Académica FCM";
+  const estadoTablero =
+    heroConfigAcademico?.estado_tablero ||
+    HERO_CONFIG_ACADEMICO_INICIAL.estado_tablero ||
+    "Plan Curricular 2026";
+
+  const met1Valor =
+    heroConfigAcademico?.metricas_personalizadas?.[0]?.valor ||
+    heroConfigAcademico?.metrica_1_valor ||
+    String(carreras.length);
+  const met1Label =
+    heroConfigAcademico?.metricas_personalizadas?.[0]?.label ||
+    heroConfigAcademico?.metrica_1_label ||
+    "Escuelas Profesionales";
+
+  const met2Valor =
+    heroConfigAcademico?.metricas_personalizadas?.[1]?.valor ||
+    heroConfigAcademico?.metrica_2_valor ||
+    String(malla.length);
+  const met2Label =
+    heroConfigAcademico?.metricas_personalizadas?.[1]?.label ||
+    heroConfigAcademico?.metrica_2_label ||
+    "Asignaturas Oficiales";
+
+  const met3Valor =
+    heroConfigAcademico?.metricas_personalizadas?.[2]?.valor ||
+    heroConfigAcademico?.metrica_3_valor ||
+    String(docentes.length);
+  const met3Label =
+    heroConfigAcademico?.metricas_personalizadas?.[2]?.label ||
+    heroConfigAcademico?.metrica_3_label ||
+    "Docentes e Investigadores";
+
+  const met4Valor =
+    heroConfigAcademico?.metricas_personalizadas?.[3]?.valor ||
+    heroConfigAcademico?.metrica_4_valor ||
+    "10 Ciclos";
+  const met4Label =
+    heroConfigAcademico?.metricas_personalizadas?.[3]?.label ||
+    heroConfigAcademico?.metrica_4_label ||
+    "Bachillerato + Licenciatura";
 
   if (cargandoConfig && carreras.length === 0) {
     return (
@@ -142,8 +190,8 @@ export function HomeViewAcademico({
   }
 
   return (
-    <main className="flex-1 w-full overflow-x-hidden view-transition-gpu bg-[#f8fafc] dark:bg-[#070d19]">
-      {/* 1. HERO CAMPUS ACADÉMICO MODERNO FULL-WIDTH CON CONTROLES GHOST DISCRETOS */}
+    <main className="flex-1 w-full overflow-x-hidden view-transition-gpu bg-slate-50 dark:bg-[#070b14]">
+      {/* 1. HERO CAMPUS ACADÉMICO MODERNO FULL-WIDTH CON PALETA INSTITUCIONAL SAN MARCOS */}
       <section
         onMouseEnter={() => setPausarSliderHero(true)}
         onMouseLeave={() => setPausarSliderHero(false)}
@@ -167,9 +215,10 @@ export function HomeViewAcademico({
           backgroundColor:
             slideActivoHero === 0
               ? overlayColorAcad
-              : noticiasDestacadas[slideActivoHero - 1]?.color_fondo || "#002855",
+              : noticiasDestacadas[slideActivoHero - 1]?.color_fondo || "#4d0713",
+          borderBottomColor: colorAcentoAcad,
         }}
-        className="group relative w-full text-white border-b-4 border-cyan-500/80 shadow-2xl overflow-hidden transition-colors duration-700 ease-in-out"
+        className="group relative w-full text-white border-b-4 shadow-2xl overflow-hidden transition-colors duration-700 ease-in-out"
       >
         {/* Flechas laterales sutiles estilo ghost glassmorphism */}
         {totalSlidesHero > 1 && (
@@ -213,16 +262,16 @@ export function HomeViewAcademico({
                 opacity: Math.min(0.95, Math.max(0.2, overlayOpacityAcad / 100)),
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#041024]/90 via-[#002855]/65 to-slate-950/75 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#00132b]/90 via-[#002855]/65 to-[#2b070c]/75 pointer-events-none" />
 
             {adminAutenticado && (
               <button
                 type="button"
                 onClick={() => setModalHeroFondoAbierto(true)}
-                className="absolute top-4 right-4 z-20 px-3.5 py-2 rounded-xl bg-black/65 hover:bg-black/90 text-white text-xs font-bold border border-cyan-400/40 backdrop-blur-md shadow-xl flex items-center gap-2 cursor-pointer transition-all active:scale-95"
-                title="Personalizar Hero Campus Académico Moderno"
+                className="absolute top-4 right-4 z-20 px-3.5 py-2 rounded-xl bg-black/65 hover:bg-black/90 text-white text-xs font-bold border border-white/25 backdrop-blur-md shadow-xl flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                title="Personalizar Textos, Métricas, Fondo y Colores del Hero Campus"
               >
-                <Sliders className="w-4 h-4 text-cyan-300" />
+                <Sliders className="w-4 h-4 text-amber-300" />
                 <span>
                   Editar Hero Campus ({overlayOpacityAcad}% • {blurAcad}px)
                 </span>
@@ -232,7 +281,10 @@ export function HomeViewAcademico({
             <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               {/* Columna Izquierda: Identidad Educativa + Buscador */}
               <div className="lg:col-span-7 space-y-5 text-left">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-200 text-[11px] font-bold uppercase tracking-widest border border-cyan-400/35 backdrop-blur-md">
+                <div
+                  style={{ backgroundColor: colorAcentoAcad }}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-white text-[11px] font-bold uppercase tracking-wider border border-white/25 shadow-lg backdrop-blur-md"
+                >
                   <GraduationCap className="w-4 h-4 text-amber-300" />
                   <span>{etiquetaAcad}</span>
                 </div>
@@ -241,38 +293,38 @@ export function HomeViewAcademico({
                   {tituloAcad}
                 </h1>
 
-                <p className="text-slate-200 text-xs sm:text-sm md:text-base max-w-2xl leading-relaxed">
+                <p className="text-blue-100 text-xs sm:text-sm md:text-base max-w-2xl leading-relaxed">
                   {descripcionAcad}
                 </p>
 
-                {/* Buscador Académico Moderno */}
+                {/* Buscador Académico con Paleta Institucional */}
                 <div className="relative max-w-2xl w-full pt-1">
-                  <div className="relative flex items-center shadow-2xl rounded-xl overflow-hidden border-2 border-cyan-400/40 bg-white">
+                  <div className="relative flex items-center shadow-2xl rounded-2xl overflow-hidden border-2 border-white/30 bg-white focus-within:ring-4 focus-within:ring-red-500/40">
                     <Search className="w-5 h-5 text-[#002855] absolute left-4 pointer-events-none" />
                     <input
                       type="text"
                       value={busquedaGlobal}
                       onChange={(e) => setBusquedaGlobal(e.target.value)}
                       placeholder="Buscar asignatura (ej. CS113, MAT312), sílabo, docente o material académico..."
-                      className="w-full pl-12 pr-24 py-3.5 sm:py-4 bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none"
+                      className="w-full pl-12 pr-28 py-3.5 sm:py-4 bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none"
                     />
                     {busquedaGlobal ? (
                       <button
                         type="button"
                         onClick={() => setBusquedaGlobal("")}
-                        className="absolute right-2.5 text-xs font-bold text-white bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+                        className="absolute right-2.5 text-xs font-bold text-white bg-[#8B1515] hover:bg-red-800 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
                       >
                         Limpiar
                       </button>
                     ) : (
-                      <span className="hidden sm:inline-flex absolute right-3 px-2.5 py-1 rounded-md bg-slate-100 text-[#002855] font-mono text-[10px] font-bold border border-slate-200">
+                      <span className="hidden sm:inline-flex absolute right-3 px-2.5 py-1 rounded-md bg-blue-50 text-[#002855] font-mono text-[10px] font-bold border border-blue-200">
                         2026-I / II
                       </span>
                     )}
                   </div>
 
                   {busquedaGlobal.trim() !== "" && (
-                    <div className="absolute left-0 right-0 mt-2 rounded-xl bg-white text-slate-900 border-2 border-[#002855] shadow-2xl p-4 z-40 space-y-3 max-h-96 overflow-y-auto">
+                    <div className="absolute left-0 right-0 mt-2 rounded-2xl bg-white text-slate-900 border-2 border-[#002855] shadow-2xl p-4 z-40 space-y-3 max-h-96 overflow-y-auto">
                       {resultadosBusquedaHero.cursos.length === 0 &&
                       resultadosBusquedaHero.materiales.length === 0 ? (
                         <p className="text-xs text-slate-500 text-center py-4">
@@ -288,10 +340,10 @@ export function HomeViewAcademico({
                                 setBusquedaGlobal("");
                                 navegarACarrera(c.carrera_id);
                               }}
-                              className="w-full flex items-center justify-between p-2.5 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left transition-colors cursor-pointer"
+                              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left transition-colors cursor-pointer"
                             >
                               <div>
-                                <span className="font-mono text-xs font-bold text-[#002855]">
+                                <span className="font-mono text-xs font-bold text-red-700">
                                   [{c.codigo}]
                                 </span>{" "}
                                 <span className="text-xs font-bold text-slate-900">
@@ -311,20 +363,20 @@ export function HomeViewAcademico({
                   )}
                 </div>
 
-                {/* Accesos Rápidos Universitarios */}
+                {/* Accesos Rápidos Universitarios con Acentos Sanmarquinos */}
                 <div className="flex flex-wrap items-center gap-2.5 pt-1">
                   <button
                     type="button"
                     onClick={() => navegar("/repositorio")}
-                    className="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-cyan-500/30 border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl bg-[#002855]/85 hover:bg-[#002855] border border-blue-400/30 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer shadow-sm"
                   >
-                    <FolderOpen className="w-3.5 h-3.5 text-cyan-300" />
+                    <FolderOpen className="w-3.5 h-3.5 text-amber-300" />
                     <span>Repositorio Digital</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => navegar("/docentes")}
-                    className="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-cyan-500/30 border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl bg-[#8B1515]/85 hover:bg-[#8B1515] border border-red-400/30 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer shadow-sm"
                   >
                     <Users className="w-3.5 h-3.5 text-amber-300" />
                     <span>Plana Catedrática ({docentes.length})</span>
@@ -332,67 +384,67 @@ export function HomeViewAcademico({
                   <button
                     type="button"
                     onClick={() => navegar("/transparencia")}
-                    className="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-cyan-500/30 border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/25 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer"
                   >
-                    <FileText className="w-3.5 h-3.5 text-emerald-300" />
+                    <FileText className="w-3.5 h-3.5 text-red-300" />
                     <span>Transparencia Universitaria</span>
                   </button>
                 </div>
               </div>
 
-              {/* Columna Derecha: Tablero de Indicadores Académicos en Vivo */}
+              {/* Columna Derecha: Tablero de Indicadores Académicos Editables en CMS */}
               <div className="lg:col-span-5">
-                <div className="rounded-2xl bg-slate-950/65 backdrop-blur-xl border border-cyan-400/30 p-5 sm:p-6 shadow-2xl space-y-4">
+                <div className="rounded-2xl bg-[#00152e]/85 backdrop-blur-xl border border-white/20 border-t-4 border-t-[#8B1515] p-5 sm:p-6 shadow-2xl space-y-4">
                   <div className="flex items-center justify-between border-b border-white/15 pb-3">
                     <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-cyan-400" />
-                      <span className="text-xs font-bold uppercase tracking-wider text-cyan-200">
-                        Estructura Académica FCM
+                      <Building2 className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-white">
+                        {tituloTablero}
                       </span>
                     </div>
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold">
-                      Plan Curricular Activo
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/35 text-[10px] font-bold">
+                      {estadoTablero}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
                       <span className="text-2xl font-extrabold text-white block">
-                        {carreras.length}
+                        {met1Valor}
                       </span>
-                      <span className="text-[11px] text-slate-300 font-medium">
-                        Escuelas Profesionales
-                      </span>
-                    </div>
-                    <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
-                      <span className="text-2xl font-extrabold text-cyan-300 block">
-                        {malla.length}
-                      </span>
-                      <span className="text-[11px] text-slate-300 font-medium">
-                        Asignaturas Oficiales
+                      <span className="text-[11px] text-blue-100 font-medium">
+                        {met1Label}
                       </span>
                     </div>
                     <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
                       <span className="text-2xl font-extrabold text-amber-300 block">
-                        {docentes.length}
+                        {met2Valor}
                       </span>
-                      <span className="text-[11px] text-slate-300 font-medium">
-                        Docentes e Investigadores
+                      <span className="text-[11px] text-blue-100 font-medium">
+                        {met2Label}
+                      </span>
+                    </div>
+                    <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
+                      <span className="text-2xl font-extrabold text-red-300 block">
+                        {met3Valor}
+                      </span>
+                      <span className="text-[11px] text-blue-100 font-medium">
+                        {met3Label}
                       </span>
                     </div>
                     <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
                       <span className="text-2xl font-extrabold text-emerald-300 block">
-                        10 Ciclos
+                        {met4Valor}
                       </span>
-                      <span className="text-[11px] text-slate-300 font-medium">
-                        Bachillerato + Licenciatura
+                      <span className="text-[11px] text-blue-100 font-medium">
+                        {met4Label}
                       </span>
                     </div>
                   </div>
 
                   <div className="space-y-1.5 pt-1">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300 block">
-                      Acceso directo a Mallas Curriculares:
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-blue-200 block">
+                      Escuelas Profesionales (Colores Oficiales):
                     </span>
                     <div className="grid grid-cols-2 gap-2">
                       {carreras.map((car) => (
@@ -400,15 +452,15 @@ export function HomeViewAcademico({
                           key={car.id}
                           type="button"
                           onClick={() => navegarACarrera(car.id)}
-                          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-left flex items-center justify-between gap-2 transition-colors cursor-pointer group/btn"
+                          className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-left flex items-center justify-between gap-2 transition-colors cursor-pointer group/btn"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            {renderIconoAcademico(car.id)}
+                            {renderIconoEscuela(car.id)}
                             <span className="text-[11px] font-bold text-white truncate">
                               {car.nombre}
                             </span>
                           </div>
-                          <ChevronRight className="w-3.5 h-3.5 text-cyan-300 shrink-0 group-hover/btn:translate-x-0.5 transition-transform" />
+                          <ChevronRight className="w-3.5 h-3.5 text-amber-300 shrink-0 group-hover/btn:translate-x-0.5 transition-transform" />
                         </button>
                       ))}
                     </div>
@@ -451,8 +503,8 @@ export function HomeViewAcademico({
 
               <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10 items-center relative z-10">
                 <div className="md:col-span-7 space-y-4 sm:space-y-5 text-left">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 shadow-sm backdrop-blur-xs">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-black/45 text-red-200 border border-white/20 shadow-sm backdrop-blur-xs">
+                    <Sparkles className="w-3.5 h-3.5 text-red-400" />
                     {noticia.categoria || "Comunicado Oficial"}
                   </span>
 
@@ -468,16 +520,16 @@ export function HomeViewAcademico({
                     <button
                       type="button"
                       onClick={() => navegar("/noticias/[id]", { noticiaId: noticia.id })}
-                      className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs sm:text-sm transition-all shadow-lg cursor-pointer"
+                      className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-[#8B1515] hover:bg-red-800 text-white font-extrabold text-xs sm:text-sm border border-white/25 transition-all shadow-lg cursor-pointer"
                     >
                       <span>Leer comunicado académico completo</span>
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-4 h-4 text-amber-300" />
                     </button>
                   </div>
                 </div>
 
                 <div className="md:col-span-5 flex justify-center items-center">
-                  <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-cyan-400/30 bg-slate-900">
+                  <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/25 bg-slate-900">
                     <img
                       src={noticia.imagen_url}
                       alt={noticia.titulo}
@@ -498,7 +550,7 @@ export function HomeViewAcademico({
             onClick={() => cambiarSlideHero(0)}
             className={`cursor-pointer transition-all duration-300 ${
               slideActivoHero === 0
-                ? "w-10 sm:w-14 h-2 rounded-full bg-cyan-400 shadow-md"
+                ? "w-10 sm:w-14 h-2 rounded-full bg-white shadow-md"
                 : "w-6 sm:w-8 h-2 rounded-full bg-white/40 hover:bg-white/70"
             }`}
             aria-label="Ir al Slide Principal"
@@ -512,7 +564,7 @@ export function HomeViewAcademico({
                 onClick={() => cambiarSlideHero(indiceSlide)}
                 className={`cursor-pointer transition-all duration-300 ${
                   slideActivoHero === indiceSlide
-                    ? "w-10 sm:w-14 h-2 rounded-full bg-cyan-400 shadow-md"
+                    ? "w-10 sm:w-14 h-2 rounded-full bg-white shadow-md"
                     : "w-6 sm:w-8 h-2 rounded-full bg-white/40 hover:bg-white/70"
                 }`}
                 aria-label={`Ir al comunicado ${idx + 1}`}
@@ -522,22 +574,37 @@ export function HomeViewAcademico({
         </div>
       </section>
 
-      {/* CONTENEDOR CENTRAL DEL CAMPUS ACADÉMICO MODERNO */}
+      {/* CONTENEDOR CENTRAL DEL CAMPUS ACADÉMICO MODERNO CON PALETA ORIGINAL SAN MARCOS */}
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-12 sm:space-y-16">
-        {/* 2. ESCUELAS PROFESIONALES CON CABECERA FOTOGRÁFICA Y FICHA CURRICULAR MODERNA */}
+        {/* 2. ESCUELAS PROFESIONALES CON IDENTIDAD CROMÁTICA PROPIA POR ESCUELA (TEMA_CARRERA) */}
         <section className="space-y-6 reveal-on-scroll">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-[#002855] dark:border-l-cyan-400 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-[#002855] dark:border-l-red-600 shadow-xs">
             <div className="space-y-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#002855] dark:text-cyan-400 flex items-center gap-1.5">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-red-700 dark:text-red-400 flex items-center gap-1.5">
                 <GraduationCap className="w-4 h-4" /> Oferta Académica Oficial de Pregrado • UNMSM
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#002855] dark:text-white tracking-tight">
                 Escuelas Profesionales y Planes de Estudio 2026
               </h2>
             </div>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md">
-              Cada escuela integra su fotografía referencial de laboratorio/cátedra, malla curricular de 10 ciclos y tríptico oficial descargable.
-            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md">
+                Cada escuela luce su color institucional oficial, fotografía referencial, malla de 10 ciclos y tríptico descargable.
+              </p>
+              {adminAutenticado && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTabAdmin("carreras_cms");
+                    navegar("/admin");
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Editar Carreras en CMS</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -562,11 +629,14 @@ export function HomeViewAcademico({
                 <article
                   key={car.id}
                   onClick={() => navegarACarrera(car.id)}
-                  className="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-[#002855] dark:hover:border-cyan-400 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer gpu-card"
+                  className={`group rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200/90 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer gpu-card`}
                 >
                   <div>
-                    {/* Imagen referencial de la carrera con indicadores */}
-                    <div className="relative h-52 w-full overflow-hidden bg-slate-950">
+                    {/* Cabecera Fotográfica con Color Oficial de cada Escuela (TEMA_CARRERA) */}
+                    <div
+                      className={`relative h-52 w-full overflow-hidden border-b-2 ${temaCar.borderAccent} bg-slate-950`}
+                    >
+                      <div className={`absolute top-0 inset-x-0 h-1.5 ${temaCar.headerBg} z-20`} />
                       <OptimizedImage
                         src={
                           car.imagen_referencial_url && car.imagen_referencial_url.trim().length > 0
@@ -578,49 +648,49 @@ export function HomeViewAcademico({
                         sizes="(max-width: 1024px) 100vw, 50vw"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#001833]/95 via-slate-950/40 to-black/25" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-black/30" />
 
                       <div className="absolute top-3.5 left-4 right-4 flex items-center justify-between gap-2 z-10">
                         <span
-                          className={`px-3 py-1 rounded-md ${temaCar.headerBg} text-white font-mono text-xs font-bold shadow-md border border-white/20`}
+                          className={`px-3 py-1 rounded-md ${temaCar.headerBg} text-white font-mono text-xs font-bold shadow-md border border-white/25`}
                         >
                           {car.codigo_escuela}
                         </span>
                         <div className="flex items-center gap-1.5">
-                          <span className="px-2.5 py-1 rounded-md bg-black/55 backdrop-blur-md text-white text-[11px] font-bold border border-white/15 flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-cyan-300" />
-                            {car.duracion_bento || "10 Ciclos"}
+                          <span className="px-2.5 py-1 rounded-md bg-black/55 backdrop-blur-md text-white text-[11px] font-bold border border-white/20 flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-amber-300" />
+                            {car.duracion_bento || "5 años • 10 ciclos"}
                           </span>
-                          <span className="px-2.5 py-1 rounded-md bg-cyan-500/80 backdrop-blur-md text-slate-950 font-mono text-[11px] font-extrabold">
+                          <span className="px-2.5 py-1 rounded-md bg-white/20 backdrop-blur-md text-white font-mono text-[11px] font-extrabold border border-white/25">
                             {creditosMostrar} cr.
                           </span>
                         </div>
                       </div>
 
                       <div className="absolute bottom-3.5 left-5 right-5 z-10">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-300 block">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300 block">
                           {car.subtitulo_bento || metaDefault.subtitulo}
                         </span>
-                        <h3 className="text-xl sm:text-2xl font-extrabold text-white group-hover:text-cyan-200 transition-colors">
+                        <h3 className="text-xl sm:text-2xl font-extrabold text-white group-hover:text-amber-200 transition-colors">
                           Escuela Profesional de {car.nombre}
                         </h3>
                       </div>
                     </div>
 
-                    {/* Contenido Académico Estructurado */}
+                    {/* Contenido Académico Estructurado con el Tema de cada Escuela */}
                     <div className="p-6 space-y-4">
                       <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
                         {car.perfil_egreso || car.descripcion}
                       </p>
 
-                      {/* Líneas de Especialización */}
+                      {/* Líneas de Especialización con el Badge de la Escuela */}
                       <div className="flex flex-wrap gap-1.5">
                         {pilaresMostrar.map((pilar) => (
                           <span
                             key={pilar}
-                            className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[#002855] dark:text-cyan-300 text-[11px] font-bold border border-slate-200 dark:border-slate-700"
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${temaCar.badgeSoft}`}
                           >
-                            • {pilar}
+                            ✦ {pilar}
                           </span>
                         ))}
                       </div>
@@ -628,7 +698,7 @@ export function HomeViewAcademico({
                       {/* Tabla compacta de Grado, Título y Plan */}
                       <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
                         <div className="flex items-start gap-2">
-                          <GraduationCap className="w-4 h-4 text-[#002855] dark:text-cyan-400 shrink-0 mt-0.5" />
+                          <GraduationCap className={`w-4 h-4 ${temaCar.textAccent} shrink-0 mt-0.5`} />
                           <div className="min-w-0">
                             <span className="text-[10px] uppercase font-bold text-slate-400 block">
                               Grado Oficial
@@ -639,7 +709,7 @@ export function HomeViewAcademico({
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
-                          <Layers className="w-4 h-4 text-[#002855] dark:text-cyan-400 shrink-0 mt-0.5" />
+                          <Layers className={`w-4 h-4 ${temaCar.textAccent} shrink-0 mt-0.5`} />
                           <div className="min-w-0">
                             <span className="text-[10px] uppercase font-bold text-slate-400 block">
                               Malla Curricular
@@ -661,7 +731,7 @@ export function HomeViewAcademico({
                         e.stopPropagation();
                         navegarACarrera(car.id);
                       }}
-                      className="px-4 py-2 rounded-lg bg-[#002855] hover:bg-blue-900 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer transition-colors"
+                      className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-xs font-extrabold flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs"
                     >
                       <BookOpen className="w-3.5 h-3.5" />
                       <span>Ver Malla Curricular</span>
@@ -671,9 +741,9 @@ export function HomeViewAcademico({
                     <button
                       type="button"
                       onClick={(e) => handleDescargarTripticoPorCarrera(car, e)}
-                      className="px-3.5 py-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-red-700 text-slate-700 dark:text-slate-200 hover:text-white border border-slate-300 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                      className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-red-700 text-slate-700 dark:text-slate-200 hover:text-white border border-slate-300 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-3.5 h-3.5 text-red-700 dark:text-red-400 group-hover:text-white" />
                       <span>Tríptico PDF</span>
                     </button>
                   </div>
@@ -683,26 +753,41 @@ export function HomeViewAcademico({
           </div>
         </section>
 
-        {/* 3. BOLETÍN Y GACETA UNIVERSITARIA MODERNA */}
+        {/* 3. BOLETÍN Y GACETA UNIVERSITARIA MODERNA (MARINO + GRANATE) */}
         <section className="space-y-6 reveal-on-scroll">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-red-700 shadow-xs">
             <div>
               <span className="text-[11px] font-extrabold uppercase tracking-widest text-red-700 dark:text-red-400">
                 Boletín Académico e Institucional
               </span>
-              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <Newspaper className="w-6 h-6 text-[#002855] dark:text-cyan-400" />
+              <h2 className="text-2xl font-extrabold text-[#002855] dark:text-white flex items-center gap-2">
+                <Newspaper className="w-6 h-6 text-red-700 dark:text-red-400" />
                 Actualidad, Convocatorias y Resoluciones
               </h2>
             </div>
-            <button
-              type="button"
-              onClick={() => navegar("/noticias")}
-              className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto"
-            >
-              <span>Ver Hemeroteca Oficial ({noticias.length})</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navegar("/noticias")}
+                className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span>Ver Hemeroteca Oficial ({noticias.length})</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              {adminAutenticado && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTabAdmin("noticias");
+                    navegar("/admin");
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Gestionar Noticias</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -718,7 +803,7 @@ export function HomeViewAcademico({
                 <article
                   key={not.id}
                   onClick={() => abrirNoticiaDetalle(not.id)}
-                  className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-cyan-400 shadow-xs hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all gpu-card"
+                  className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#002855] dark:hover:border-blue-500 shadow-xs hover:shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all gpu-card"
                 >
                   <div>
                     <div className="relative h-44 bg-slate-900 overflow-hidden">
@@ -729,16 +814,23 @@ export function HomeViewAcademico({
                         sizes="(max-width: 768px) 100vw, 25vw"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#002855]/90 text-white backdrop-blur-xs">
-                        {not.categoria}
-                      </span>
+                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#002855] text-white shadow">
+                          {not.categoria}
+                        </span>
+                        {not.destacado && (
+                          <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-red-700 text-white shadow flex items-center gap-1">
+                            <Star className="w-2.5 h-2.5 fill-white" /> Destacado
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="p-5 space-y-2">
                       <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                        <Calendar className="w-3.5 h-3.5 text-red-700 dark:text-cyan-400" />
+                        <Calendar className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
                         <span>{formatearFechaEspanol(not.fecha_publicacion)}</span>
                       </div>
-                      <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-[#002855] dark:group-hover:text-cyan-300 transition-colors line-clamp-2 leading-snug">
+                      <h3 className="text-sm sm:text-base font-bold text-[#002855] dark:text-white group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors line-clamp-2 leading-snug">
                         {not.titulo}
                       </h3>
                       <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed">
@@ -746,7 +838,7 @@ export function HomeViewAcademico({
                       </p>
                     </div>
                   </div>
-                  <div className="px-5 py-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-cyan-400">
+                  <div className="px-5 py-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700">
                     <span>Leer nota académica</span>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
@@ -756,14 +848,14 @@ export function HomeViewAcademico({
           </div>
         </section>
 
-        {/* 4. CUADRO DE HONOR Y ORGULLO SAN MARQUINO */}
+        {/* 4. CUADRO DE HONOR Y ORGULLO SAN MARQUINO (DORADO + MARINO + GRANATE) */}
         <section id="orgullo-sanmarquino" className="space-y-6 reveal-on-scroll">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500 shadow-xs">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400">
-                <Award className="w-4 h-4" /> Mérito Científico & Representación Internacional
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-red-700 dark:text-amber-400">
+                <Award className="w-4 h-4 text-amber-500" /> Mérito Científico & Representación Internacional
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#002855] dark:text-white flex items-center gap-2">
                 <Trophy className="w-6 h-6 text-amber-500" />
                 Cuadro de Honor: Orgullo San Marquino
               </h2>
@@ -773,10 +865,10 @@ export function HomeViewAcademico({
               <button
                 type="button"
                 onClick={() => navegar("/orgullo")}
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#002855] hover:bg-blue-900 text-white text-xs font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>Galería de Mérito ({orgulloItems.length})</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 text-amber-300" />
               </button>
               {adminAutenticado && (
                 <button
@@ -785,10 +877,10 @@ export function HomeViewAcademico({
                     setTabAdmin("orgullo");
                     navegar("/admin");
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
-                  <span>CMS</span>
+                  <span>Gestionar CMS</span>
                 </button>
               )}
             </div>
@@ -799,7 +891,7 @@ export function HomeViewAcademico({
               <div
                 key={item.id}
                 onClick={() => setModalDetalleOrgullo(item)}
-                className="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500 shadow-sm hover:shadow-xl overflow-hidden cursor-pointer flex flex-col justify-between transition-all gpu-card"
+                className="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-600 dark:hover:border-amber-500 shadow-sm hover:shadow-xl overflow-hidden cursor-pointer flex flex-col justify-between transition-all gpu-card"
               >
                 <div className="relative h-64 w-full bg-slate-950 overflow-hidden">
                   <OptimizedImage
@@ -810,15 +902,15 @@ export function HomeViewAcademico({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
                   <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-[#002855]/90 text-white">
+                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-[#002855]/90 text-white border border-white/20">
                       {item.subtitulo_categoria}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-400 text-slate-950">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-slate-950">
                       {item.anio}
                     </span>
                   </div>
                   <div className="absolute bottom-3 left-4 right-4 text-white">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-300 block">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-red-300 block">
                       {item.carrera_nombre || "FCM UNMSM"}
                     </span>
                     <h3 className="text-base font-bold leading-snug line-clamp-2">
@@ -830,9 +922,9 @@ export function HomeViewAcademico({
                   <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
                     {item.descripcion}
                   </p>
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-cyan-400">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300">
                     <span className="truncate">👤 {item.estudiante}</span>
-                    <span className="text-amber-600 dark:text-amber-400 shrink-0">
+                    <span className="text-red-700 dark:text-amber-400 shrink-0">
                       Ver Distinción →
                     </span>
                   </div>
@@ -842,37 +934,52 @@ export function HomeViewAcademico({
           </div>
         </section>
 
-        {/* 5. CLAUSTRO DOCENTE E INVESTIGADORES */}
+        {/* 5. CLAUSTRO DOCENTE E INVESTIGADORES CON COLORES OFICIALES POR ESCUELA */}
         <section id="plana-docente" className="space-y-6 reveal-on-scroll">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-cyan-500 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-[#002855] dark:border-l-blue-500 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="space-y-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-widest text-cyan-700 dark:text-cyan-400">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-red-700 dark:text-red-400">
                 Directorio Oficial de Cátedra e Investigación
               </span>
-              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+              <h2 className="text-2xl font-extrabold text-[#002855] dark:text-white">
                 Plana Docente por Escuela Profesional
               </h2>
             </div>
 
-            <div className="relative w-full lg:w-96">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              <input
-                type="text"
-                value={busquedaDocentes}
-                onChange={(e) => setBusquedaDocentes(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") navegar("/docentes");
-                }}
-                placeholder="Filtrar catedrático o especialidad..."
-                className="w-full pl-10 pr-20 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#002855]"
-              />
-              <button
-                type="button"
-                onClick={() => navegar("/docentes")}
-                className="absolute right-1.5 top-1.5 px-3 py-1 rounded-lg bg-[#002855] text-white text-[11px] font-bold cursor-pointer"
-              >
-                Ver Todos
-              </button>
+            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+              <div className="relative flex-1 lg:w-80">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  value={busquedaDocentes}
+                  onChange={(e) => setBusquedaDocentes(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") navegar("/docentes");
+                  }}
+                  placeholder="Filtrar catedrático o especialidad..."
+                  className="w-full pl-10 pr-20 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#002855]"
+                />
+                <button
+                  type="button"
+                  onClick={() => navegar("/docentes")}
+                  className="absolute right-1.5 top-1.5 px-3 py-1 rounded-lg bg-[#002855] hover:bg-blue-900 text-white text-[11px] font-bold cursor-pointer"
+                >
+                  Ver Todos
+                </button>
+              </div>
+              {adminAutenticado && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTabAdmin("docentes_cms");
+                    navegar("/admin");
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-600 text-amber-800 dark:text-amber-300 hover:text-white border border-amber-300 dark:border-amber-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Docentes CMS</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -887,51 +994,56 @@ export function HomeViewAcademico({
                 <div
                   key={car.id}
                   onClick={() => navegar("/docentes", { docenteCarrera: car.id })}
-                  className="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-[#002855] dark:hover:border-cyan-400 shadow-xs hover:shadow-xl overflow-hidden cursor-pointer flex flex-col justify-between transition-all gpu-card"
+                  className={`group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${temaCar.cardHoverBorder} shadow-xs hover:shadow-xl overflow-hidden cursor-pointer flex flex-col justify-between transition-all gpu-card`}
                 >
-                  <div className="p-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold text-white ${temaCar.headerBg}`}
-                      >
-                        {car.codigo_escuela}
-                      </span>
-                      <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                        {docentesEscuela.length} Catedráticos
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-[#002855] dark:group-hover:text-cyan-300 transition-colors">
-                        E.P. de {car.nombre}
-                      </h3>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        {principalesCount} Docentes Principales • Investigación RENACYT
-                      </p>
-                    </div>
-
-                    <div className="flex items-center -space-x-2.5 pt-1">
-                      {docentesEscuela.slice(0, 5).map((doc) => (
-                        <div
-                          key={doc.id}
-                          className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-slate-800 overflow-hidden shadow-xs flex items-center justify-center text-[11px] font-bold text-white"
-                          title={`${doc.grado_academico} ${doc.nombre_completo}`}
+                  <div>
+                    <div className={`h-2 w-full ${temaCar.headerBg}`} />
+                    <div className="p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold text-white ${temaCar.headerBg}`}
                         >
-                          {doc.foto_url ? (
-                            <img
-                              src={doc.foto_url}
-                              alt={doc.nombre_completo}
-                              className="w-full h-full object-cover object-top"
-                            />
-                          ) : (
-                            <span>{obtenerInicialesDocente(doc.nombre_completo)}</span>
-                          )}
-                        </div>
-                      ))}
+                          {car.codigo_escuela}
+                        </span>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${temaCar.badgeSoft}`}>
+                          {docentesEscuela.length} Catedráticos
+                        </span>
+                      </div>
+
+                      <div>
+                        <h3
+                          className={`text-base font-extrabold text-[#002855] dark:text-white ${temaCar.groupHoverText} transition-colors`}
+                        >
+                          E.P. de {car.nombre}
+                        </h3>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          {principalesCount} Docentes Principales • Investigación RENACYT
+                        </p>
+                      </div>
+
+                      <div className="flex items-center -space-x-2.5 pt-1">
+                        {docentesEscuela.slice(0, 5).map((doc) => (
+                          <div
+                            key={doc.id}
+                            className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-slate-800 overflow-hidden shadow-xs flex items-center justify-center text-[11px] font-bold text-white"
+                            title={`${doc.grado_academico} ${doc.nombre_completo}`}
+                          >
+                            {doc.foto_url ? (
+                              <img
+                                src={doc.foto_url}
+                                alt={doc.nombre_completo}
+                                className="w-full h-full object-cover object-top"
+                              />
+                            ) : (
+                              <span>{obtenerInicialesDocente(doc.nombre_completo)}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="px-5 py-3 bg-slate-50 dark:bg-slate-950/70 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-cyan-400">
+                  <div className="px-5 py-3 bg-slate-50 dark:bg-slate-950/70 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#002855] dark:text-blue-300 group-hover:text-red-700">
                     <span>Explorar Plana Docente</span>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>

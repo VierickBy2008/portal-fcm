@@ -39,7 +39,7 @@ export function ContactoView({
         <section className="lg:col-span-5 space-y-4">
           <span
             className={`text-xs font-bold uppercase tracking-wider ${
-              esAcademico ? "text-cyan-700 dark:text-cyan-400" : "text-red-700"
+              esAcademico ? "text-[#8B1515] dark:text-amber-400" : "text-red-700"
             }`}
           >
             {esHarvard
@@ -88,7 +88,7 @@ export function ContactoView({
                   esHarvard
                     ? "rounded-none border-l-4 border-l-[#8B1515] harvard-card-gpu"
                     : esAcademico
-                    ? "rounded-xl border-l-4 border-l-cyan-500 gpu-card"
+                    ? "rounded-xl border-l-4 border-l-[#8B1515] gpu-card"
                     : "rounded-2xl gpu-card"
                 }`}
               >

@@ -2619,7 +2619,7 @@ export default function PortalFacultadCienciasMatematicas() {
           disenoPortadaActivo === "harvard_editorial"
             ? "bg-[#8B1515] border-[#5c0d0d]"
             : disenoPortadaActivo === "academico_moderno"
-            ? "bg-[#030d1d] border-cyan-900"
+            ? "bg-[#001833] border-[#8B1515]/60"
             : "bg-red-700 border-red-800"
         }`}
       >
@@ -2643,7 +2643,7 @@ export default function PortalFacultadCienciasMatematicas() {
           disenoPortadaActivo === "harvard_editorial"
             ? "bg-[#001a38] border-b-4 border-[#8B1515]"
             : disenoPortadaActivo === "academico_moderno"
-            ? "bg-[#041024] border-b-4 border-cyan-500"
+            ? "bg-[#002855] border-b-4 border-[#8B1515]"
             : "bg-[#002855] border-b border-blue-950"
         }`}
       >
@@ -2661,14 +2661,14 @@ export default function PortalFacultadCienciasMatematicas() {
                     disenoPortadaActivo === "harvard_editorial" ? "font-harvard-serif" : ""
                   }`}
                 >
-                  FCM <span className={disenoPortadaActivo === "academico_moderno" ? "text-cyan-400" : "text-red-400"}>UNMSM</span>
+                  FCM <span className="text-red-400">UNMSM</span>
                 </span>
                 <span
                   className={`hidden xl:inline-block text-[10px] font-bold uppercase px-2 py-0.5 text-white ${
                     disenoPortadaActivo === "harvard_editorial"
                       ? "bg-[#8B1515] rounded-none tracking-wider"
                       : disenoPortadaActivo === "academico_moderno"
-                      ? "bg-cyan-600 rounded-md tracking-wider"
+                      ? "bg-[#8B1515] rounded-md tracking-wider border border-amber-400/30"
                       : "bg-red-700 rounded"
                   }`}
                 >

@@ -115,6 +115,10 @@ export function AdminHeroTab({
     hero_overlay_color:
       heroConfigAcademico?.hero_overlay_color ||
       HERO_CONFIG_ACADEMICO_INICIAL.hero_overlay_color,
+    color_acento_principal:
+      heroConfigAcademico?.color_acento_principal ||
+      HERO_CONFIG_ACADEMICO_INICIAL.color_acento_principal ||
+      "#8B1515",
     etiqueta_campus:
       heroConfigAcademico?.etiqueta_campus ||
       HERO_CONFIG_ACADEMICO_INICIAL.etiqueta_campus,
@@ -124,6 +128,57 @@ export function AdminHeroTab({
     descripcion_campus:
       heroConfigAcademico?.descripcion_campus ||
       HERO_CONFIG_ACADEMICO_INICIAL.descripcion_campus,
+    titulo_tablero:
+      heroConfigAcademico?.titulo_tablero ||
+      HERO_CONFIG_ACADEMICO_INICIAL.titulo_tablero ||
+      "Indicadores Académicos FCM",
+    estado_tablero:
+      heroConfigAcademico?.estado_tablero ||
+      HERO_CONFIG_ACADEMICO_INICIAL.estado_tablero ||
+      "EN VIVO • 2026",
+    metricas_personalizadas:
+      heroConfigAcademico?.metricas_personalizadas ||
+      HERO_CONFIG_ACADEMICO_INICIAL.metricas_personalizadas,
+    metrica_1_valor:
+      heroConfigAcademico?.metrica_1_valor ||
+      heroConfigAcademico?.metricas_personalizadas?.[0]?.valor ||
+      HERO_CONFIG_ACADEMICO_INICIAL.metrica_1_valor ||
+      "04",
+    metrica_1_label:
+      heroConfigAcademico?.metrica_1_label ||
+      heroConfigAcademico?.metricas_personalizadas?.[0]?.label ||
+      HERO_CONFIG_ACADEMICO_INICIAL.metrica_1_label ||
+      "Escuelas de Pregrado",
+    metrica_2_valor:
+      heroConfigAcademico?.metrica_2_valor ||
+      heroConfigAcademico?.metricas_personalizadas?.[1]?.valor ||
+      HERO_CONFIG_ACADEMICO_INICIAL.metrica_2_valor ||
+      "10",
+    metrica_2_label:
+      heroConfigAcademico?.metrica_2_label ||
+      heroConfigAcademico?.metricas_personalizadas?.[1]?.label ||
+      HERO_CONFIG_ACADEMICO_INICIAL.metrica_2_label ||
+      "Ciclos por Carrera",
+    metrica_3_valor:
+      heroConfigAcademico?.metrica_3_valor ||
+      heroConfigAcademico?.metricas_personalizadas?.[2]?.valor ||
+      HERO_CONFIG_ACADEMICO_INICIAL.metrica_3_valor ||
+      "65+",
+    metrica_3_label:
+      heroConfigAcademico?.metrica_3_label ||
+      heroConfigAcademico?.metricas_personalizadas?.[2]?.label ||
+      HERO_CONFIG_ACADEMICO_INICIAL.metrica_3_label ||
+      "Catedráticos & RENACYT",
+    metrica_4_valor:
+      heroConfigAcademico?.metrica_4_valor ||
+      heroConfigAcademico?.metricas_personalizadas?.[3]?.valor ||
+      HERO_CONFIG_ACADEMICO_INICIAL.metrica_4_valor ||
+      "120+",
+    metrica_4_label:
+      heroConfigAcademico?.metrica_4_label ||
+      heroConfigAcademico?.metricas_personalizadas?.[3]?.label ||
+      HERO_CONFIG_ACADEMICO_INICIAL.metrica_4_label ||
+      "Sílabos y Libros PDF",
   }));
 
   useEffect(() => {
@@ -177,11 +232,11 @@ export function AdminHeroTab({
           onClick={() => setModoEditor("academico_moderno")}
           className={`gpu-btn py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
             modoEditor === "academico_moderno"
-              ? "bg-cyan-700 text-white shadow-md"
+              ? "bg-gradient-to-r from-[#002855] to-[#8B1515] text-white shadow-md"
               : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           }`}
         >
-          <GraduationCap className="w-4 h-4 text-cyan-200 shrink-0" />
+          <GraduationCap className="w-4 h-4 text-amber-300 shrink-0" />
           <span className="truncate">Campus Académico</span>
         </button>
       </div>
@@ -193,7 +248,7 @@ export function AdminHeroTab({
               <Sparkles className="w-3.5 h-3.5 text-sky-500" />
               Editando configuración exclusiva de: <strong>Diseño Bento Grid FCM 2026</strong>
             </span>
-            <span className="text-[10px] font-mono text-slate-500">Independiente de Harvard</span>
+            <span className="text-[10px] font-mono text-slate-500">Independiente</span>
           </div>
 
           {/* Vista Previa en Tiempo Real - BENTO */}
@@ -636,19 +691,19 @@ export function AdminHeroTab({
         </div>
       ) : (
         <div className="space-y-4 layout-switch-gpu">
-          <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-cyan-50/80 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-900/60 text-[11px]">
-            <span className="font-bold text-cyan-800 dark:text-cyan-300 flex items-center gap-1.5">
-              <GraduationCap className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+          <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-[11px]">
+            <span className="font-bold text-[#002855] dark:text-blue-200 flex items-center gap-1.5">
+              <GraduationCap className="w-3.5 h-3.5 text-[#8B1515] dark:text-amber-400" />
               Editando configuración exclusiva de:{" "}
-              <strong>Campus Académico Moderno</strong>
+              <strong>Campus Académico Moderno (Paleta Oficial San Marcos)</strong>
             </span>
-            <span className="text-[10px] font-mono text-slate-500">Independiente</span>
+            <span className="text-[10px] font-mono text-slate-500">100% Editable</span>
           </div>
 
           {/* Vista Previa en Tiempo Real - CAMPUS ACADÉMICO MODERNO */}
           <div
-            className="relative h-44 rounded-2xl border-2 border-cyan-500/60 overflow-hidden transition-colors"
-            style={{ backgroundColor: formAcademico.hero_overlay_color || "#06152d" }}
+            className="relative h-48 rounded-2xl border-2 border-[#002855] dark:border-blue-800 border-t-4 border-t-[#8B1515] overflow-hidden transition-colors"
+            style={{ backgroundColor: formAcademico.hero_overlay_color || "#001833" }}
           >
             <img
               src={formAcademico.hero_bg_url || HERO_CONFIG_ACADEMICO_INICIAL.hero_bg_url}
@@ -659,24 +714,67 @@ export function AdminHeroTab({
             <div
               className="absolute inset-0 transition-all duration-200"
               style={{
-                backgroundColor: formAcademico.hero_overlay_color || "#06152d",
+                backgroundColor: formAcademico.hero_overlay_color || "#001833",
                 opacity: Math.min(0.95, Math.max(0.2, formAcademico.hero_overlay_opacity / 100)),
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#041024]/90 via-[#002855]/65 to-slate-950/75 flex flex-col justify-center p-4 text-left text-white">
-              <span className="text-[9px] font-mono uppercase tracking-widest text-cyan-300 mb-1 truncate">
-                {formAcademico.etiqueta_campus}
-              </span>
-              <span className="text-sm sm:text-base font-extrabold text-white leading-snug line-clamp-2">
-                {formAcademico.titulo_principal}
-              </span>
-              <span className="text-[10px] text-slate-200 line-clamp-1 mt-1">
-                {formAcademico.descripcion_campus}
-              </span>
-              <span className="mt-2 self-start px-2.5 py-0.5 bg-black/60 text-[9px] font-mono text-cyan-200 border border-cyan-400/30 rounded">
-                Campus Académico • Blur: {formAcademico.hero_blur}px • Opacidad:{" "}
-                {formAcademico.hero_overlay_opacity}%
-              </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#001833]/92 via-[#002855]/75 to-slate-950/85 grid grid-cols-1 sm:grid-cols-12 items-center gap-3 p-4 text-left text-white">
+              <div className="sm:col-span-7 flex flex-col justify-center">
+                <span
+                  className="inline-block self-start px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider text-white mb-1 truncate"
+                  style={{
+                    backgroundColor: formAcademico.color_acento_principal || "#8B1515",
+                  }}
+                >
+                  {formAcademico.etiqueta_campus}
+                </span>
+                <span className="text-sm sm:text-base font-extrabold text-white leading-snug line-clamp-2">
+                  {formAcademico.titulo_principal}
+                </span>
+                <span className="text-[10px] text-slate-200 line-clamp-1 mt-1">
+                  {formAcademico.descripcion_campus}
+                </span>
+                <span className="mt-2 self-start px-2.5 py-0.5 bg-black/60 text-[9px] font-mono text-amber-300 border border-amber-400/30 rounded">
+                  San Marcos • Blur: {formAcademico.hero_blur}px • Opacidad:{" "}
+                  {formAcademico.hero_overlay_opacity}%
+                </span>
+              </div>
+
+              {/* Mini preview de las 4 métricas editables */}
+              <div className="hidden sm:grid sm:col-span-5 grid-cols-2 gap-1.5 bg-slate-950/75 p-2 rounded-xl border border-white/15">
+                <div className="p-1.5 rounded bg-blue-950/60 border border-blue-500/30">
+                  <span className="block text-xs font-black text-white">
+                    {formAcademico.metrica_1_valor || "04"}
+                  </span>
+                  <span className="block text-[8px] text-blue-200 truncate">
+                    {formAcademico.metrica_1_label || "Escuelas"}
+                  </span>
+                </div>
+                <div className="p-1.5 rounded bg-rose-950/60 border border-red-500/30">
+                  <span className="block text-xs font-black text-white">
+                    {formAcademico.metrica_2_valor || "10"}
+                  </span>
+                  <span className="block text-[8px] text-rose-200 truncate">
+                    {formAcademico.metrica_2_label || "Ciclos"}
+                  </span>
+                </div>
+                <div className="p-1.5 rounded bg-amber-950/60 border border-amber-500/30">
+                  <span className="block text-xs font-black text-white">
+                    {formAcademico.metrica_3_valor || "65+"}
+                  </span>
+                  <span className="block text-[8px] text-amber-200 truncate">
+                    {formAcademico.metrica_3_label || "Catedráticos"}
+                  </span>
+                </div>
+                <div className="p-1.5 rounded bg-emerald-950/60 border border-emerald-500/30">
+                  <span className="block text-xs font-black text-white">
+                    {formAcademico.metrica_4_valor || "120+"}
+                  </span>
+                  <span className="block text-[8px] text-emerald-200 truncate">
+                    {formAcademico.metrica_4_label || "Sílabos PDF"}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -691,7 +789,7 @@ export function AdminHeroTab({
                 onChange={(e) =>
                   setFormAcademico((p) => ({ ...p, etiqueta_campus: e.target.value }))
                 }
-                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-cyan-600"
+                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-[#002855]"
               />
             </div>
             <div className="space-y-1">
@@ -705,7 +803,7 @@ export function AdminHeroTab({
                   setFormAcademico((p) => ({ ...p, hero_bg_url: e.target.value }))
                 }
                 placeholder="https://..."
-                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-cyan-600"
+                className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-[#002855]"
               />
             </div>
           </div>
@@ -720,7 +818,7 @@ export function AdminHeroTab({
               onChange={(e) =>
                 setFormAcademico((p) => ({ ...p, titulo_principal: e.target.value }))
               }
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-cyan-600"
+              className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-[#002855]"
             />
           </div>
 
@@ -734,17 +832,170 @@ export function AdminHeroTab({
               onChange={(e) =>
                 setFormAcademico((p) => ({ ...p, descripcion_campus: e.target.value }))
               }
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-cyan-600"
+              className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 text-xs focus:outline-none focus:border-[#002855]"
             />
+          </div>
+
+          {/* Editor de las 4 Métricas del Tablero Lateral en Vivo */}
+          <div className="space-y-3 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+              <span className="text-xs font-extrabold text-[#002855] dark:text-amber-300">
+                📊 Tablero Lateral de Indicadores (4 Métricas Editables):
+              </span>
+              <span className="text-[10px] font-mono text-slate-500">
+                Colores de las 4 Escuelas FCM
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                  Título del Tablero:
+                </label>
+                <input
+                  type="text"
+                  value={formAcademico.titulo_tablero || ""}
+                  onChange={(e) =>
+                    setFormAcademico((p) => ({ ...p, titulo_tablero: e.target.value }))
+                  }
+                  placeholder="Indicadores Académicos FCM"
+                  className="w-full mt-0.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-1.5 text-xs"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                  Insignia Estado en Vivo:
+                </label>
+                <input
+                  type="text"
+                  value={formAcademico.estado_tablero || ""}
+                  onChange={(e) =>
+                    setFormAcademico((p) => ({ ...p, estado_tablero: e.target.value }))
+                  }
+                  placeholder="EN VIVO • 2026"
+                  className="w-full mt-0.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white px-2.5 py-1.5 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Métrica 1 - Azul Computación */}
+              <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 space-y-1.5">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300 block">
+                  Métrica 1 (Azul Computación)
+                </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <input
+                    type="text"
+                    value={formAcademico.metrica_1_valor || ""}
+                    onChange={(e) =>
+                      setFormAcademico((p) => ({ ...p, metrica_1_valor: e.target.value }))
+                    }
+                    placeholder="04"
+                    className="col-span-1 rounded-lg bg-white dark:bg-slate-900 border border-blue-300 dark:border-blue-800 px-2 py-1 text-xs font-extrabold text-slate-900 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    value={formAcademico.metrica_1_label || ""}
+                    onChange={(e) =>
+                      setFormAcademico((p) => ({ ...p, metrica_1_label: e.target.value }))
+                    }
+                    placeholder="Escuelas de Pregrado"
+                    className="col-span-2 rounded-lg bg-white dark:bg-slate-900 border border-blue-300 dark:border-blue-800 px-2 py-1 text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Métrica 2 - Granate Matemática */}
+              <div className="p-2.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 space-y-1.5">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#8B1515] dark:text-rose-300 block">
+                  Métrica 2 (Granate Matemática)
+                </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <input
+                    type="text"
+                    value={formAcademico.metrica_2_valor || ""}
+                    onChange={(e) =>
+                      setFormAcademico((p) => ({ ...p, metrica_2_valor: e.target.value }))
+                    }
+                    placeholder="10"
+                    className="col-span-1 rounded-lg bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-800 px-2 py-1 text-xs font-extrabold text-slate-900 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    value={formAcademico.metrica_2_label || ""}
+                    onChange={(e) =>
+                      setFormAcademico((p) => ({ ...p, metrica_2_label: e.target.value }))
+                    }
+                    placeholder="Ciclos por Carrera"
+                    className="col-span-2 rounded-lg bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-800 px-2 py-1 text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Métrica 3 - Dorado / Ámbar Estadística */}
+              <div className="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 space-y-1.5">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-300 block">
+                  Métrica 3 (Dorado / Ámbar)
+                </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <input
+                    type="text"
+                    value={formAcademico.metrica_3_valor || ""}
+                    onChange={(e) =>
+                      setFormAcademico((p) => ({ ...p, metrica_3_valor: e.target.value }))
+                    }
+                    placeholder="65+"
+                    className="col-span-1 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-800 px-2 py-1 text-xs font-extrabold text-slate-900 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    value={formAcademico.metrica_3_label || ""}
+                    onChange={(e) =>
+                      setFormAcademico((p) => ({ ...p, metrica_3_label: e.target.value }))
+                    }
+                    placeholder="Catedráticos & RENACYT"
+                    className="col-span-2 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-800 px-2 py-1 text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Métrica 4 - Esmeralda Investigación Operativa */}
+              <div className="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 space-y-1.5">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block">
+                  Métrica 4 (Esmeralda I.O.)
+                </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <input
+                    type="text"
+                    value={formAcademico.metrica_4_valor || ""}
+                    onChange={(e) =>
+                      setFormAcademico((p) => ({ ...p, metrica_4_valor: e.target.value }))
+                    }
+                    placeholder="120+"
+                    className="col-span-1 rounded-lg bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-800 px-2 py-1 text-xs font-extrabold text-slate-900 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    value={formAcademico.metrica_4_label || ""}
+                    onChange={(e) =>
+                      setFormAcademico((p) => ({ ...p, metrica_4_label: e.target.value }))
+                    }
+                    placeholder="Sílabos y Libros PDF"
+                    className="col-span-2 rounded-lg bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-800 px-2 py-1 text-xs text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-cyan-800 dark:text-cyan-300">
+                <span className="font-bold text-[#002855] dark:text-blue-300">
                   1. Difuminado (Blur Campus):
                 </span>
-                <span className="px-2 py-0.5 rounded bg-cyan-700 text-white font-mono text-[11px] font-bold">
+                <span className="px-2 py-0.5 rounded bg-[#002855] text-white font-mono text-[11px] font-bold">
                   {formAcademico.hero_blur} px
                 </span>
               </div>
@@ -757,16 +1008,16 @@ export function AdminHeroTab({
                 onChange={(e) =>
                   setFormAcademico((p) => ({ ...p, hero_blur: Number(e.target.value) }))
                 }
-                className="w-full accent-cyan-600 cursor-pointer"
+                className="w-full accent-[#002855] cursor-pointer"
               />
             </div>
 
             <div className="space-y-1.5 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-cyan-800 dark:text-cyan-300">
+                <span className="font-bold text-[#8B1515] dark:text-rose-300">
                   2. Opacidad Capa Campus:
                 </span>
-                <span className="px-2 py-0.5 rounded bg-[#002855] text-white font-mono text-[11px] font-bold">
+                <span className="px-2 py-0.5 rounded bg-[#8B1515] text-white font-mono text-[11px] font-bold">
                   {formAcademico.hero_overlay_opacity}%
                 </span>
               </div>
@@ -782,8 +1033,99 @@ export function AdminHeroTab({
                     hero_overlay_opacity: Number(e.target.value),
                   }))
                 }
-                className="w-full accent-[#002855] cursor-pointer"
+                className="w-full accent-[#8B1515] cursor-pointer"
               />
+            </div>
+          </div>
+
+          {/* Color de Capa y Color de Acento Institucional */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-[#002855] dark:text-blue-300">
+                  3. Color de Capa (Overlay):
+                </span>
+                <input
+                  type="color"
+                  value={formAcademico.hero_overlay_color}
+                  onChange={(e) =>
+                    setFormAcademico((p) => ({ ...p, hero_overlay_color: e.target.value }))
+                  }
+                  className="w-8 h-6 rounded cursor-pointer border border-slate-300"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {[
+                  { label: "Ébano Marino (#001833)", hex: "#001833" },
+                  { label: "Azul FCM (#002855)", hex: "#002855" },
+                  { label: "Granate (#8B1515)", hex: "#8B1515" },
+                  { label: "Pizarra (#0f172a)", hex: "#0f172a" },
+                ].map((preset) => (
+                  <button
+                    key={preset.hex}
+                    type="button"
+                    onClick={() =>
+                      setFormAcademico((p) => ({ ...p, hero_overlay_color: preset.hex }))
+                    }
+                    className={`px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 border cursor-pointer ${
+                      formAcademico.hero_overlay_color.toLowerCase() ===
+                      preset.hex.toLowerCase()
+                        ? "border-[#002855] bg-blue-50 dark:bg-blue-950 text-[#002855] dark:text-blue-300"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300"
+                    }`}
+                  >
+                    <span
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{ backgroundColor: preset.hex }}
+                    />
+                    <span className="truncate">{preset.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-[#8B1515] dark:text-amber-300">
+                  4. Color de Acento Principal:
+                </span>
+                <span
+                  className="w-5 h-5 rounded-full border border-white shadow-xs"
+                  style={{
+                    backgroundColor: formAcademico.color_acento_principal || "#8B1515",
+                  }}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-1.5">
+                {[
+                  { label: "Granate Crimson Sanmarquino (#8B1515)", hex: "#8B1515" },
+                  { label: "Azul Marino Institucional (#002855)", hex: "#002855" },
+                  { label: "Dorado / Ámbar Decanal (#D97706)", hex: "#D97706" },
+                ].map((acento) => (
+                  <button
+                    key={acento.hex}
+                    type="button"
+                    onClick={() =>
+                      setFormAcademico((p) => ({
+                        ...p,
+                        color_acento_principal: acento.hex,
+                      }))
+                    }
+                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-2 border cursor-pointer ${
+                      (formAcademico.color_acento_principal || "#8B1515").toLowerCase() ===
+                      acento.hex.toLowerCase()
+                        ? "border-[#8B1515] bg-rose-50 dark:bg-rose-950 text-[#8B1515] dark:text-amber-300"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300"
+                    }`}
+                  >
+                    <span
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{ backgroundColor: acento.hex }}
+                    />
+                    <span className="truncate">{acento.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -791,12 +1133,34 @@ export function AdminHeroTab({
             <button
               type="button"
               onClick={async () => {
+                const payload: HeroAcademicoConfig = {
+                  ...formAcademico,
+                  metricas_personalizadas: [
+                    {
+                      valor: formAcademico.metrica_1_valor || "04",
+                      label: formAcademico.metrica_1_label || "Escuelas de Pregrado",
+                    },
+                    {
+                      valor: formAcademico.metrica_2_valor || "10",
+                      label: formAcademico.metrica_2_label || "Ciclos por Carrera",
+                    },
+                    {
+                      valor: formAcademico.metrica_3_valor || "65+",
+                      label: formAcademico.metrica_3_label || "Catedráticos & RENACYT",
+                    },
+                    {
+                      valor: formAcademico.metrica_4_valor || "120+",
+                      label: formAcademico.metrica_4_label || "Sílabos y Libros PDF",
+                    },
+                  ],
+                };
+                setFormAcademico(payload);
                 if (onGuardarHeroAcademico) {
-                  await onGuardarHeroAcademico(formAcademico);
+                  await onGuardarHeroAcademico(payload);
                 }
                 if (onSaveDone) onSaveDone();
               }}
-              className="gpu-btn flex-1 py-2.5 rounded-xl bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold cursor-pointer shadow-xs transition-colors"
+              className="gpu-btn flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#002855] to-[#8B1515] hover:opacity-95 text-white text-xs font-bold cursor-pointer shadow-xs transition-all"
             >
               🎓 Guardar Hero Campus Académico Moderno
             </button>
@@ -832,10 +1196,10 @@ export function AdminHeroTab({
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
             <div>
               <h3 className="font-bold text-base text-[#002855] dark:text-white">
-                🖼️ Editor Independiente de Portada y Carrusel (Bento vs. Harvard)
+                🖼️ Editor Independiente de Portada y Carrusel (3 Diseños)
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Cada diseño conserva su propio fondo, desenfoque, opacidad y textos sin afectar al otro.
+                Cada diseño conserva su propio fondo, desenfoque, opacidad, métricas y textos sin afectar a los demás.
               </p>
             </div>
             <button
@@ -856,10 +1220,10 @@ export function AdminHeroTab({
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
       <div className="border-b border-slate-200 dark:border-slate-800 pb-2.5">
         <h3 className="font-bold text-sm text-[#002855] dark:text-white">
-          🖼️ Editor Independiente de Portada y Carrusel (Bento vs. Harvard)
+          🖼️ Editor Independiente de Portada y Carrusel (Bento / Harvard / Campus Académico)
         </h3>
         <p className="text-[11px] text-slate-500 dark:text-slate-400">
-          Personaliza por separado el Hero de Bento Grid o el Banner Editorial de Harvard.
+          Personaliza por separado el Hero de Bento Grid, el Banner Editorial de Harvard o el Campus Académico Moderno.
         </p>
       </div>
       {renderControls()}

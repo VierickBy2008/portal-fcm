@@ -89,7 +89,7 @@ export function TransparenciaView({
           esHarvard
             ? "rounded-none bg-gradient-to-r from-[#8B1515] via-[#2b070c] to-[#002855] border-t-4 border-amber-400 border-b-4 border-b-[#8B1515]"
             : esAcademico
-            ? "rounded-2xl bg-gradient-to-r from-[#041024] via-[#002855] to-cyan-950 border-l-4 border-l-cyan-400 border-b-4 border-b-cyan-500"
+            ? "rounded-2xl bg-gradient-to-r from-[#001833] via-[#002855] to-[#4d0713] border-l-4 border-l-amber-400 border-b-4 border-b-[#8B1515]"
             : "rounded-3xl bg-gradient-to-r from-[#002855] via-[#001c3d] to-[#4d0713] border-b-4 border-red-700"
         }`}
       >
