@@ -55,6 +55,7 @@ export function AsistenteVirtualIA({
 }: AsistenteVirtualIAProps) {
   const [abierto, setAbierto] = useState(false);
   const [inputPregunta, setInputPregunta] = useState("");
+  const [pensando, setPensando] = useState(false);
   const [mensajes, setMensajes] = useState<MensajeChat[]>([
     {
       id: "msg-welcome",
@@ -183,9 +184,9 @@ export function AsistenteVirtualIA({
     };
   };
 
-  const enviarConsulta = (textoPregunta: string) => {
+  const enviarConsulta = async (textoPregunta: string) => {
     const limpia = textoPregunta.trim();
-    if (!limpia) return;
+    if (!limpia || pensando) return;
 
     const userMsg: MensajeChat = {
       id: `usr-${Date.now()}`,
@@ -195,7 +196,39 @@ export function AsistenteVirtualIA({
 
     setMensajes((prev) => [...prev, userMsg]);
     setInputPregunta("");
+    setPensando(true);
 
+    try {
+      // 1. Intentar responder vía backend seguro con Google Gemini (opción 2)
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mensaje: limpia,
+          historial: mensajes.slice(-4).map((m) => ({ emisor: m.emisor, texto: m.texto })),
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.ok && typeof data.texto === "string" && data.texto.trim()) {
+          const botMsg: MensajeChat = {
+            id: `bot-${Date.now()}`,
+            emisor: "bot",
+            texto: data.texto,
+            carreraAccion: data.carreraAccion,
+          };
+          setMensajes((prev) => [...prev, botMsg]);
+          setPensando(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn("Fallo en conexión con Gemini API, usando motor de respaldo local:", err);
+    }
+
+    // 2. Respaldo Inteligente Automático (Cero caídas):
+    // Si la API no tiene clave o no responde, responde de inmediato con el motor local
     setTimeout(() => {
       const respuesta = generarRespuestaInteligente(limpia);
       const botMsg: MensajeChat = {
@@ -204,7 +237,8 @@ export function AsistenteVirtualIA({
         ...respuesta,
       };
       setMensajes((prev) => [...prev, botMsg]);
-    }, 380);
+      setPensando(false);
+    }, 300);
   };
 
   return (
@@ -300,6 +334,22 @@ export function AsistenteVirtualIA({
                 </div>
               </div>
             ))}
+
+            {pensando && (
+              <div className="flex flex-col items-start animate-fade-in">
+                <div className="rounded-2xl px-3.5 py-2 text-xs bg-white text-slate-800 border border-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700 rounded-bl-xs shadow-2xs flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-spin" />
+                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                    Consultando a la IA...
+                  </span>
+                  <span className="inline-flex gap-1 ml-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </span>
+                </div>
+              </div>
+            )}
             <div ref={chatEndRef} />
           </div>
 
@@ -310,8 +360,9 @@ export function AsistenteVirtualIA({
                 <button
                   key={idx}
                   type="button"
+                  disabled={pensando}
                   onClick={() => enviarConsulta(preg)}
-                  className="shrink-0 px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-[10px] font-bold transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-blue-600 dark:text-blue-300 dark:border-slate-700"
+                  className="shrink-0 px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-[10px] font-bold transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-blue-600 dark:text-blue-300 dark:border-slate-700 disabled:opacity-50"
                 >
                   {preg}
                 </button>
@@ -331,12 +382,14 @@ export function AsistenteVirtualIA({
               type="text"
               value={inputPregunta}
               onChange={(e) => setInputPregunta(e.target.value)}
-              placeholder="Pregunta sobre matrícula, cursos, docentes..."
-              className="flex-1 rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#002855] dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:border-blue-400"
+              disabled={pensando}
+              placeholder={pensando ? "Esperando respuesta de la IA..." : "Pregunta sobre matrícula, cursos, docentes..."}
+              className="flex-1 rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#002855] dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:border-blue-400 disabled:opacity-60"
             />
             <button
               type="submit"
-              className="gpu-btn p-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white cursor-pointer shadow-2xs"
+              disabled={pensando || !inputPregunta.trim()}
+              className="gpu-btn p-2.5 rounded-xl bg-[#002855] hover:bg-blue-900 text-white cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed"
               title="Enviar consulta"
             >
               <Send className="w-3.5 h-3.5" />
