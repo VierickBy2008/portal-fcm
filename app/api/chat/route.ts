@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
 interface MensajeHistorial {
   emisor: "bot" | "usuario";
@@ -10,10 +9,6 @@ interface ChatRequestBody {
   mensaje?: string;
   historial?: MensajeHistorial[];
 }
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cbtwoflmrbkxtpxzdsvu.supabase.co";
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabaseServer = SUPABASE_KEY ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 const SYSTEM_INSTRUCTION_FCM = `
 Eres el "Asistente Virtual Inteligente" del Portal Oficial de la Facultad de Ciencias Matemáticas (FCM) de la Universidad Nacional Mayor de San Marcos (UNMSM) — Decana de América, Lima, Perú.
@@ -69,37 +64,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let apiKey = (process.env.GEMINI_API_KEY || "").trim();
+    const apiKey = (process.env.GEMINI_API_KEY || "").trim();
 
-    // Si no está en el entorno del servidor, consultar en la base de datos segura de Supabase
-    if (!apiKey && supabaseServer) {
-      try {
-        const { data } = await supabaseServer
-          .from("portal_config")
-          .select("storage_data")
-          .eq("id", 1)
-          .maybeSingle();
-
-        if (Array.isArray(data?.storage_data)) {
-          const cfg = data.storage_data.find(
-            (item: { id?: string; gemini_api_key?: string }) =>
-              item && item.id === "__fcm_gemini_config__" && typeof item.gemini_api_key === "string"
-          );
-          if (cfg?.gemini_api_key) {
-            apiKey = cfg.gemini_api_key.trim();
-          }
-        }
-      } catch {
-        // Fallback silencioso
-      }
-    }
-
-    // Si no hay API key disponible, devolvemos fallback para que el cliente use su motor local
+    // Si no hay API key disponible en las variables de entorno, devolvemos fallback para que el cliente use su motor local
     if (!apiKey) {
       return NextResponse.json({
         ok: false,
         fallback: true,
-        motivo: "GEMINI_API_KEY no configurada",
+        motivo: "GEMINI_API_KEY no configurada en variables de entorno del servidor.",
       });
     }
 

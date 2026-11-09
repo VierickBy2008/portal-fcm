@@ -228,6 +228,7 @@ export function proxy(req: NextRequest) {
   // 5. REGLA RATE-LIMITING: Adaptativo según el Modo de Seguridad del WAF
   const authLimit = activeMode === "under_attack" ? 3 : activeMode === "strict" ? 5 : 8;
   const syncLimit = activeMode === "under_attack" ? 15 : activeMode === "strict" ? 25 : 40;
+  const chatLimit = activeMode === "under_attack" ? 6 : activeMode === "strict" ? 12 : 25;
 
   if (pathname === "/api/admin/auth" && req.method === "POST") {
     const { allowed, remaining, resetSeconds } = checkRateLimit(`auth_${ip}`, authLimit, 60000);
@@ -253,6 +254,23 @@ export function proxy(req: NextRequest) {
         ip,
         threatType: "RateLimit",
         reason: `Límite de sincronización excedido (${syncLimit}/min). Modo WAF: ${activeMode}.`,
+        path: pathname,
+        userAgent,
+        action: "rate_limited",
+        status: 429,
+      });
+    }
+    void remaining;
+    void resetSeconds;
+  }
+
+  if (pathname === "/api/chat" && req.method === "POST") {
+    const { allowed, remaining, resetSeconds } = checkRateLimit(`chat_${ip}`, chatLimit, 60000);
+    if (!allowed) {
+      return responderBloqueoWaf(req, {
+        ip,
+        threatType: "RateLimit",
+        reason: `Límite de consultas al Asistente IA excedido (${chatLimit}/min). Modo WAF: ${activeMode}.`,
         path: pathname,
         userAgent,
         action: "rate_limited",

@@ -27,25 +27,34 @@ function obtenerIpCliente(req: NextRequest): string {
 }
 
 function getAdminPassword(): string {
-  return (
-    process.env.ADMIN_MASTER_PASSWORD ||
-    process.env.NEXT_PUBLIC_ADMIN_PASSWORD ||
-    "FCM_Unmsm$2026#Admin!94xK"
-  ).trim();
+  const secret = process.env.ADMIN_MASTER_PASSWORD?.trim();
+  if (secret) return secret;
+  if (process.env.NODE_ENV !== "production") {
+    return "fcm_admin_local_dev_2026";
+  }
+  return "";
 }
 
 function getSigningSecret(): string {
-  return (
-    process.env.ADMIN_SESSION_SECRET ||
-    `fcm-unmsm-hmac-secret-2026-${getAdminPassword()}`
-  );
+  const secret = process.env.ADMIN_SESSION_SECRET?.trim();
+  if (secret) return secret;
+  const adminPass = getAdminPassword();
+  if (adminPass) {
+    return `fcm-unmsm-hmac-secret-2026-${adminPass}`;
+  }
+  if (process.env.NODE_ENV !== "production") {
+    return "fcm_dev_hmac_secret_2026";
+  }
+  return "";
 }
 
 export function createAdminToken(): string {
+  const secret = getSigningSecret();
+  if (!secret) return "";
   const exp = Date.now() + SESSION_TTL_SECONDS * 1000;
   const payload = `admin:${exp}`;
   const sig = crypto
-    .createHmac("sha256", getSigningSecret())
+    .createHmac("sha256", secret)
     .update(payload)
     .digest("hex");
   return `${payload}.${sig}`;
@@ -53,6 +62,8 @@ export function createAdminToken(): string {
 
 export function verifyAdminToken(token: string | undefined): boolean {
   if (!token) return false;
+  const secret = getSigningSecret();
+  if (!secret) return false;
   const parts = token.split(".");
   if (parts.length !== 2) return false;
   const [payload, sig] = parts;
@@ -61,7 +72,7 @@ export function verifyAdminToken(token: string | undefined): boolean {
   if (!exp || Number.isNaN(exp) || Date.now() > exp) return false;
 
   const expectedSig = crypto
-    .createHmac("sha256", getSigningSecret())
+    .createHmac("sha256", secret)
     .update(payload)
     .digest("hex");
 
@@ -128,6 +139,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const entered = typeof body?.password === "string" ? body.password.trim() : "";
     const expected = getAdminPassword();
+
+    if (!expected) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "El servidor requiere configurar la variable de entorno ADMIN_MASTER_PASSWORD en el proveedor de despliegue (Vercel).",
+        },
+        { status: 500 }
+      );
+    }
 
     const enteredHash = crypto.createHash("sha256").update(entered).digest();
     const expectedHash = crypto.createHash("sha256").update(expected).digest();

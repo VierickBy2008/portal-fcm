@@ -1032,7 +1032,7 @@ export default function PortalFacultadCienciasMatematicas() {
       if (cambios.hero_config_academico) window.localStorage.setItem("fcm_hero_config_academico", JSON.stringify(cambios.hero_config_academico));
     }
 
-    // 1. Intento por Servidor Seguro (Route Handler /api/admin/sync con RLS y Service Role)
+    // Sincronización exclusiva por Servidor Seguro (Route Handler /api/admin/sync con cookie HMAC y RLS)
     try {
       const res = await fetch("/api/admin/sync", {
         method: "POST",
@@ -1041,59 +1041,9 @@ export default function PortalFacultadCienciasMatematicas() {
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.ok) return true;
+        return Boolean(data.ok);
       }
-    } catch {
-      // Continúa al respaldo directo de cliente
-    }
-
-    // 2. Respaldo directo en cliente Supabase
-    try {
-      const { error } = await supabase.from("portal_config").upsert(
-        { id: 1, ...cambios, updated_at: new Date().toISOString() },
-        { onConflict: "id" }
-      );
-      if (error) {
-        // Fallback seguro si alguna columna nueva aún no existe en el esquema SQL de portal_config
-        const {
-          hero_blur,
-          hero_overlay_opacity,
-          hero_overlay_color,
-          orgullo_data,
-          transparencia_data,
-          calendario_data,
-          asistente_ia_data,
-          accesibilidad_data,
-          tipografia_activa,
-          diseno_portada_activo,
-          hero_config_bento,
-          hero_config_harvard,
-          hero_config_academico,
-          ...resto
-        } = cambios;
-        void transparencia_data;
-        void calendario_data;
-        void asistente_ia_data;
-        void accesibilidad_data;
-        void tipografia_activa;
-        void diseno_portada_activo;
-        void hero_config_bento;
-        void hero_config_harvard;
-        void hero_config_academico;
-        void hero_blur;
-        void hero_overlay_opacity;
-        void hero_overlay_color;
-        void orgullo_data;
-        if (Object.keys(resto).length > 0) {
-          const { error: retryErr } = await supabase.from("portal_config").upsert(
-            { id: 1, ...resto, updated_at: new Date().toISOString() },
-            { onConflict: "id" }
-          );
-          return !retryErr;
-        }
-        return false;
-      }
-      return true;
+      return false;
     } catch {
       return false;
     }
@@ -2525,17 +2475,7 @@ export default function PortalFacultadCienciasMatematicas() {
         setErrorPin(data?.error || "Contraseña maestra incorrecta.");
       }
     } catch {
-      const clientSecret = (
-        process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "FCM_Unmsm$2026#Admin!94xK"
-      ).trim();
-      if (entered === clientSecret) {
-        setAdminAutenticado(true);
-        setErrorPin("");
-        setPinAdmin("");
-        lanzarToast("🔓 Sesión de Administrador iniciada.");
-      } else {
-        setErrorPin("Error de conexión al verificar con el servidor.");
-      }
+      setErrorPin("Error de conexión al verificar con el servidor de autenticación.");
     } finally {
       setCargandoAuthAdmin(false);
     }
