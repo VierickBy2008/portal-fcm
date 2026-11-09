@@ -94,39 +94,53 @@ export async function POST(req: NextRequest) {
       parts: [{ text: mensaje }],
     });
 
-    // Llamada oficial a Google Gemini REST API (gemini-1.5-flash / gemini-2.0-flash)
-    const urlGemini = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Lista de modelos de alta velocidad soportados en orden de prioridad
+    const modelosParaProbar = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-1.5-flash"];
+    interface GeminiResponse {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    }
+    let dataGoogle: GeminiResponse | null = null;
+    let modeloExitoso = "";
 
-    const respuestaGoogle = await fetch(urlGemini, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: SYSTEM_INSTRUCTION_FCM }],
-        },
-        contents,
-        generationConfig: {
-          temperature: 0.35,
-          maxOutputTokens: 550,
-          topP: 0.9,
-        },
-      }),
-    });
+    for (const model of modelosParaProbar) {
+      try {
+        const urlGemini = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const resG = await fetch(urlGemini, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION_FCM }] },
+            contents,
+            generationConfig: {
+              temperature: 0.35,
+              maxOutputTokens: 550,
+              topP: 0.9,
+            },
+          }),
+        });
 
-    if (!respuestaGoogle.ok) {
-      const errTexto = await respuestaGoogle.text().catch(() => "");
-      console.warn("Fallo en la llamada a Gemini API:", respuestaGoogle.status, errTexto);
+        if (resG.ok) {
+          const parsed = (await resG.json()) as GeminiResponse;
+          if (parsed?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            dataGoogle = parsed;
+            modeloExitoso = model;
+            break;
+          }
+        }
+      } catch {
+        // Continuar al siguiente modelo
+      }
+    }
+
+    if (!dataGoogle || !dataGoogle.candidates?.[0]) {
       return NextResponse.json({
         ok: false,
         fallback: true,
-        statusGoogle: respuestaGoogle.status,
+        motivo: "Modelos no respondieron, usando motor local",
       });
     }
 
-    const dataGoogle = await respuestaGoogle.json();
-    const candidato = dataGoogle?.candidates?.[0];
+    const candidato = dataGoogle.candidates[0];
     const textoRespuesta: string | undefined = candidato?.content?.parts?.[0]?.text;
 
     if (!textoRespuesta) {
@@ -154,7 +168,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       texto: textoRespuesta.trim(),
       carreraAccion,
-      fuente: "gemini-1.5-flash",
+      fuente: modeloExitoso || "gemini",
     });
   } catch (error) {
     console.error("Error en endpoint /api/chat:", error);
