@@ -36,6 +36,7 @@ import {
   HeroAcademicoConfig,
   HeroBentoConfig,
   HeroHarvardConfig,
+  TutoriasIAConfig,
 } from "@/app/types/portal";
 import {
   Facebook,
@@ -71,6 +72,7 @@ import {
   HERO_CONFIG_ACADEMICO_INICIAL,
   HERO_CONFIG_BENTO_INICIAL,
   HERO_CONFIG_HARVARD_INICIAL,
+  TUTORIAS_IA_INICIAL,
 } from "@/app/data/portalExtrasData";
 import { AccesibilidadWidget } from "@/app/components/ui/AccesibilidadWidget";
 import { AsistenteVirtualIA } from "@/app/components/ui/AsistenteVirtualIA";
@@ -103,6 +105,8 @@ import { AdminStorageTab } from "@/app/components/admin/AdminStorageTab";
 import { AdminTicketsTab } from "@/app/components/admin/AdminTicketsTab";
 import { AdminFirewallTab } from "@/app/components/admin/AdminFirewallTab";
 import { AdminAparienciaSelector } from "@/app/components/admin/AdminAparienciaSelector";
+import { TutoriasView } from "@/app/components/views/TutoriasView";
+import { AdminTutoriasIATab } from "@/app/components/admin/AdminTutoriasIATab";
 
 export default function PortalFacultadCienciasMatematicas() {
   const [vistaActual, setVistaActual] = useState<VistaPortal>("/");
@@ -150,10 +154,12 @@ export default function PortalFacultadCienciasMatematicas() {
   const [asistenteConfig, setAsistenteConfig] = useState<AsistenteIAConfig>(ASISTENTE_IA_INICIAL);
   const [accesibilidadConfig, setAccesibilidadConfig] = useState<AccesibilidadConfig>(ACCESIBILIDAD_INICIAL);
   const [tipografiaActiva, setTipografiaActiva] = useState<TipografiaPortalId>("inter");
-  const [disenoPortadaActivo, setDisenoPortadaActivo] = useState<DisenoPortadaId>("bento_moderno");
+  const [disenoPortadaActivo, setDisenoPortadaActivo] = useState<DisenoPortadaId>("academico_moderno");
   const [heroConfigBento, setHeroConfigBento] = useState<HeroBentoConfig>(HERO_CONFIG_BENTO_INICIAL);
   const [heroConfigHarvard, setHeroConfigHarvard] = useState<HeroHarvardConfig>(HERO_CONFIG_HARVARD_INICIAL);
   const [heroConfigAcademico, setHeroConfigAcademico] = useState<HeroAcademicoConfig>(HERO_CONFIG_ACADEMICO_INICIAL);
+  const [tutoriasConfig, setTutoriasConfig] = useState<TutoriasIAConfig>(TUTORIAS_IA_INICIAL);
+  const [modoSimuladorTutorias, setModoSimuladorTutorias] = useState<boolean>(false);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -486,6 +492,10 @@ export default function PortalFacultadCienciasMatematicas() {
       setVistaActual("/contacto");
       return;
     }
+    if (hash === "/tutorias" || hash.startsWith("/tutorias")) {
+      setVistaActual("/tutorias");
+      return;
+    }
     if (hash === "/admin") {
       setVistaActual("/admin");
       return;
@@ -530,6 +540,8 @@ export default function PortalFacultadCienciasMatematicas() {
           nuevoHash = "#/noticias";
         } else if (nuevaVista === "/orgullo") {
           nuevoHash = "#/orgullo";
+        } else if (nuevaVista === "/tutorias") {
+          nuevoHash = "#/tutorias";
         } else if (nuevaVista === "/docentes") {
           const escId = params?.docenteCarrera || filtroDocenteCarrera;
           nuevoHash = escId && escId !== "TODAS" ? `#/docentes/${escId}` : "#/docentes";
@@ -669,9 +681,12 @@ export default function PortalFacultadCienciasMatematicas() {
             try {
               const parsedAcc = JSON.parse(localAccesibilidad);
               if (parsedAcc && typeof parsedAcc.habilitado === "boolean") {
-                setAccesibilidadConfig(parsedAcc);
+                setAccesibilidadConfig({ ...parsedAcc, diseno_portada_activo: "academico_moderno" });
                 if (parsedAcc.tipografia_activa) setTipografiaActiva(parsedAcc.tipografia_activa);
-                if (parsedAcc.diseno_portada_activo) setDisenoPortadaActivo(parsedAcc.diseno_portada_activo);
+                setDisenoPortadaActivo("academico_moderno");
+                if (parsedAcc.tutorias_ia_config && Array.isArray(parsedAcc.tutorias_ia_config.disponibilidades)) {
+                  setTutoriasConfig(parsedAcc.tutorias_ia_config);
+                }
                 if (parsedAcc.hero_config_bento && parsedAcc.hero_config_bento.hero_bg_url) {
                   setHeroConfigBento(parsedAcc.hero_config_bento);
                 }
@@ -719,14 +734,16 @@ export default function PortalFacultadCienciasMatematicas() {
           ) {
             setTipografiaActiva(localTipografia);
           }
-          const localDisenoPortada = window.localStorage.getItem("fcm_diseno_portada_activo") as DisenoPortadaId | null;
-          if (
-            localDisenoPortada &&
-            ["bento_moderno", "harvard_editorial", "academico_moderno"].includes(localDisenoPortada) &&
-            activo
-          ) {
-            setDisenoPortadaActivo(localDisenoPortada);
+          const localTutoriasIA = window.localStorage.getItem("fcm_tutorias_ia_data");
+          if (localTutoriasIA && activo) {
+            try {
+              const parsedTut = JSON.parse(localTutoriasIA);
+              if (parsedTut && Array.isArray(parsedTut.disponibilidades)) {
+                setTutoriasConfig(parsedTut);
+              }
+            } catch {}
           }
+          setDisenoPortadaActivo("academico_moderno");
           if (localNoticias && activo) {
             const parsed = JSON.parse(localNoticias);
             if (Array.isArray(parsed) && parsed.length > 0) setNoticias(parsed);
@@ -858,8 +875,16 @@ export default function PortalFacultadCienciasMatematicas() {
           }
 
           if (data.accesibilidad_data && typeof data.accesibilidad_data.habilitado === "boolean") {
-            setAccesibilidadConfig(data.accesibilidad_data);
+            setAccesibilidadConfig({ ...data.accesibilidad_data, diseno_portada_activo: "academico_moderno" });
             if (typeof window !== "undefined") window.localStorage.setItem("fcm_accesibilidad_data", JSON.stringify(data.accesibilidad_data));
+            if (
+              data.accesibilidad_data.tutorias_ia_config &&
+              Array.isArray(data.accesibilidad_data.tutorias_ia_config.disponibilidades)
+            ) {
+              setTutoriasConfig(data.accesibilidad_data.tutorias_ia_config);
+              if (typeof window !== "undefined")
+                window.localStorage.setItem("fcm_tutorias_ia_data", JSON.stringify(data.accesibilidad_data.tutorias_ia_config));
+            }
             if (
               data.accesibilidad_data.tipografia_activa &&
               ["inter", "merriweather", "outfit", "atkinson"].includes(data.accesibilidad_data.tipografia_activa)
@@ -868,14 +893,7 @@ export default function PortalFacultadCienciasMatematicas() {
               if (typeof window !== "undefined")
                 window.localStorage.setItem("fcm_tipografia_activa", data.accesibilidad_data.tipografia_activa);
             }
-            if (
-              data.accesibilidad_data.diseno_portada_activo &&
-              ["bento_moderno", "harvard_editorial", "academico_moderno"].includes(data.accesibilidad_data.diseno_portada_activo)
-            ) {
-              setDisenoPortadaActivo(data.accesibilidad_data.diseno_portada_activo);
-              if (typeof window !== "undefined")
-                window.localStorage.setItem("fcm_diseno_portada_activo", data.accesibilidad_data.diseno_portada_activo);
-            }
+            setDisenoPortadaActivo("academico_moderno");
           } else if (Array.isArray(data.storage_data)) {
             const metaAcc = data.storage_data.find((x: { id?: string; accesibilidad_config?: AccesibilidadConfig }) => x && x.id === "__fcm_accesibilidad_config__");
             if (metaAcc?.accesibilidad_config && typeof metaAcc.accesibilidad_config.habilitado === "boolean") {
@@ -893,14 +911,7 @@ export default function PortalFacultadCienciasMatematicas() {
               window.localStorage.setItem("fcm_tipografia_activa", data.tipografia_activa);
           }
 
-          if (
-            typeof data.diseno_portada_activo === "string" &&
-            ["bento_moderno", "harvard_editorial", "academico_moderno"].includes(data.diseno_portada_activo)
-          ) {
-            setDisenoPortadaActivo(data.diseno_portada_activo as DisenoPortadaId);
-            if (typeof window !== "undefined")
-              window.localStorage.setItem("fcm_diseno_portada_activo", data.diseno_portada_activo);
-          }
+          setDisenoPortadaActivo("academico_moderno");
 
           const remoteHeroBento =
             data.hero_config_bento || data.accesibilidad_data?.hero_config_bento;
@@ -2584,20 +2595,37 @@ export default function PortalFacultadCienciasMatematicas() {
   };
 
   const handleRestaurarAparienciaOriginal = async () => {
-    setDisenoPortadaActivo("bento_moderno");
+    setDisenoPortadaActivo("academico_moderno");
     setTipografiaActiva("inter");
     const nuevaAcc: AccesibilidadConfig = {
       ...accesibilidadConfig,
-      diseno_portada_activo: "bento_moderno",
+      diseno_portada_activo: "academico_moderno",
       tipografia_activa: "inter",
     };
     setAccesibilidadConfig(nuevaAcc);
     await sincronizarPortalConfigSupabase({
-      diseno_portada_activo: "bento_moderno",
+      diseno_portada_activo: "academico_moderno",
       tipografia_activa: "inter",
       accesibilidad_data: nuevaAcc,
     });
-    lanzarToast("🔄 Diseño original Bento Grid FCM 2026 y fuente Inter restaurados al 100%.");
+    lanzarToast("🔄 Diseño oficial Campus Académico Moderno y fuente Inter restaurados al 100%.");
+  };
+
+  const handleGuardarTutoriasConfig = async (nuevoTutorias: TutoriasIAConfig) => {
+    setTutoriasConfig(nuevoTutorias);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("fcm_tutorias_ia_data", JSON.stringify(nuevoTutorias));
+    }
+    const nuevaAcc: AccesibilidadConfig = {
+      ...accesibilidadConfig,
+      diseno_portada_activo: "academico_moderno",
+      tutorias_ia_config: nuevoTutorias,
+    };
+    setAccesibilidadConfig(nuevaAcc);
+    await sincronizarPortalConfigSupabase({
+      diseno_portada_activo: "academico_moderno",
+      accesibilidad_data: nuevaAcc,
+    });
   };
 
   return (
@@ -2871,6 +2899,34 @@ export default function PortalFacultadCienciasMatematicas() {
                       <span className="text-[10px] font-mono text-red-300">FCM • UNMSM</span>
                     </div>
                     <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs max-h-[78vh] overflow-y-auto">
+                      {/* PROYECTO DESTACADO: SISTEMA AUTOMATIZADO DE TUTORÍAS CON IA */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDropdownServicioAbierto(false);
+                          navegar("/tutorias");
+                        }}
+                        className="w-full px-4 py-3.5 text-left bg-gradient-to-r from-amber-50/90 via-white to-rose-50/50 dark:from-slate-800/90 dark:via-slate-900 dark:to-slate-800/90 hover:from-amber-100/80 dark:hover:from-slate-800 flex items-center justify-between group cursor-pointer transition-all border-l-4 border-[#8B1515]"
+                      >
+                        <div className="space-y-0.5 pr-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded-full bg-[#002855] text-amber-300 text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1">
+                              <Sparkles className="w-2.5 h-2.5" /> Tutorías con IA
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-[#8B1515] dark:text-rose-300 text-[9px] font-bold">
+                              {tutoriasConfig.acceso_publico_habilitado ? "Piloto Activo" : "Acceso Restringido"}
+                            </span>
+                          </div>
+                          <p className="font-extrabold text-[#002855] dark:text-white group-hover:text-[#8B1515] dark:group-hover:text-amber-300 pt-0.5">
+                            Sistema Automatizado de Tutorías Académicas (IA)
+                          </p>
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                            Organización automática de horarios y profesores (@unmsm.edu.pe)
+                          </p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-[#8B1515] dark:text-amber-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                      </button>
+
                       {[
                         {
                           nombre: "CERSEU",
@@ -3209,6 +3265,26 @@ export default function PortalFacultadCienciasMatematicas() {
 
               <button
                 onClick={() => {
+                  navegar("/tutorias");
+                  setMenuMovilAbierto(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center justify-between ${
+                  vistaActual === "/tutorias"
+                    ? "bg-white text-[#002855] shadow-sm"
+                    : "bg-amber-500/15 text-amber-200 border border-amber-400/30 hover:bg-amber-500/25"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Sistema de Tutorías con IA (Servicio Estudiante)</span>
+                </span>
+                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#8B1515] text-white">
+                  IA
+                </span>
+              </button>
+
+              <button
+                onClick={() => {
                   navegar("/transparencia");
                   setMenuMovilAbierto(false);
                 }}
@@ -3481,6 +3557,25 @@ export default function PortalFacultadCienciasMatematicas() {
         />
       )}
 
+      {vistaActual === "/tutorias" && (
+        <TutoriasView
+          tutoriasConfig={tutoriasConfig}
+          onGuardarTutoriasConfig={handleGuardarTutoriasConfig}
+          carreras={carreras}
+          malla={malla}
+          docentes={docentes}
+          adminAutenticado={adminAutenticado}
+          modoSimuladorAdmin={modoSimuladorTutorias}
+          setModoSimuladorAdmin={setModoSimuladorTutorias}
+          onVolverInicio={() => navegar("/")}
+          onIrAdminTutorias={() => {
+            setTabAdmin("tutorias_ia_cms");
+            navegar("/admin");
+          }}
+          lanzarToast={lanzarToast}
+        />
+      )}
+
       {/* VISTA E: PANEL DE ADMINISTRACIÓN CMS MODULARIZADO (/admin) - PILAR 2 */}
       {vistaActual === "/admin" && (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 view-transition-gpu">
@@ -3604,6 +3699,23 @@ export default function PortalFacultadCienciasMatematicas() {
                   adminFiltroCarreraMalla={adminFiltroCarreraMalla}
                   setAdminFiltroCarreraMalla={setAdminFiltroCarreraMalla}
                   onActualizarCarreraCompleta={handleActualizarCarreraCompleta}
+                />
+              )}
+
+              {tabAdmin === "tutorias_ia_cms" && (
+                <AdminTutoriasIATab
+                  tutoriasConfig={tutoriasConfig}
+                  onGuardarTutoriasConfig={handleGuardarTutoriasConfig}
+                  docentes={docentes}
+                  onAbrirSimuladorEstudiante={() => {
+                    setModoSimuladorTutorias(true);
+                    navegar("/tutorias");
+                  }}
+                  onVerVistaPublicaBloqueada={() => {
+                    setModoSimuladorTutorias(false);
+                    navegar("/tutorias");
+                  }}
+                  lanzarToast={lanzarToast}
                 />
               )}
 

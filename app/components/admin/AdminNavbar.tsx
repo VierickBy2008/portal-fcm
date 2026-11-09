@@ -5,6 +5,7 @@ import { Lock } from "lucide-react";
 
 export type AdminTabId =
   | "dashboard"
+  | "tutorias_ia_cms"
   | "firewall"
   | "carreras_cms"
   | "calendario_cms"
@@ -54,8 +55,9 @@ export function AdminNavbar({
 }: AdminNavbarProps) {
   const tabs: { id: AdminTabId; label: string }[] = [
     { id: "dashboard", label: "📊 Resumen" },
+    { id: "tutorias_ia_cms", label: "🧠 Tutorías IA (Servicio Estudiante)" },
     { id: "firewall", label: "🛡️ Cortafuegos WAF" },
-    { id: "carreras_cms", label: "🏛️ Carreras & Bento" },
+    { id: "carreras_cms", label: "🏛️ Carreras & Portada" },
     { id: "calendario_cms", label: `📅 Calendario 2026 (${calendarioCount})` },
     { id: "asistente_ia_cms", label: `🤖 Asistente IA (${asistenteFaqsCount})` },
     { id: "arquitectura_3a_cms", label: "♿ Accesibilidad & DB 3A" },
@@ -105,6 +107,17 @@ export function AdminNavbar({
 
       {tabAdmin === "dashboard" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 view-transition-gpu">
+          <div
+            onClick={() => setTabAdmin("tutorias_ia_cms")}
+            className="gpu-card rounded-2xl border-2 border-amber-400/80 dark:border-amber-500/60 bg-gradient-to-br from-amber-50/70 to-white dark:from-slate-900 dark:to-slate-900 p-5 cursor-pointer hover:border-[#8B1515] dark:hover:border-amber-400 transition-all shadow-xs"
+          >
+            <p className="text-xs text-[#8B1515] dark:text-amber-400 font-extrabold uppercase">
+              🧠 Tutorías Académicas con IA
+            </p>
+            <p className="text-2xl font-bold text-[#002855] dark:text-white mt-2">
+              Simulador & Horarios
+            </p>
+          </div>
           <div
             onClick={() => setTabAdmin("carreras_cms")}
             className="gpu-card rounded-2xl border-2 border-blue-200 dark:border-blue-900/60 bg-white dark:bg-slate-900 p-5 cursor-pointer hover:border-[#002855] dark:hover:border-blue-400 transition-all"

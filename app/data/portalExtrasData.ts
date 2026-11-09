@@ -6,6 +6,7 @@ import {
   HeroBentoConfig,
   HeroHarvardConfig,
   HeroAcademicoConfig,
+  TutoriasIAConfig,
 } from "@/app/types/portal";
 import { HERO_BG_DEFAULT } from "@/app/data/portalInitialData";
 
@@ -459,6 +460,199 @@ export const ASISTENTE_IA_INICIAL: AsistenteIAConfig = {
   ],
 };
 
+export const TUTORIAS_IA_INICIAL: TutoriasIAConfig = {
+  acceso_publico_habilitado: false,
+  mensaje_restriccion:
+    "El Sistema Automatizado de Tutorías Académicas con IA se encuentra en fase de integración y homologación oficial con la base de datos de matrículas del Sistema Único de Matrícula (SUM) y los registros de carga lectiva del Decanato de la FCM. Una vez habilitado, el ingreso será exclusivo con correo institucional (@unmsm.edu.pe).",
+  semestre_activo: "2026-I",
+  requiere_correo_institucional: true,
+  dominio_autorizado: "@unmsm.edu.pe",
+  disponibilidades: [
+    {
+      docente_id: "doc-cc-1",
+      habilitado_tutoria: true,
+      cupos_semanales: 6,
+      temas_especialidad: [
+        "Inteligencia Artificial",
+        "Análisis Numérico y HPC",
+        "Algoritmos Paralelos y C++",
+      ],
+      franjas: [
+        {
+          id: "fr-cc1-1",
+          dia: "Lunes",
+          hora_inicio: "10:00",
+          hora_fin: "12:00",
+          modalidad: "Presencial (Cubículo FCM)",
+          ubicacion_detalle: "Cubículo Docente 204 - 2.º Piso Pabellón FCM",
+        },
+        {
+          id: "fr-cc1-2",
+          dia: "Miércoles",
+          hora_inicio: "14:00",
+          hora_fin: "16:00",
+          modalidad: "Virtual (Google Meet)",
+          ubicacion_detalle: "Sala Institucional Google Meet (UNMSM)",
+        },
+      ],
+    },
+    {
+      docente_id: "doc-cc-2",
+      habilitado_tutoria: true,
+      cupos_semanales: 5,
+      temas_especialidad: [
+        "Estructuras Discretas y Grafos",
+        "Ingeniería de Software Científico",
+        "Ciberseguridad y Criptografía",
+      ],
+      franjas: [
+        {
+          id: "fr-cc2-1",
+          dia: "Martes",
+          hora_inicio: "10:00",
+          hora_fin: "12:00",
+          modalidad: "Virtual (Google Meet)",
+          ubicacion_detalle: "Sala Institucional Google Meet (UNMSM)",
+        },
+        {
+          id: "fr-cc2-2",
+          dia: "Jueves",
+          hora_inicio: "16:00",
+          hora_fin: "18:00",
+          modalidad: "Presencial (Cubículo FCM)",
+          ubicacion_detalle: "Laboratorio SECOMAT / Cubículo 208 FCM",
+        },
+      ],
+    },
+    {
+      docente_id: "doc-mat-1",
+      habilitado_tutoria: true,
+      cupos_semanales: 6,
+      temas_especialidad: [
+        "Análisis Real y Funcional",
+        "Ecuaciones Diferenciales Parciales",
+        "Topología y Medida de Lebesgue",
+      ],
+      franjas: [
+        {
+          id: "fr-mat1-1",
+          dia: "Lunes",
+          hora_inicio: "14:00",
+          hora_fin: "16:00",
+          modalidad: "Presencial (Cubículo FCM)",
+          ubicacion_detalle: "Cubículo de Investigación Matemática 302 - FCM",
+        },
+        {
+          id: "fr-mat1-2",
+          dia: "Viernes",
+          hora_inicio: "10:00",
+          hora_fin: "12:00",
+          modalidad: "Virtual (Google Meet)",
+          ubicacion_detalle: "Sala Institucional Google Meet (UNMSM)",
+        },
+      ],
+    },
+    {
+      docente_id: "doc-est-1",
+      habilitado_tutoria: true,
+      cupos_semanales: 5,
+      temas_especialidad: [
+        "Inferencia Estadística Paramétrica",
+        "Modelos Lineales y Ciencia de Datos en R/Python",
+        "Bioestadística y Muestreo",
+      ],
+      franjas: [
+        {
+          id: "fr-est1-1",
+          dia: "Miércoles",
+          hora_inicio: "10:00",
+          hora_fin: "12:00",
+          modalidad: "Presencial (Cubículo FCM)",
+          ubicacion_detalle: "Departamento de Estadística - Cubículo 212 FCM",
+        },
+        {
+          id: "fr-est1-2",
+          dia: "Jueves",
+          hora_inicio: "14:00",
+          hora_fin: "16:00",
+          modalidad: "Virtual (Google Meet)",
+          ubicacion_detalle: "Sala Institucional Google Meet (UNMSM)",
+        },
+      ],
+    },
+    {
+      docente_id: "doc-io-1",
+      habilitado_tutoria: true,
+      cupos_semanales: 6,
+      temas_especialidad: [
+        "Programación Lineal y Entera (Gurobi / Pyomo)",
+        "Optimización de Redes y Logística",
+        "Procesos Estocásticos y Simulación",
+      ],
+      franjas: [
+        {
+          id: "fr-io1-1",
+          dia: "Martes",
+          hora_inicio: "14:00",
+          hora_fin: "16:00",
+          modalidad: "Presencial (Cubículo FCM)",
+          ubicacion_detalle: "Departamento de Investigación Operativa - Cubículo 115 FCM",
+        },
+        {
+          id: "fr-io1-2",
+          dia: "Viernes",
+          hora_inicio: "16:00",
+          hora_fin: "18:00",
+          modalidad: "Virtual (Google Meet)",
+          ubicacion_detalle: "Sala Institucional Google Meet (UNMSM)",
+        },
+      ],
+    },
+  ],
+  solicitudes: [
+    {
+      id: "tut-2026-001",
+      estudiante_nombre: "Sebastián Borja Ramos",
+      estudiante_correo: "sebastian.borja@unmsm.edu.pe",
+      codigo_estudiante: "22140145",
+      carrera_id: "computacion-cientifica",
+      ciclo: 5,
+      curso_id: "cc-301",
+      curso_nombre: "ANÁLISIS NUMÉRICO I",
+      docente_id: "doc-cc-1",
+      docente_nombre: "Dr. Alfonso Pérez Salvatierra",
+      dia: "Miércoles",
+      bloque_horario: "14:00 - 16:00",
+      modalidad: "Virtual (Google Meet)",
+      motivo_consulta:
+        "Revisión de estabilidad numérica en métodos iterativos de Jacobi y Gauss-Seidel para matrices dispersas.",
+      estado: "confirmada",
+      fecha_solicitud: "2026-03-18",
+      puntaje_match_ia: 98,
+    },
+    {
+      id: "tut-2026-002",
+      estudiante_nombre: "Valeria Quispe Mendoza",
+      estudiante_correo: "valeria.quispe2@unmsm.edu.pe",
+      codigo_estudiante: "23140082",
+      carrera_id: "matematica",
+      ciclo: 5,
+      curso_id: "mat-502",
+      curso_nombre: "ANÁLISIS REAL II",
+      docente_id: "doc-mat-1",
+      docente_nombre: "Dr. Eugenio Cabanillas Lapa",
+      dia: "Lunes",
+      bloque_horario: "14:00 - 16:00",
+      modalidad: "Presencial (Cubículo FCM)",
+      motivo_consulta:
+        "Asesoría sobre el Teorema de Convergencia Dominada de Lebesgue y espacios Lp.",
+      estado: "pendiente",
+      fecha_solicitud: "2026-03-19",
+      puntaje_match_ia: 96,
+    },
+  ],
+};
+
 export const ACCESIBILIDAD_INICIAL: AccesibilidadConfig = {
   habilitado: true,
   mostrar_lector_voz: true,
@@ -468,8 +662,9 @@ export const ACCESIBILIDAD_INICIAL: AccesibilidadConfig = {
   texto_lectura_institucional:
     "Bienvenido al Portal Oficial de la Facultad de Ciencias Matemáticas de la Universidad Nacional Mayor de San Marcos. Aquí encontrarás las cuatro escuelas profesionales: Matemática, Estadística, Investigación Operativa y Computación Científica, además del Régimen Semestral 2026-I y 2026-II, directorio docente, repositorio académico y portal de transparencia.",
   tipografia_activa: "inter",
-  diseno_portada_activo: "bento_moderno",
+  diseno_portada_activo: "academico_moderno",
   hero_config_bento: HERO_CONFIG_BENTO_INICIAL,
   hero_config_harvard: HERO_CONFIG_HARVARD_INICIAL,
   hero_config_academico: HERO_CONFIG_ACADEMICO_INICIAL,
+  tutorias_ia_config: TUTORIAS_IA_INICIAL,
 };

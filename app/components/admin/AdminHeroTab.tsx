@@ -57,7 +57,7 @@ export function AdminHeroTab({
   heroOverlayColor,
   setHeroOverlayColor,
   handleUsarComoFondoHero,
-  disenoPortadaActivo = "bento_moderno",
+  disenoPortadaActivo = "academico_moderno",
   heroConfigBento,
   heroConfigHarvard,
   heroConfigAcademico,
@@ -68,10 +68,10 @@ export function AdminHeroTab({
   modalHeroFondoAbierto = false,
   setModalHeroFondoAbierto,
 }: AdminHeroTabProps) {
-  const [modoEditor, setModoEditor] = useState<DisenoPortadaId>(disenoPortadaActivo);
+  const [modoEditor, setModoEditor] = useState<DisenoPortadaId>("academico_moderno");
 
   useEffect(() => {
-    setModoEditor(disenoPortadaActivo);
+    setModoEditor("academico_moderno");
   }, [disenoPortadaActivo]);
 
   const [formBento, setFormBento] = useState<HeroBentoConfig>(() => ({
@@ -207,44 +207,22 @@ export function AdminHeroTab({
 
   const renderControls = (onSaveDone?: () => void) => (
     <div className="space-y-4">
-      {/* Conmutador de Edición Independiente por Diseño (3 Arquitecturas) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-        <button
-          type="button"
-          onClick={() => setModoEditor("bento_moderno")}
-          className={`gpu-btn py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            modoEditor === "bento_moderno"
-              ? "bg-[#002855] text-white shadow-md"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-          }`}
-        >
-          <LayoutGrid className="w-4 h-4 text-sky-300 shrink-0" />
-          <span className="truncate">Hero Bento Moderno</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setModoEditor("harvard_editorial")}
-          className={`gpu-btn py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            modoEditor === "harvard_editorial"
-              ? "bg-[#8B1515] text-white shadow-md"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-          }`}
-        >
-          <BookOpen className="w-4 h-4 text-amber-300 shrink-0" />
-          <span className="truncate">Banner Editorial Harvard</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setModoEditor("academico_moderno")}
-          className={`gpu-btn py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            modoEditor === "academico_moderno"
-              ? "bg-gradient-to-r from-[#002855] to-[#8B1515] text-white shadow-md"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-          }`}
-        >
-          <GraduationCap className="w-4 h-4 text-amber-300 shrink-0" />
-          <span className="truncate">Campus Académico</span>
-        </button>
+      {/* Cabecera de Edición Oficial: Campus Académico Moderno (Definitivo) */}
+      <div className="p-3 rounded-2xl bg-gradient-to-r from-[#002855] via-[#001833] to-[#8B1515] text-white border border-amber-400/30 flex items-center justify-between gap-3 shadow-sm">
+        <div className="flex items-center gap-2.5">
+          <GraduationCap className="w-5 h-5 text-amber-300 shrink-0" />
+          <div>
+            <span className="text-xs font-extrabold tracking-wide block">
+              Arquitectura Definitiva Activa: Campus Académico Moderno FCM
+            </span>
+            <span className="text-[10px] text-blue-100/90 block">
+              Edita el Hero, las 4 métricas oficiales y la jerarquía de Noticias en Portada
+            </span>
+          </div>
+        </div>
+        <span className="px-2.5 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-[10px] font-extrabold uppercase tracking-wider shrink-0">
+          Diseño Único Oficial
+        </span>
       </div>
 
       {modoEditor === "bento_moderno" ? (

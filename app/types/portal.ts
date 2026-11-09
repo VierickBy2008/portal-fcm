@@ -25,7 +25,8 @@ export type VistaPortal =
   | "/docentes"
   | "/noticias"
   | "/orgullo"
-  | "/transparencia";
+  | "/transparencia"
+  | "/tutorias";
 
 export type TipoArchivo = "PDF" | "Examen" | "Apunte" | "Codigo" | "Video" | "Silabo";
 export type EstadoMaterial = "pendiente" | "aprobado" | "rechazado";
@@ -236,6 +237,62 @@ export interface AccesibilidadConfig {
   hero_config_bento?: HeroBentoConfig;
   hero_config_harvard?: HeroHarvardConfig;
   hero_config_academico?: HeroAcademicoConfig;
+  tutorias_ia_config?: TutoriasIAConfig;
+}
+
+export type DiaSemanaTutoria =
+  | "Lunes"
+  | "Martes"
+  | "Miércoles"
+  | "Jueves"
+  | "Viernes"
+  | "Sábado";
+
+export interface FranjaHorariaTutoria {
+  id: string;
+  dia: DiaSemanaTutoria;
+  hora_inicio: string;
+  hora_fin: string;
+  modalidad: "Virtual (Google Meet)" | "Presencial (Cubículo FCM)";
+  ubicacion_detalle: string;
+}
+
+export interface DisponibilidadDocenteTutoria {
+  docente_id: string;
+  habilitado_tutoria: boolean;
+  cupos_semanales: number;
+  franjas: FranjaHorariaTutoria[];
+  temas_especialidad: string[];
+}
+
+export interface SolicitudTutoria {
+  id: string;
+  estudiante_nombre: string;
+  estudiante_correo: string;
+  codigo_estudiante: string;
+  carrera_id: CarreraId;
+  ciclo: number;
+  curso_id: string;
+  curso_nombre: string;
+  docente_id: string;
+  docente_nombre: string;
+  dia: DiaSemanaTutoria;
+  bloque_horario: string;
+  modalidad: "Virtual (Google Meet)" | "Presencial (Cubículo FCM)";
+  motivo_consulta: string;
+  estado: "pendiente" | "confirmada" | "completada" | "reprogramada";
+  fecha_solicitud: string;
+  puntaje_match_ia: number;
+}
+
+export interface TutoriasIAConfig {
+  acceso_publico_habilitado: boolean;
+  mensaje_restriccion: string;
+  semestre_activo: string;
+  requiere_correo_institucional: boolean;
+  dominio_autorizado: string;
+  disponibilidades: DisponibilidadDocenteTutoria[];
+  solicitudes: SolicitudTutoria[];
 }
 
 export interface CursoMalla {

@@ -71,16 +71,9 @@ export interface HomeViewProps {
 }
 
 export function HomeView(props: HomeViewProps) {
-  const layoutKey = props.disenoPortadaActivo || "bento_moderno";
   return (
-    <div key={layoutKey} className="layout-switch-gpu flex-1 flex flex-col w-full">
-      {layoutKey === "harvard_editorial" ? (
-        <HomeViewHarvard {...props} />
-      ) : layoutKey === "academico_moderno" ? (
-        <HomeViewAcademico {...props} />
-      ) : (
-        <HomeViewBento {...props} />
-      )}
+    <div className="layout-switch-gpu flex-1 flex flex-col w-full">
+      <HomeViewAcademico {...props} />
     </div>
   );
 }

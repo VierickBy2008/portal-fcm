@@ -122,16 +122,13 @@ const CATALOGO_TIPOGRAFIAS: Array<{
 ];
 
 export function AdminAparienciaSelector({
-  disenoPortadaActivo,
   tipografiaActiva,
-  onCambiarDiseno,
   onCambiarTipografia,
   onRestaurarOriginal,
   onIrAPortada,
   onAbrirEditorHero,
 }: AdminAparienciaSelectorProps) {
-  const esOriginal =
-    disenoPortadaActivo === "bento_moderno" && tipografiaActiva === "inter";
+  const esOriginal = tipografiaActiva === "inter";
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
@@ -139,15 +136,15 @@ export function AdminAparienciaSelector({
       <div className="bg-gradient-to-r from-[#002855] via-[#001d3d] to-[#8B1515] p-6 sm:p-7 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-300 text-[11px] font-extrabold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> Design System Global & Carrusel Independiente
+            <Sparkles className="w-3.5 h-3.5" /> Design System Oficial Unificado FCM 2026
           </div>
           <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-            Conmutador Global de Diseño (Todas las Vistas) y Tipografía
+            Arquitectura Oficial &ldquo;Campus Académico Moderno&rdquo; y Tipografía
           </h3>
           <p className="text-xs sm:text-sm text-blue-100/90 mt-1 max-w-3xl">
-            El diseño elegido transforma <strong>todas las secciones del portal</strong> (Portada,
-            Carreras, Docentes, Repositorio, Noticias, Orgullo, Transparencia y Contacto). Además,
-            cada diseño cuenta con su propio editor independiente de carrusel/portada.
+            El portal se encuentra <strong>consolidado de forma definitiva</strong> bajo el diseño{" "}
+            <strong>Campus Académico Moderno</strong>, fusionando el prestigio académico sanmarquino
+            con la identidad cromática de sus 4 Escuelas Profesionales.
           </p>
         </div>
 
@@ -156,10 +153,10 @@ export function AdminAparienciaSelector({
             <button
               type="button"
               onClick={onAbrirEditorHero}
-              className="gpu-btn px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+              className="gpu-btn px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-md"
             >
-              <Sliders className="w-4 h-4 text-sky-300" />
-              Editar Carrusel (Bento / Harvard)
+              <Sliders className="w-4 h-4 text-slate-950" />
+              Editar Hero, Métricas y Noticias en Portada
             </button>
           )}
           {onIrAPortada && (
@@ -179,207 +176,84 @@ export function AdminAparienciaSelector({
             className={`px-4 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition ${
               esOriginal
                 ? "bg-white/10 text-white/50 border border-white/10 cursor-not-allowed"
-                : "bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md cursor-pointer"
+                : "bg-white/20 hover:bg-white/30 text-white shadow-md cursor-pointer"
             }`}
-            title="Restaura el diseño Bento Grid FCM 2026 y la fuente Inter original"
+            title="Restaura la fuente Inter institucional por defecto"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Restaurar Original (Bento + Inter)
+            Restaurar Fuente Inter
           </button>
         </div>
       </div>
 
       <div className="p-6 sm:p-8 space-y-8">
-        {/* SECCIÓN 1: CONMUTADOR DE DISEÑO ARQUITECTÓNICO DE PORTADA */}
+        {/* SECCIÓN 1: DISEÑO DEFINITIVO CONSOLIDADO */}
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-[#002855]/10 dark:bg-blue-500/20 text-[#002855] dark:text-blue-400 flex items-center justify-center">
-                <LayoutGrid className="w-5 h-5" />
+                <GraduationCap className="w-5 h-5" />
               </div>
               <div>
                 <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  1. Arquitectura de Portada Principal (Layout Switcher)
+                  1. Arquitectura Oficial Definitiva del Portal Principal
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Elige qué diseño verá el público al ingresar a la página de inicio del portal.
+                  Versión única estandarizada para todas las vistas públicas de la Facultad de Ciencias Matemáticas.
                 </p>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Activo:{" "}
-              {disenoPortadaActivo === "harvard_editorial"
-                ? "Harvard Editorial"
-                : disenoPortadaActivo === "academico_moderno"
-                ? "Campus Académico Moderno"
-                : "Bento Grid FCM 2026"}
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+              <CheckCircle2 className="w-4 h-4" />
+              Diseño Definitivo Activo: Campus Académico Moderno
             </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {CATALOGO_DISENOS.map((layout) => {
-              const activo = disenoPortadaActivo === layout.id;
-              return (
-                <div
-                  key={layout.id}
-                  onClick={() => onCambiarDiseno(layout.id)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onCambiarDiseno(layout.id);
-                    }
-                  }}
-                  className={`group relative rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col justify-between ${
-                    activo
-                      ? "border-[#8B1515] dark:border-amber-400 bg-rose-50/30 dark:bg-slate-800/90 shadow-md"
-                      : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700"
-                  }`}
-                >
-                  <div>
-                    {/* Cabecera de la tarjeta */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div>
-                        <span
-                          className={`inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-1.5 ${
-                            layout.id === "harvard_editorial"
-                              ? "bg-[#8B1515]/10 text-[#8B1515] dark:bg-rose-950/80 dark:text-rose-300 border border-[#8B1515]/20"
-                              : layout.id === "academico_moderno"
-                              ? "bg-amber-500/15 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-500/30"
-                              : "bg-[#002855]/10 text-[#002855] dark:bg-blue-950/80 dark:text-blue-300 border border-[#002855]/20"
-                          }`}
-                        >
-                          {layout.etiqueta}
-                        </span>
-                        <h5 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                          {layout.id === "harvard_editorial" ? (
-                            <BookOpen className="w-4 h-4 text-[#8B1515] dark:text-amber-400 shrink-0" />
-                          ) : layout.id === "academico_moderno" ? (
-                            <GraduationCap className="w-4 h-4 text-[#8B1515] dark:text-amber-400 shrink-0" />
-                          ) : (
-                            <LayoutGrid className="w-4 h-4 text-[#002855] dark:text-blue-400 shrink-0" />
-                          )}
-                          {layout.titulo}
-                        </h5>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                          {layout.subtitulo}
-                        </p>
-                      </div>
+          <div className="rounded-2xl p-6 border-2 border-[#8B1515]/40 dark:border-amber-400/50 bg-gradient-to-br from-slate-50 via-white to-rose-50/20 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-800/80 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-2.5 max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-500/30">
+                  Estándar Único Oficial UNMSM
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#002855]/10 text-[#002855] dark:bg-blue-950/80 dark:text-blue-300">
+                  Hover Cromático por Escuela • Noticias 1+2 • Cuadro de Honor
+                </span>
+              </div>
+              <h5 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-[#8B1515] dark:text-amber-400 shrink-0" />
+                Diseño Campus Académico Moderno (Fusión Educativa & Moderna)
+              </h5>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Combina el rigor académico universitario con la paleta oficial de San Marcos (Azul Marino{" "}
+                <code>#002855</code>, Granate <code>#8B1515</code>, Dorado <code>#D97706</code> y los 4 colores de
+                Escuela Profesional): Hero split con 4 métricas editables, tarjetas de carreras y docentes con borde
+                cromático identitario al pasar el cursor, Cuadro de Honor completo y diagramación editorial de Noticias
+                (1 Principal + 2 Secundarias).
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                {["#002855", "#8B1515", "#d97706", "#2563eb", "#059669"].map((hex) => (
+                  <span
+                    key={hex}
+                    className="w-4 h-4 rounded-full border border-white/60 shadow-xs"
+                    style={{ backgroundColor: hex }}
+                  />
+                ))}
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 ml-1">
+                  Paleta Institucional & 4 Escuelas FCM
+                </span>
+              </div>
+            </div>
 
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition ${
-                          activo
-                            ? "bg-[#8B1515] dark:bg-amber-400 text-white dark:text-slate-950 shadow-sm"
-                            : "border-2 border-slate-300 dark:border-slate-700 text-transparent"
-                        }`}
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                    </div>
-
-                    {/* Mini Wireframe Visual */}
-                    {layout.id === "bento_moderno" ? (
-                      <div className="rounded-xl bg-slate-900 p-3 mb-3.5 border border-slate-800 text-white">
-                        <div className="h-7 rounded-lg bg-gradient-to-r from-[#002855] to-sky-700 mb-2 flex items-center justify-between px-2.5">
-                          <span className="text-[9px] font-bold tracking-wider uppercase text-sky-200">
-                            Hero Full-Width + Buscador
-                          </span>
-                          <div className="flex gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                            <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          <div className="h-10 rounded bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-[8px] font-bold text-sky-300">
-                            EPCC
-                          </div>
-                          <div className="h-10 rounded bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-[8px] font-bold text-blue-300">
-                            EPM
-                          </div>
-                          <div className="h-10 rounded bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-[8px] font-bold text-amber-300">
-                            EPE
-                          </div>
-                          <div className="h-10 rounded bg-rose-500/20 border border-rose-400/30 flex items-center justify-center text-[8px] font-bold text-rose-300">
-                            EPIO
-                          </div>
-                        </div>
-                      </div>
-                    ) : layout.id === "harvard_editorial" ? (
-                      <div className="rounded-xl bg-[#faf8f5] dark:bg-slate-950 p-3 mb-3.5 border border-stone-300 dark:border-slate-800">
-                        <div className="h-7 rounded bg-gradient-to-r from-[#8B1515] to-[#002855] mb-2 flex items-center justify-between px-2.5 text-white">
-                          <span className="text-[9px] font-serif italic tracking-wider text-amber-200">
-                            VERITAS ET SCIENTIA • HARVARD CRIMSON
-                          </span>
-                          <span className="text-[8px] uppercase px-1.5 py-0.5 bg-white/15 rounded">
-                            Gazette
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-12 gap-1.5">
-                          <div className="col-span-7 h-10 rounded bg-stone-200/80 dark:bg-slate-900 border border-stone-300 dark:border-slate-800 px-2 flex items-center text-[8px] font-serif font-bold text-slate-700 dark:text-slate-300">
-                            Editorial Principal a 2 Columnas
-                          </div>
-                          <div className="col-span-5 h-10 rounded bg-stone-200/80 dark:bg-slate-900 border border-stone-300 dark:border-slate-800 px-2 flex items-center text-[8px] font-serif text-slate-600 dark:text-slate-400">
-                            4 Departamentos Solemnes
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="rounded-xl bg-[#001833] p-3 mb-3.5 border border-[#8B1515]/50 text-white">
-                        <div className="h-7 rounded-lg bg-gradient-to-r from-[#002855] via-[#001833] to-[#8B1515] border border-amber-400/30 mb-2 flex items-center justify-between px-2.5">
-                          <span className="text-[9px] font-bold tracking-wider uppercase text-amber-200">
-                            Campus Split Hero + 4 KPIs
-                          </span>
-                          <span className="text-[8px] font-mono px-1.5 py-0.5 bg-[#8B1515] text-white rounded">
-                            UNMSM
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-4 gap-1">
-                          <div className="h-10 rounded bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-[8px] font-bold text-blue-200">
-                            EPCC
-                          </div>
-                          <div className="h-10 rounded bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-[8px] font-bold text-rose-200">
-                            EPM
-                          </div>
-                          <div className="h-10 rounded bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-[8px] font-bold text-amber-200">
-                            EPE
-                          </div>
-                          <div className="h-10 rounded bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-[8px] font-bold text-emerald-200">
-                            EPIO
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                      {layout.descripcion}
-                    </p>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      {layout.coloresMuestra.map((hex) => (
-                        <span
-                          key={hex}
-                          className="w-4 h-4 rounded-full border border-white/50 shadow-xs"
-                          style={{ backgroundColor: hex }}
-                        />
-                      ))}
-                    </div>
-                    <span
-                      className={`text-xs font-extrabold ${
-                        activo
-                          ? "text-[#8B1515] dark:text-amber-400"
-                          : "text-slate-500 group-hover:text-slate-800 dark:group-hover:text-white"
-                      }`}
-                    >
-                      {activo ? "✓ Diseño Seleccionado" : "Aplicar este diseño →"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+            {onAbrirEditorHero && (
+              <button
+                type="button"
+                onClick={onAbrirEditorHero}
+                className="gpu-btn px-5 py-3 rounded-xl bg-gradient-to-r from-[#002855] to-[#8B1515] hover:opacity-95 text-white text-xs font-extrabold flex items-center gap-2 shadow-md cursor-pointer shrink-0"
+              >
+                <Sliders className="w-4 h-4 text-amber-300" />
+                Configurar Portada y Noticias Destacadas
+              </button>
+            )}
           </div>
         </div>
 
@@ -475,12 +349,6 @@ export function AdminAparienciaSelector({
                     >
                       {activa ? "● Fuente Activa" : "Seleccionar fuente"}
                     </span>
-                    {font.id === "merriweather" &&
-                      disenoPortadaActivo === "harvard_editorial" && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
-                          Recomendada Harvard
-                        </span>
-                      )}
                   </div>
                 </div>
               );
