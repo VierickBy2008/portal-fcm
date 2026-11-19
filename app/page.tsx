@@ -154,7 +154,8 @@ export default function PortalFacultadCienciasMatematicas() {
   const [asistenteConfig, setAsistenteConfig] = useState<AsistenteIAConfig>(ASISTENTE_IA_INICIAL);
   const [accesibilidadConfig, setAccesibilidadConfig] = useState<AccesibilidadConfig>(ACCESIBILIDAD_INICIAL);
   const [tipografiaActiva, setTipografiaActiva] = useState<TipografiaPortalId>("inter");
-  const [disenoPortadaActivo, setDisenoPortadaActivo] = useState<DisenoPortadaId>("academico_moderno");
+  const [disenoPortadaActivo, setDisenoPortadaActivo] = useState<DisenoPortadaId>("bento_moderno");
+  const [modoAvance1, setModoAvance1] = useState<boolean>(true);
   const [heroConfigBento, setHeroConfigBento] = useState<HeroBentoConfig>(HERO_CONFIG_BENTO_INICIAL);
   const [heroConfigHarvard, setHeroConfigHarvard] = useState<HeroHarvardConfig>(HERO_CONFIG_HARVARD_INICIAL);
   const [heroConfigAcademico, setHeroConfigAcademico] = useState<HeroAcademicoConfig>(HERO_CONFIG_ACADEMICO_INICIAL);
@@ -687,9 +688,19 @@ export default function PortalFacultadCienciasMatematicas() {
             try {
               const parsedAcc = JSON.parse(localAccesibilidad);
               if (parsedAcc && typeof parsedAcc.habilitado === "boolean") {
-                setAccesibilidadConfig({ ...parsedAcc, diseno_portada_activo: "academico_moderno" });
+                const tieneModoExplicito = typeof parsedAcc.modo_avance_1 === "boolean";
+                const modoAvanceLocal = tieneModoExplicito ? parsedAcc.modo_avance_1 : true;
+                const disenoLocal: DisenoPortadaId =
+                  tieneModoExplicito &&
+                  ["bento_moderno", "harvard_editorial", "academico_moderno"].includes(parsedAcc.diseno_portada_activo)
+                    ? parsedAcc.diseno_portada_activo
+                    : modoAvanceLocal
+                    ? "bento_moderno"
+                    : "academico_moderno";
+                setAccesibilidadConfig({ ...parsedAcc, diseno_portada_activo: disenoLocal, modo_avance_1: modoAvanceLocal });
                 if (parsedAcc.tipografia_activa) setTipografiaActiva(parsedAcc.tipografia_activa);
-                setDisenoPortadaActivo("academico_moderno");
+                setModoAvance1(modoAvanceLocal);
+                setDisenoPortadaActivo(disenoLocal);
                 if (parsedAcc.tutorias_ia_config && Array.isArray(parsedAcc.tutorias_ia_config.disponibilidades)) {
                   setTutoriasConfig(parsedAcc.tutorias_ia_config);
                 }
@@ -749,7 +760,6 @@ export default function PortalFacultadCienciasMatematicas() {
               }
             } catch {}
           }
-          setDisenoPortadaActivo("academico_moderno");
           if (localNoticias && activo) {
             const parsed = JSON.parse(localNoticias);
             if (Array.isArray(parsed) && parsed.length > 0) setNoticias(parsed);
@@ -898,31 +908,51 @@ export default function PortalFacultadCienciasMatematicas() {
             }
           }
 
-          if (data.accesibilidad_data && typeof data.accesibilidad_data.habilitado === "boolean") {
-            setAccesibilidadConfig({ ...data.accesibilidad_data, diseno_portada_activo: "academico_moderno" });
-            if (typeof window !== "undefined") window.localStorage.setItem("fcm_accesibilidad_data", JSON.stringify(data.accesibilidad_data));
-            if (
-              data.accesibilidad_data.tutorias_ia_config &&
-              Array.isArray(data.accesibilidad_data.tutorias_ia_config.disponibilidades)
-            ) {
-              setTutoriasConfig(data.accesibilidad_data.tutorias_ia_config);
-              if (typeof window !== "undefined")
-                window.localStorage.setItem("fcm_tutorias_ia_data", JSON.stringify(data.accesibilidad_data.tutorias_ia_config));
+          const remoteAcc: AccesibilidadConfig | undefined =
+            data.accesibilidad_data && typeof data.accesibilidad_data.habilitado === "boolean"
+              ? data.accesibilidad_data
+              : Array.isArray(data.storage_data)
+              ? data.storage_data.find((x: { id?: string; accesibilidad_config?: AccesibilidadConfig }) => x && x.id === "__fcm_accesibilidad_config__")?.accesibilidad_config
+              : undefined;
+
+          if (remoteAcc && typeof remoteAcc.habilitado === "boolean") {
+            const tieneModoExplicito = typeof remoteAcc.modo_avance_1 === "boolean";
+            const modoAvanceRemoto = tieneModoExplicito ? Boolean(remoteAcc.modo_avance_1) : true;
+            const disenoRemoto: DisenoPortadaId =
+              tieneModoExplicito &&
+              remoteAcc.diseno_portada_activo &&
+              ["bento_moderno", "harvard_editorial", "academico_moderno"].includes(remoteAcc.diseno_portada_activo)
+                ? remoteAcc.diseno_portada_activo
+                : modoAvanceRemoto
+                ? "bento_moderno"
+                : "academico_moderno";
+
+            const accNormalizado: AccesibilidadConfig = {
+              ...remoteAcc,
+              modo_avance_1: modoAvanceRemoto,
+              diseno_portada_activo: disenoRemoto,
+            };
+            setAccesibilidadConfig(accNormalizado);
+            setModoAvance1(modoAvanceRemoto);
+            setDisenoPortadaActivo(disenoRemoto);
+            if (typeof window !== "undefined") {
+              window.localStorage.setItem("fcm_accesibilidad_data", JSON.stringify(accNormalizado));
             }
             if (
-              data.accesibilidad_data.tipografia_activa &&
-              ["inter", "merriweather", "outfit", "atkinson"].includes(data.accesibilidad_data.tipografia_activa)
+              remoteAcc.tutorias_ia_config &&
+              Array.isArray(remoteAcc.tutorias_ia_config.disponibilidades)
             ) {
-              setTipografiaActiva(data.accesibilidad_data.tipografia_activa);
+              setTutoriasConfig(remoteAcc.tutorias_ia_config);
               if (typeof window !== "undefined")
-                window.localStorage.setItem("fcm_tipografia_activa", data.accesibilidad_data.tipografia_activa);
+                window.localStorage.setItem("fcm_tutorias_ia_data", JSON.stringify(remoteAcc.tutorias_ia_config));
             }
-            setDisenoPortadaActivo("academico_moderno");
-          } else if (Array.isArray(data.storage_data)) {
-            const metaAcc = data.storage_data.find((x: { id?: string; accesibilidad_config?: AccesibilidadConfig }) => x && x.id === "__fcm_accesibilidad_config__");
-            if (metaAcc?.accesibilidad_config && typeof metaAcc.accesibilidad_config.habilitado === "boolean") {
-              setAccesibilidadConfig(metaAcc.accesibilidad_config);
-              if (typeof window !== "undefined") window.localStorage.setItem("fcm_accesibilidad_data", JSON.stringify(metaAcc.accesibilidad_config));
+            if (
+              remoteAcc.tipografia_activa &&
+              ["inter", "merriweather", "outfit", "atkinson"].includes(remoteAcc.tipografia_activa)
+            ) {
+              setTipografiaActiva(remoteAcc.tipografia_activa);
+              if (typeof window !== "undefined")
+                window.localStorage.setItem("fcm_tipografia_activa", remoteAcc.tipografia_activa);
             }
           }
 
@@ -934,8 +964,6 @@ export default function PortalFacultadCienciasMatematicas() {
             if (typeof window !== "undefined")
               window.localStorage.setItem("fcm_tipografia_activa", data.tipografia_activa);
           }
-
-          setDisenoPortadaActivo("academico_moderno");
 
           const remoteHeroBento =
             data.hero_config_bento || data.accesibilidad_data?.hero_config_bento;
@@ -2668,10 +2696,33 @@ Universidad Nacional Mayor de San Marcos`;
     lanzarToast("🔒 Sesión de administrador cerrada.");
   };
 
+  const handleToggleModoAvance1 = async (activar: boolean) => {
+    const nuevoDiseno: DisenoPortadaId = activar ? "bento_moderno" : "academico_moderno";
+    setModoAvance1(activar);
+    setDisenoPortadaActivo(nuevoDiseno);
+    const nuevaAcc: AccesibilidadConfig = {
+      ...accesibilidadConfig,
+      modo_avance_1: activar,
+      diseno_portada_activo: nuevoDiseno,
+      tipografia_activa: tipografiaActiva,
+    };
+    setAccesibilidadConfig(nuevaAcc);
+    await sincronizarPortalConfigSupabase({
+      diseno_portada_activo: nuevoDiseno,
+      accesibilidad_data: nuevaAcc,
+    });
+    lanzarToast(
+      activar
+        ? "🎯 Modo Presentación 1er. Avance activado (Versión Primera Imagen + Núcleo Curricular)."
+        : "🚀 Modo Proyecto Completo activado (Todos los módulos del portal habilitados)."
+    );
+  };
+
   const handleCambiarDisenoPortada = async (nuevoDiseno: DisenoPortadaId) => {
     setDisenoPortadaActivo(nuevoDiseno);
     const nuevaAcc: AccesibilidadConfig = {
       ...accesibilidadConfig,
+      modo_avance_1: modoAvance1,
       diseno_portada_activo: nuevoDiseno,
       tipografia_activa: tipografiaActiva,
     };
@@ -2693,6 +2744,7 @@ Universidad Nacional Mayor de San Marcos`;
     setTipografiaActiva(nuevaTipografia);
     const nuevaAcc: AccesibilidadConfig = {
       ...accesibilidadConfig,
+      modo_avance_1: modoAvance1,
       tipografia_activa: nuevaTipografia,
       diseno_portada_activo: disenoPortadaActivo,
     };
@@ -2711,10 +2763,12 @@ Universidad Nacional Mayor de San Marcos`;
   };
 
   const handleRestaurarAparienciaOriginal = async () => {
+    setModoAvance1(false);
     setDisenoPortadaActivo("academico_moderno");
     setTipografiaActiva("inter");
     const nuevaAcc: AccesibilidadConfig = {
       ...accesibilidadConfig,
+      modo_avance_1: false,
       diseno_portada_activo: "academico_moderno",
       tipografia_activa: "inter",
     };
@@ -2724,7 +2778,7 @@ Universidad Nacional Mayor de San Marcos`;
       tipografia_activa: "inter",
       accesibilidad_data: nuevaAcc,
     });
-    lanzarToast("🔄 Diseño oficial Campus Académico Moderno y fuente Inter restaurados al 100%.");
+    lanzarToast("🔄 Proyecto Completo, Campus Académico Moderno y fuente Inter restaurados al 100%.");
   };
 
   const handleGuardarTutoriasConfig = async (nuevoTutorias: TutoriasIAConfig) => {
@@ -2734,12 +2788,13 @@ Universidad Nacional Mayor de San Marcos`;
     }
     const nuevaAcc: AccesibilidadConfig = {
       ...accesibilidadConfig,
-      diseno_portada_activo: "academico_moderno",
+      modo_avance_1: modoAvance1,
+      diseno_portada_activo: disenoPortadaActivo,
       tutorias_ia_config: nuevoTutorias,
     };
     setAccesibilidadConfig(nuevaAcc);
     await sincronizarPortalConfigSupabase({
-      diseno_portada_activo: "academico_moderno",
+      diseno_portada_activo: disenoPortadaActivo,
       accesibilidad_data: nuevaAcc,
     });
   };
@@ -2895,6 +2950,7 @@ Universidad Nacional Mayor de San Marcos`;
                         </button>
 
                         {/* Item 2: Repositorio Académico */}
+                        {!modoAvance1 && (
                         <button
                           type="button"
                           onClick={() => {
@@ -2916,6 +2972,7 @@ Universidad Nacional Mayor de San Marcos`;
                           </div>
                           <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
                         </button>
+                        )}
                       </div>
 
                       <div className="border-t border-slate-100 dark:border-slate-800" />
@@ -2952,6 +3009,8 @@ Universidad Nacional Mayor de San Marcos`;
                         </a>
                       </div>
 
+                      {!modoAvance1 && (
+                      <>
                       <div className="border-t border-slate-100 dark:border-slate-800" />
 
                       {/* SUBSECCIÓN DOCENTES */}
@@ -2985,12 +3044,32 @@ Universidad Nacional Mayor de San Marcos`;
                           <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
                         </button>
                       </div>
+                      </>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
+            {modoAvance1 && (
+              <button
+                type="button"
+                onClick={() => {
+                  navegar("/");
+                  setTimeout(() => {
+                    document.getElementById("calendario-academico")?.scrollIntoView({ behavior: "smooth" });
+                  }, 100);
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold text-blue-100 hover:bg-blue-900 transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
+              >
+                <Calendar className="w-3.5 h-3.5 text-red-400" />
+                <span>CRONOGRAMA 2026</span>
+              </button>
+            )}
+
+            {!modoAvance1 && (
+            <>
             <div
               ref={menuServicioRef}
               className="relative"
@@ -3206,6 +3285,8 @@ Universidad Nacional Mayor de San Marcos`;
               <LifeBuoy className="w-3.5 h-3.5" />
               <span>Contacto</span>
             </button>
+            </>
+            )}
 
             {adminAutenticado && (
               <button
@@ -3336,6 +3417,24 @@ Universidad Nacional Mayor de San Marcos`;
                 </div>
               </div>
 
+              {modoAvance1 && (
+                <button
+                  onClick={() => {
+                    navegar("/");
+                    setMenuMovilAbierto(false);
+                    setTimeout(() => {
+                      document.getElementById("calendario-academico")?.scrollIntoView({ behavior: "smooth" });
+                    }, 120);
+                  }}
+                  className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center gap-2 text-blue-100 hover:bg-blue-900"
+                >
+                  <Calendar className="w-4 h-4 text-red-400" />
+                  <span>Cronograma Académico 2026</span>
+                </button>
+              )}
+
+              {!modoAvance1 && (
+              <>
               {/* Pregrado: Repositorio */}
               <button
                 onClick={() => {
@@ -3424,6 +3523,8 @@ Universidad Nacional Mayor de San Marcos`;
                 <LifeBuoy className="w-4 h-4 text-red-400" />
                 <span>Contacto y Directorio</span>
               </button>
+              </>
+              )}
 
               {adminAutenticado ? (
                 <button
@@ -3461,8 +3562,8 @@ Universidad Nacional Mayor de San Marcos`;
           heroConfigBento={heroConfigBento}
           heroConfigHarvard={heroConfigHarvard}
           heroConfigAcademico={heroConfigAcademico}
-          slideActivoHero={slideActivoHero}
-          totalSlidesHero={totalSlidesHero}
+          slideActivoHero={modoAvance1 ? 0 : slideActivoHero}
+          totalSlidesHero={modoAvance1 ? 1 : totalSlidesHero}
           setPausarSliderHero={setPausarSliderHero}
           anteriorSlideHero={anteriorSlideHero}
           siguienteSlideHero={siguienteSlideHero}
@@ -3476,11 +3577,15 @@ Universidad Nacional Mayor de San Marcos`;
           setModalHeroFondoAbierto={setModalHeroFondoAbierto}
           busquedaGlobal={busquedaGlobal}
           setBusquedaGlobal={setBusquedaGlobal}
-          resultadosBusquedaHero={resultadosBusquedaHero}
+          resultadosBusquedaHero={
+            modoAvance1
+              ? { cursos: resultadosBusquedaHero.cursos, materiales: [] }
+              : resultadosBusquedaHero
+          }
           carreras={carreras}
           malla={malla}
           noticias={noticias}
-          noticiasDestacadas={noticiasDestacadas}
+          noticiasDestacadas={modoAvance1 ? [] : noticiasDestacadas}
           orgulloItems={orgulloItems}
           docentes={docentes}
           busquedaDocentes={busquedaDocentes}
@@ -3492,6 +3597,7 @@ Universidad Nacional Mayor de San Marcos`;
           abrirNoticiaDetalle={abrirNoticiaDetalle}
           setModalDetalleOrgullo={setModalDetalleOrgullo}
           setTabAdmin={setTabAdmin}
+          modoAvance1={modoAvance1}
         />
       )}
 
@@ -3784,6 +3890,8 @@ Universidad Nacional Mayor de San Marcos`;
                   onRestaurarOriginal={handleRestaurarAparienciaOriginal}
                   onIrAPortada={() => navegar("/")}
                   onAbrirEditorHero={() => setModalHeroFondoAbierto(true)}
+                  modoAvance1={modoAvance1}
+                  onToggleModoAvance1={handleToggleModoAvance1}
                 />
               )}
 
@@ -4118,15 +4226,19 @@ Universidad Nacional Mayor de San Marcos`;
       />
 
       {/* WIDGET DE ACCESIBILIDAD INCLUSIVA WCAG 2.1 (4B) Y ASISTENTE VIRTUAL IA FCM (1B) */}
-      <AccesibilidadWidget config={accesibilidadConfig} />
-      <AsistenteVirtualIA
-        config={asistenteConfig}
-        calendario={calendarioConfig}
-        carreras={carreras}
-        docentes={docentes}
-        malla={malla}
-        onExplorarCarrera={navegarACarrera}
-      />
+      {!modoAvance1 && (
+        <>
+          <AccesibilidadWidget config={accesibilidadConfig} />
+          <AsistenteVirtualIA
+            config={asistenteConfig}
+            calendario={calendarioConfig}
+            carreras={carreras}
+            docentes={docentes}
+            malla={malla}
+            onExplorarCarrera={navegarACarrera}
+          />
+        </>
+      )}
 
       {/* COMPONENTE GLOBAL <Footer /> */}
       <Footer

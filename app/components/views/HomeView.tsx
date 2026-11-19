@@ -68,12 +68,20 @@ export interface HomeViewProps {
   abrirNoticiaDetalle: (idNoticia: string) => void;
   setModalDetalleOrgullo: (item: OrgulloItem | null) => void;
   setTabAdmin: (tab: AdminTabId) => void;
+  modoAvance1?: boolean;
 }
 
 export function HomeView(props: HomeViewProps) {
+  const diseno = props.disenoPortadaActivo || "academico_moderno";
   return (
     <div className="layout-switch-gpu flex-1 flex flex-col w-full">
-      <HomeViewAcademico {...props} />
+      {diseno === "bento_moderno" ? (
+        <HomeViewBento {...props} />
+      ) : diseno === "harvard_editorial" ? (
+        <HomeViewHarvard {...props} />
+      ) : (
+        <HomeViewAcademico {...props} />
+      )}
     </div>
   );
 }

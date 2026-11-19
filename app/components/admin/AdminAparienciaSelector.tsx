@@ -22,6 +22,8 @@ interface AdminAparienciaSelectorProps {
   onRestaurarOriginal: () => void;
   onIrAPortada?: () => void;
   onAbrirEditorHero?: () => void;
+  modoAvance1?: boolean;
+  onToggleModoAvance1?: (activo: boolean) => void;
 }
 
 const CATALOGO_DISENOS: Array<{
@@ -122,13 +124,17 @@ const CATALOGO_TIPOGRAFIAS: Array<{
 ];
 
 export function AdminAparienciaSelector({
+  disenoPortadaActivo,
   tipografiaActiva,
+  onCambiarDiseno,
   onCambiarTipografia,
   onRestaurarOriginal,
   onIrAPortada,
   onAbrirEditorHero,
+  modoAvance1 = false,
+  onToggleModoAvance1,
 }: AdminAparienciaSelectorProps) {
-  const esOriginal = tipografiaActiva === "inter";
+  const esOriginal = tipografiaActiva === "inter" && disenoPortadaActivo === "academico_moderno" && !modoAvance1;
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
@@ -136,15 +142,13 @@ export function AdminAparienciaSelector({
       <div className="bg-gradient-to-r from-[#002855] via-[#001d3d] to-[#8B1515] p-6 sm:p-7 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-300 text-[11px] font-extrabold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> Design System Oficial Unificado FCM 2026
+            <Sparkles className="w-3.5 h-3.5" /> Control de Presentación y Diseño • MATHUB FCM 2026
           </div>
           <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-            Arquitectura Oficial &ldquo;Campus Académico Moderno&rdquo; y Tipografía
+            Modo de Presentación (1er. Avance vs. Proyecto Completo) y Diseño
           </h3>
           <p className="text-xs sm:text-sm text-blue-100/90 mt-1 max-w-3xl">
-            El portal se encuentra <strong>consolidado de forma definitiva</strong> bajo el diseño{" "}
-            <strong>Campus Académico Moderno</strong>, fusionando el prestigio académico sanmarquino
-            con la identidad cromática de sus 4 Escuelas Profesionales.
+            Alterna con un clic entre el <strong>Modo 1er. Avance</strong> (muestra únicamente la versión de la primera imagen con portada, buscador de cursos, 4 escuelas, mallas y cronograma) y el <strong>Proyecto Completo</strong>.
           </p>
         </div>
 
@@ -156,7 +160,7 @@ export function AdminAparienciaSelector({
               className="gpu-btn px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-md"
             >
               <Sliders className="w-4 h-4 text-slate-950" />
-              Editar Hero, Métricas y Noticias en Portada
+              Editar Hero y Portada
             </button>
           )}
           {onIrAPortada && (
@@ -178,16 +182,115 @@ export function AdminAparienciaSelector({
                 ? "bg-white/10 text-white/50 border border-white/10 cursor-not-allowed"
                 : "bg-white/20 hover:bg-white/30 text-white shadow-md cursor-pointer"
             }`}
-            title="Restaura la fuente Inter institucional por defecto"
+            title="Restaura el diseño completo y fuente Inter por defecto"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Restaurar Fuente Inter
+            Restaurar Todo
           </button>
         </div>
       </div>
 
       <div className="p-6 sm:p-8 space-y-8">
-        {/* SECCIÓN 1: DISEÑO DEFINITIVO CONSOLIDADO */}
+        {/* SECCIÓN 0: INTERRUPTOR MODO 1ER AVANCE VS PROYECTO COMPLETO */}
+        {onToggleModoAvance1 && (
+          <div className="rounded-2xl p-5 sm:p-6 border-2 border-amber-400/60 dark:border-amber-500/50 bg-gradient-to-br from-amber-50/70 via-white to-blue-50/40 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/90 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300 flex items-center justify-center">
+                  <LayoutGrid className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    Modo de Exposición Pública del Proyecto (1er. Avance vs. Completo)
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Controla qué avances y versión visual ven los visitantes y evaluadores en el portal público.
+                  </p>
+                </div>
+              </div>
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs font-extrabold px-3.5 py-1.5 rounded-full border ${
+                  modoAvance1
+                    ? "bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700"
+                    : "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                {modoAvance1 ? "Activo: Modo Presentación 1er. Avance" : "Activo: Proyecto Completo (100%)"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Opción A: Modo 1er Avance */}
+              <button
+                type="button"
+                onClick={() => onToggleModoAvance1(true)}
+                className={`text-left rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                  modoAvance1
+                    ? "border-amber-500 bg-amber-50/60 dark:bg-amber-950/30 shadow-md ring-2 ring-amber-400/30"
+                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-amber-400"
+                }`}
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950">
+                      Presentación 1er. Avance (2.5 Meses)
+                    </span>
+                    {modoAvance1 && (
+                      <span className="text-xs font-extrabold text-amber-700 dark:text-amber-300">
+                        ● Seleccionado
+                      </span>
+                    )}
+                  </div>
+                  <h5 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    Mostrar Solo 1er. Avance (Versión de la Primera Imagen)
+                  </h5>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Activa el diseño original <strong>Bento Grid (1.ª Imagen)</strong> y muestra únicamente: Portada con Buscador de Cursos, las 4 Escuelas Profesionales, Mallas Curriculares de 10 Ciclos y Cronograma 2026. Oculta Repositorio, Docentes, Noticias, Transparencia, Contacto, Chatbot IA y Accesibilidad.
+                  </p>
+                </div>
+                <span className="text-xs font-extrabold text-[#002855] dark:text-amber-400">
+                  {modoAvance1 ? "✓ Modo 1er. Avance activado en vivo" : "Activar fachada de 1er. Avance →"}
+                </span>
+              </button>
+
+              {/* Opción B: Proyecto Completo */}
+              <button
+                type="button"
+                onClick={() => onToggleModoAvance1(false)}
+                className={`text-left rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                  !modoAvance1
+                    ? "border-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/25 shadow-md ring-2 ring-emerald-500/20"
+                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-emerald-500"
+                }`}
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-600 text-white">
+                      Proyecto Terminado (Avances 1, 2 y 3)
+                    </span>
+                    {!modoAvance1 && (
+                      <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300">
+                        ● Seleccionado
+                      </span>
+                    )}
+                  </div>
+                  <h5 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    Mostrar Proyecto Completo (Todos los Módulos)
+                  </h5>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Habilita el 100% de la plataforma: Repositorio Colaborativo (PPTs, guías, exámenes), Plana Docente y Reseñas, Hemeroteca de Noticias, Orgullo FCM, Transparencia, Mesa de Ayuda, Asistente Virtual con IA y Accesibilidad WCAG 2.1.
+                  </p>
+                </div>
+                <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
+                  {!modoAvance1 ? "✓ Todos los módulos activos en vivo" : "Restaurar Proyecto Completo →"}
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SECCIÓN 1: SELECTOR DE VERSIÓN VISUAL DE PORTADA */}
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2.5">
@@ -196,64 +299,78 @@ export function AdminAparienciaSelector({
               </div>
               <div>
                 <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  1. Arquitectura Oficial Definitiva del Portal Principal
+                  1. Selector de Versión de Diseño de la Portada
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Versión única estandarizada para todas las vistas públicas de la Facultad de Ciencias Matemáticas.
+                  Elige entre la versión inicial de la primera imagen (Bento Grid) o el diseño Campus Académico Moderno.
                 </p>
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
               <CheckCircle2 className="w-4 h-4" />
-              Diseño Definitivo Activo: Campus Académico Moderno
+              Diseño Activo: {CATALOGO_DISENOS.find((d) => d.id === disenoPortadaActivo)?.titulo || disenoPortadaActivo}
             </span>
           </div>
 
-          <div className="rounded-2xl p-6 border-2 border-[#8B1515]/40 dark:border-amber-400/50 bg-gradient-to-br from-slate-50 via-white to-rose-50/20 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-800/80 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            <div className="space-y-2.5 max-w-2xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-500/30">
-                  Estándar Único Oficial UNMSM
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#002855]/10 text-[#002855] dark:bg-blue-950/80 dark:text-blue-300">
-                  Hover Cromático por Escuela • Noticias 1+2 • Cuadro de Honor
-                </span>
-              </div>
-              <h5 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-[#8B1515] dark:text-amber-400 shrink-0" />
-                Diseño Campus Académico Moderno (Fusión Educativa & Moderna)
-              </h5>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Combina el rigor académico universitario con la paleta oficial de San Marcos (Azul Marino{" "}
-                <code>#002855</code>, Granate <code>#8B1515</code>, Dorado <code>#D97706</code> y los 4 colores de
-                Escuela Profesional): Hero split con 4 métricas editables, tarjetas de carreras y docentes con borde
-                cromático identitario al pasar el cursor, Cuadro de Honor completo y diagramación editorial de Noticias
-                (1 Principal + 2 Secundarias).
-              </p>
-              <div className="flex items-center gap-2 pt-1">
-                {["#002855", "#8B1515", "#d97706", "#2563eb", "#059669"].map((hex) => (
-                  <span
-                    key={hex}
-                    className="w-4 h-4 rounded-full border border-white/60 shadow-xs"
-                    style={{ backgroundColor: hex }}
-                  />
-                ))}
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 ml-1">
-                  Paleta Institucional & 4 Escuelas FCM
-                </span>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {CATALOGO_DISENOS.map((diseno) => {
+              const activo = disenoPortadaActivo === diseno.id;
+              return (
+                <div
+                  key={diseno.id}
+                  onClick={() => onCambiarDiseno(diseno.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onCambiarDiseno(diseno.id);
+                    }
+                  }}
+                  className={`rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col justify-between gap-4 ${
+                    activo
+                      ? "border-[#002855] dark:border-amber-400 bg-blue-50/40 dark:bg-slate-800/90 shadow-md"
+                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700"
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-500/30">
+                        {diseno.etiqueta}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {diseno.coloresMuestra.map((hex) => (
+                          <span
+                            key={hex}
+                            className="w-3.5 h-3.5 rounded-full border border-white/60 shadow-xs"
+                            style={{ backgroundColor: hex }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <h5 className="text-base font-extrabold text-slate-900 dark:text-white">
+                      {diseno.titulo}
+                    </h5>
+                    <p className="text-[11px] font-semibold text-[#8B1515] dark:text-amber-300">
+                      {diseno.subtitulo}
+                    </p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {diseno.descripcion}
+                    </p>
+                  </div>
 
-            {onAbrirEditorHero && (
-              <button
-                type="button"
-                onClick={onAbrirEditorHero}
-                className="gpu-btn px-5 py-3 rounded-xl bg-gradient-to-r from-[#002855] to-[#8B1515] hover:opacity-95 text-white text-xs font-extrabold flex items-center gap-2 shadow-md cursor-pointer shrink-0"
-              >
-                <Sliders className="w-4 h-4 text-amber-300" />
-                Configurar Portada y Noticias Destacadas
-              </button>
-            )}
+                  <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+                    <span
+                      className={`text-xs font-extrabold ${
+                        activo ? "text-[#002855] dark:text-amber-400" : "text-slate-400 dark:text-slate-500"
+                      }`}
+                    >
+                      {activo ? "● Versión Activa en Portada" : "Activar esta versión →"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

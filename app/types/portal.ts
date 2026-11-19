@@ -238,6 +238,7 @@ export interface AccesibilidadConfig {
   hero_config_harvard?: HeroHarvardConfig;
   hero_config_academico?: HeroAcademicoConfig;
   tutorias_ia_config?: TutoriasIAConfig;
+  modo_avance_1?: boolean;
 }
 
 export type DiaSemanaTutoria =

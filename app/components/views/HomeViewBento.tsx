@@ -64,6 +64,7 @@ export function HomeViewBento({
   abrirNoticiaDetalle,
   setModalDetalleOrgullo,
   setTabAdmin,
+  modoAvance1,
 }: HomeViewProps) {
   const touchStartXRef = useRef<number | null>(null);
   const bgUrlBento = heroConfigBento?.hero_bg_url || heroBgUrl || heroDefaultBgUrl;
@@ -201,7 +202,11 @@ export function HomeViewBento({
                     type="text"
                     value={busquedaGlobal}
                     onChange={(e) => setBusquedaGlobal(e.target.value)}
-                    placeholder="Buscar curso (ej. CS113, AI264, MAT312), docente o material del repositorio..."
+                    placeholder={
+                      modoAvance1
+                        ? "Buscar curso o asignatura por código o nombre (ej. CS113, AI264, MAT312)..."
+                        : "Buscar curso (ej. CS113, AI264, MAT312), docente o material del repositorio..."
+                    }
                     className="w-full pl-12 pr-24 py-3.5 sm:py-4 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none focus:ring-4 focus:ring-red-500/40 border border-slate-200"
                   />
                   {busquedaGlobal && (
@@ -415,6 +420,8 @@ export function HomeViewBento({
         onDescargarTripticoCarrera={handleDescargarTripticoPorCarrera}
       />
 
+      {!modoAvance1 && (
+      <>
       {/* 3. SECCIÓN DE NOTICIAS CON GRID LIMITADO A 4 + TARJETA "VER MÁS NOTICIAS" */}
       <section className="space-y-5 reveal-on-scroll">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-blue-900 pb-3">
@@ -852,6 +859,8 @@ export function HomeViewBento({
           </button>
         </div>
       </section>
+      </>
+      )}
 
       {/* 6. CALENDARIO ACADÉMICO DINÁMICO (RÉGIMEN SEMESTRAL 2026-I Y 2026-II EN 2 BLOQUES DESPLEGABLES) */}
       <CalendarioAcademicoSection config={calendarioConfig} />

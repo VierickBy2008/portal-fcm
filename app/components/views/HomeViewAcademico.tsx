@@ -103,6 +103,7 @@ export function HomeViewAcademico({
   abrirNoticiaDetalle,
   setModalDetalleOrgullo,
   setTabAdmin,
+  modoAvance1,
 }: HomeViewProps) {
   const touchStartXRef = useRef<number | null>(null);
 
@@ -364,6 +365,7 @@ export function HomeViewAcademico({
                 </div>
 
                 {/* Accesos Rápidos Universitarios con Acentos Sanmarquinos */}
+                {!modoAvance1 && (
                 <div className="flex flex-wrap items-center gap-2.5 pt-1">
                   <button
                     type="button"
@@ -390,6 +392,7 @@ export function HomeViewAcademico({
                     <span>Transparencia Universitaria</span>
                   </button>
                 </div>
+                )}
               </div>
 
               {/* Columna Derecha: Tablero de Indicadores Académicos Editables en CMS */}
@@ -753,6 +756,8 @@ export function HomeViewAcademico({
           </div>
         </section>
 
+        {!modoAvance1 && (
+        <>
         {/* 3. BOLETÍN Y GACETA UNIVERSITARIA ASIMÉTRICA (1 NOTICIA PRINCIPAL + 2 LATERALES ELEGIBLES) */}
         <section className="space-y-6 reveal-on-scroll">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-red-700 shadow-xs">
@@ -1246,6 +1251,8 @@ export function HomeViewAcademico({
             })}
           </div>
         </section>
+        </>
+        )}
 
         {/* 6. CALENDARIO ACADÉMICO SEMESTRAL */}
         <CalendarioAcademicoSection config={calendarioConfig} />
