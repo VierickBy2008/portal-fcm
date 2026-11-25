@@ -4,24 +4,19 @@ import React, { useRef } from "react";
 import {
   ArrowRight,
   Award,
-  BarChart3,
   BookOpen,
-  Building2,
   Calendar,
   ChevronLeft,
   ChevronRight,
   Clock,
-  Cpu,
   Download,
   Edit3,
   FileText,
   FolderOpen,
   GraduationCap,
   Layers,
-  Network,
   Newspaper,
   Search,
-  Sigma,
   Sliders,
   Sparkles,
   Star,
@@ -58,19 +53,6 @@ const CARRERA_IMG_FALLBACK: Record<CarreraId, string> = {
   "investigacion-operativa":
     "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1000&q=80",
 };
-
-function renderIconoEscuela(id: CarreraId) {
-  switch (id) {
-    case "computacion-cientifica":
-      return <Cpu className="w-4 h-4 text-blue-400" />;
-    case "matematica":
-      return <Sigma className="w-4 h-4 text-red-400" />;
-    case "estadistica":
-      return <BarChart3 className="w-4 h-4 text-orange-400" />;
-    case "investigacion-operativa":
-      return <Network className="w-4 h-4 text-emerald-400" />;
-  }
-}
 
 export function HomeViewAcademico({
   cargandoConfig,
@@ -134,50 +116,6 @@ export function HomeViewAcademico({
   const descripcionAcad =
     heroConfigAcademico?.descripcion_campus ||
     HERO_CONFIG_ACADEMICO_INICIAL.descripcion_campus;
-  const tituloTablero =
-    heroConfigAcademico?.titulo_tablero ||
-    HERO_CONFIG_ACADEMICO_INICIAL.titulo_tablero ||
-    "Estructura Académica FCM";
-  const estadoTablero =
-    heroConfigAcademico?.estado_tablero ||
-    HERO_CONFIG_ACADEMICO_INICIAL.estado_tablero ||
-    "Plan Curricular 2026";
-
-  const met1Valor =
-    heroConfigAcademico?.metricas_personalizadas?.[0]?.valor ||
-    heroConfigAcademico?.metrica_1_valor ||
-    String(carreras.length);
-  const met1Label =
-    heroConfigAcademico?.metricas_personalizadas?.[0]?.label ||
-    heroConfigAcademico?.metrica_1_label ||
-    "Escuelas Profesionales";
-
-  const met2Valor =
-    heroConfigAcademico?.metricas_personalizadas?.[1]?.valor ||
-    heroConfigAcademico?.metrica_2_valor ||
-    String(malla.length);
-  const met2Label =
-    heroConfigAcademico?.metricas_personalizadas?.[1]?.label ||
-    heroConfigAcademico?.metrica_2_label ||
-    "Asignaturas Oficiales";
-
-  const met3Valor =
-    heroConfigAcademico?.metricas_personalizadas?.[2]?.valor ||
-    heroConfigAcademico?.metrica_3_valor ||
-    String(docentes.length);
-  const met3Label =
-    heroConfigAcademico?.metricas_personalizadas?.[2]?.label ||
-    heroConfigAcademico?.metrica_3_label ||
-    "Docentes e Investigadores";
-
-  const met4Valor =
-    heroConfigAcademico?.metricas_personalizadas?.[3]?.valor ||
-    heroConfigAcademico?.metrica_4_valor ||
-    "10 Ciclos";
-  const met4Label =
-    heroConfigAcademico?.metricas_personalizadas?.[3]?.label ||
-    heroConfigAcademico?.metrica_4_label ||
-    "Bachillerato + Licenciatura";
 
   if (cargandoConfig && carreras.length === 0) {
     return (
@@ -279,98 +217,96 @@ export function HomeViewAcademico({
               </button>
             )}
 
-            <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              {/* Columna Izquierda: Identidad Educativa + Buscador */}
-              <div className="lg:col-span-7 space-y-5 text-left">
-                <div
-                  style={{ backgroundColor: colorAcentoAcad }}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-white text-[11px] font-bold uppercase tracking-wider border border-white/25 shadow-lg backdrop-blur-md"
-                >
-                  <GraduationCap className="w-4 h-4 text-amber-300" />
-                  <span>{etiquetaAcad}</span>
-                </div>
+            <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center space-y-5 sm:space-y-6">
+              <div
+                style={{ backgroundColor: colorAcentoAcad }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-white text-[11px] font-bold uppercase tracking-wider border border-white/25 shadow-lg backdrop-blur-md"
+              >
+                <GraduationCap className="w-4 h-4 text-amber-300" />
+                <span>{etiquetaAcad}</span>
+              </div>
 
-                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-md">
-                  {tituloAcad}
-                </h1>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-md max-w-3xl">
+                {tituloAcad}
+              </h1>
 
-                <p className="text-blue-100 text-xs sm:text-sm md:text-base max-w-2xl leading-relaxed">
-                  {descripcionAcad}
-                </p>
+              <p className="text-blue-100 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+                {descripcionAcad}
+              </p>
 
-                {/* Buscador Académico con Paleta Institucional */}
-                <div className="relative max-w-2xl w-full pt-1">
-                  <div className="relative flex items-center shadow-2xl rounded-2xl overflow-hidden border-2 border-white/30 bg-white focus-within:ring-4 focus-within:ring-red-500/40">
-                    <Search className="w-5 h-5 text-[#002855] absolute left-4 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={busquedaGlobal}
-                      onChange={(e) => setBusquedaGlobal(e.target.value)}
-                      placeholder="Buscar asignatura (ej. CS113, MAT312), sílabo, docente o material académico..."
-                      className="w-full pl-12 pr-28 py-3.5 sm:py-4 bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none"
-                    />
-                    {busquedaGlobal ? (
-                      <button
-                        type="button"
-                        onClick={() => setBusquedaGlobal("")}
-                        className="absolute right-2.5 text-xs font-bold text-white bg-[#8B1515] hover:bg-red-800 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
-                      >
-                        Limpiar
-                      </button>
-                    ) : (
-                      <span className="hidden sm:inline-flex absolute right-3 px-2.5 py-1 rounded-md bg-blue-50 text-[#002855] font-mono text-[10px] font-bold border border-blue-200">
-                        2026-I / II
-                      </span>
-                    )}
-                  </div>
-
-                  {busquedaGlobal.trim() !== "" && (
-                    <div className="absolute left-0 right-0 mt-2 rounded-2xl bg-white text-slate-900 border-2 border-[#002855] shadow-2xl p-4 z-40 space-y-3 max-h-96 overflow-y-auto">
-                      {resultadosBusquedaHero.cursos.length === 0 &&
-                      resultadosBusquedaHero.materiales.length === 0 ? (
-                        <p className="text-xs text-slate-500 text-center py-4">
-                          No se encontraron registros académicos para &ldquo;{busquedaGlobal}&rdquo;.
-                        </p>
-                      ) : (
-                        <div className="space-y-1.5">
-                          {resultadosBusquedaHero.cursos.map((c) => (
-                            <button
-                              key={c.id}
-                              type="button"
-                              onClick={() => {
-                                setBusquedaGlobal("");
-                                navegarACarrera(c.carrera_id);
-                              }}
-                              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left transition-colors cursor-pointer"
-                            >
-                              <div>
-                                <span className="font-mono text-xs font-bold text-red-700">
-                                  [{c.codigo}]
-                                </span>{" "}
-                                <span className="text-xs font-bold text-slate-900">
-                                  {c.nombre_curso}
-                                </span>
-                                <p className="text-[11px] text-slate-600">
-                                  Ciclo {c.ciclo} • {c.creditos} créditos •{" "}
-                                  {carreras.find((ca) => ca.id === c.carrera_id)?.nombre}
-                                </p>
-                              </div>
-                              <ChevronRight className="w-4 h-4 text-[#002855]" />
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+              {/* Buscador Académico con Paleta Institucional */}
+              <div className="relative max-w-2xl mx-auto w-full pt-1 text-left">
+                <div className="relative flex items-center shadow-2xl rounded-2xl overflow-hidden border-2 border-white/30 bg-white focus-within:ring-4 focus-within:ring-red-500/40">
+                  <Search className="w-5 h-5 text-[#002855] absolute left-4 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={busquedaGlobal}
+                    onChange={(e) => setBusquedaGlobal(e.target.value)}
+                    placeholder="Buscar asignatura (ej. CS113, MAT312), sílabo, docente o material académico..."
+                    className="w-full pl-12 pr-28 py-3.5 sm:py-4 bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:outline-none"
+                  />
+                  {busquedaGlobal ? (
+                    <button
+                      type="button"
+                      onClick={() => setBusquedaGlobal("")}
+                      className="absolute right-2.5 text-xs font-bold text-white bg-[#8B1515] hover:bg-red-800 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+                    >
+                      Limpiar
+                    </button>
+                  ) : (
+                    <span className="hidden sm:inline-flex absolute right-3 px-2.5 py-1 rounded-md bg-blue-50 text-[#002855] font-mono text-[10px] font-bold border border-blue-200">
+                      2026-I / II
+                    </span>
                   )}
                 </div>
 
-                {/* Accesos Rápidos Universitarios con Acentos Sanmarquinos */}
-                {!modoAvance1 && (
-                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                {busquedaGlobal.trim() !== "" && (
+                  <div className="absolute left-0 right-0 mt-2 rounded-2xl bg-white text-slate-900 border-2 border-[#002855] shadow-2xl p-4 z-40 space-y-3 max-h-96 overflow-y-auto">
+                    {resultadosBusquedaHero.cursos.length === 0 &&
+                    resultadosBusquedaHero.materiales.length === 0 ? (
+                      <p className="text-xs text-slate-500 text-center py-4">
+                        No se encontraron registros académicos para &ldquo;{busquedaGlobal}&rdquo;.
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {resultadosBusquedaHero.cursos.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => {
+                              setBusquedaGlobal("");
+                              navegarACarrera(c.carrera_id);
+                            }}
+                            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-left transition-colors cursor-pointer"
+                          >
+                            <div>
+                              <span className="font-mono text-xs font-bold text-red-700">
+                                [{c.codigo}]
+                              </span>{" "}
+                              <span className="text-xs font-bold text-slate-900">
+                                {c.nombre_curso}
+                              </span>
+                              <p className="text-[11px] text-slate-600">
+                                Ciclo {c.ciclo} • {c.creditos} créditos •{" "}
+                                {carreras.find((ca) => ca.id === c.carrera_id)?.nombre}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-[#002855]" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Accesos Rápidos Universitarios con Acentos Sanmarquinos */}
+              {!modoAvance1 && (
+                <div className="flex flex-wrap items-center justify-center gap-2.5 pt-1">
                   <button
                     type="button"
                     onClick={() => navegar("/repositorio")}
-                    className="px-3.5 py-2 rounded-xl bg-[#002855]/85 hover:bg-[#002855] border border-blue-400/30 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer shadow-sm"
+                    className="px-4 py-2.5 rounded-xl bg-[#002855]/85 hover:bg-[#002855] border border-blue-400/30 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer shadow-sm"
                   >
                     <FolderOpen className="w-3.5 h-3.5 text-amber-300" />
                     <span>Repositorio Digital</span>
@@ -378,7 +314,7 @@ export function HomeViewAcademico({
                   <button
                     type="button"
                     onClick={() => navegar("/docentes")}
-                    className="px-3.5 py-2 rounded-xl bg-[#8B1515]/85 hover:bg-[#8B1515] border border-red-400/30 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer shadow-sm"
+                    className="px-4 py-2.5 rounded-xl bg-[#8B1515]/85 hover:bg-[#8B1515] border border-red-400/30 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer shadow-sm"
                   >
                     <Users className="w-3.5 h-3.5 text-amber-300" />
                     <span>Plana Catedrática ({docentes.length})</span>
@@ -386,90 +322,13 @@ export function HomeViewAcademico({
                   <button
                     type="button"
                     onClick={() => navegar("/transparencia")}
-                    className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/25 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/25 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer"
                   >
                     <FileText className="w-3.5 h-3.5 text-red-300" />
                     <span>Transparencia Universitaria</span>
                   </button>
                 </div>
-                )}
-              </div>
-
-              {/* Columna Derecha: Tablero de Indicadores Académicos Editables en CMS */}
-              <div className="lg:col-span-5">
-                <div className="rounded-2xl bg-[#00152e]/85 backdrop-blur-xl border border-white/20 border-t-4 border-t-[#8B1515] p-5 sm:p-6 shadow-2xl space-y-4">
-                  <div className="flex items-center justify-between border-b border-white/15 pb-3">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-amber-400" />
-                      <span className="text-xs font-bold uppercase tracking-wider text-white">
-                        {tituloTablero}
-                      </span>
-                    </div>
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/35 text-[10px] font-bold">
-                      {estadoTablero}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
-                      <span className="text-2xl font-extrabold text-white block">
-                        {met1Valor}
-                      </span>
-                      <span className="text-[11px] text-blue-100 font-medium">
-                        {met1Label}
-                      </span>
-                    </div>
-                    <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
-                      <span className="text-2xl font-extrabold text-amber-300 block">
-                        {met2Valor}
-                      </span>
-                      <span className="text-[11px] text-blue-100 font-medium">
-                        {met2Label}
-                      </span>
-                    </div>
-                    <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
-                      <span className="text-2xl font-extrabold text-red-300 block">
-                        {met3Valor}
-                      </span>
-                      <span className="text-[11px] text-blue-100 font-medium">
-                        {met3Label}
-                      </span>
-                    </div>
-                    <div className="rounded-xl bg-white/5 border border-white/10 p-3.5">
-                      <span className="text-2xl font-extrabold text-emerald-300 block">
-                        {met4Valor}
-                      </span>
-                      <span className="text-[11px] text-blue-100 font-medium">
-                        {met4Label}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-blue-200 block">
-                      Escuelas Profesionales (Colores Oficiales):
-                    </span>
-                    <div className="grid grid-cols-2 gap-2">
-                      {carreras.map((car) => (
-                        <button
-                          key={car.id}
-                          type="button"
-                          onClick={() => navegarACarrera(car.id)}
-                          className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-left flex items-center justify-between gap-2 transition-colors cursor-pointer group/btn"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            {renderIconoEscuela(car.id)}
-                            <span className="text-[11px] font-bold text-white truncate">
-                              {car.nombre}
-                            </span>
-                          </div>
-                          <ChevronRight className="w-3.5 h-3.5 text-amber-300 shrink-0 group-hover/btn:translate-x-0.5 transition-transform" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
